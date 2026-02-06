@@ -141,7 +141,7 @@ client.execute('ir.actions.server', 'write', [server_action_id], {'code': fixed_
 ### Corregir slots existentes
 
 ```bash
-uv run python hotel-trip-agency/debug_planning.py sale-vs-planning S00020
+uv run python business_units/hotel-trip-agency/hotel/debug_planning.py sale-vs-planning S00020
 ```
 
 Para forzar la re-ejecucion de la automatizacion en slots existentes, escribir un valor
