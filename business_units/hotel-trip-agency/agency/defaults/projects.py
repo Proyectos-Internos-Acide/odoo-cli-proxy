@@ -2,6 +2,14 @@
 
 TEMPLATE_NAME = "Tour Estandar"
 
+# Kanban stages for tour operation projects (sequence determines order)
+TEMPLATE_STAGES = [
+    {"name": "Pendientes", "sequence": 5},
+    {"name": "En progreso", "sequence": 10},
+    {"name": "Listo", "sequence": 15},
+    {"name": "Cancelado", "sequence": 20},
+]
+
 STANDARD_TASKS = [
     {
         "name": "1. Confirmar Reservas",

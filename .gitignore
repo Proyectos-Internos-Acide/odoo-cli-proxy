@@ -7,3 +7,5 @@ venv/
 .DS_Store
 .idea/
 .vscode/
+project_management/generated/*
+!project_management/generated/.gitkeep

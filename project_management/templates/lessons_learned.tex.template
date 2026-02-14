@@ -1,0 +1,106 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+
+\geometry{margin=2.5cm}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small {{COMPANY_NAME}}}
+\fancyhead[R]{\small Lecciones Aprendidas}
+\fancyfoot[C]{\thepage}
+
+\definecolor{primary}{HTML}{{{PRIMARY_COLOR}}}
+\definecolor{accent}{HTML}{{{ACCENT_COLOR}}}
+
+\titleformat{\section}{\Large\bfseries\color{primary}}{}{0em}{}[\titlerule]
+\titleformat{\subsection}{\large\bfseries\color{accent}}{}{0em}{}
+
+\begin{document}
+
+\begin{center}
+    {\LARGE\bfseries LECCIONES APRENDIDAS}\\[0.5em]
+    {\large {{PROJECT_DESCRIPTION}}}\\[1em]
+    {\normalsize {{PROGRAM_NAME}}}\\[0.5em]
+    {\normalsize C\'odigo del Proyecto: {{PROJECT_CODE}}}\\[0.3em]
+    {\small {{COMPANY_NAME}}}
+\end{center}
+
+\vspace{1em}
+
+\section{Objetivo General del Proyecto}
+
+% TODO: Un p\'arrafo describiendo el objetivo general.
+% Implementar Odoo 19 como ERP integrado para {{COMPANY_NAME}},
+% centralizando la gesti\'on del Hotel, Agencia de Viajes y Restaurante.
+
+\section{Resultados Obtenidos}
+
+\begin{itemize}
+    \item \textbf{R1:} % TODO: Resultado 1 con datos cuantitativos
+    \item \textbf{R2:} % TODO: Resultado 2 con datos cuantitativos
+    \item \textbf{R3:} % TODO: Resultado 3 con datos cuantitativos
+\end{itemize}
+
+\section{Lecciones Aprendidas}
+
+\subsection{Primera Ronda}
+
+\begin{tabularx}{\textwidth}{|X|X|X|X|}
+    \hline
+    \textbf{\'Que sali\'o bien?} & \textbf{\'Por qu\'e se hizo bien?} &
+    \textbf{Tuvieron todo lo necesario para hacer las tareas?} &
+    \textbf{El plan se ejecut\'o seg\'un lo planeado?} \\
+    \hline
+    {[Completar]} & {[Completar]} & {[Completar]} & {[Completar]} \\
+    \hline
+\end{tabularx}
+
+\subsection{Segunda Ronda}
+
+\begin{tabularx}{\textwidth}{|X|X|X|X|}
+    \hline
+    \textbf{\'Qu\'e sali\'o mal?} & \textbf{\'Qu\'e se ten\'ia que haber hecho diferente?} &
+    \textbf{El entorno de trabajo fue colaborativo y propositivo?} &
+    \textbf{Las partes interesadas participaron eficazmente?} \\
+    \hline
+    {[Completar]} & {[Completar]} & {[Completar]} & {[Completar]} \\
+    \hline
+\end{tabularx}
+
+\subsection{Tercera Ronda}
+
+\begin{tabularx}{\textwidth}{|X|X|X|X|}
+    \hline
+    \textbf{\'Qu\'e condiciones externas afectaron al proyecto?} &
+    \textbf{Se identificaron los riesgos?} &
+    \textbf{\'Qu\'e acciones se tomaron o deber\'ian haberse tomado?} &
+    \textbf{Los cambios durante el proyecto fueron viables y se ajustaron al alcance?} \\
+    \hline
+    {[Completar]} & {[Completar]} & {[Completar]} & {[Completar]} \\
+    \hline
+\end{tabularx}
+
+\section{Resumen de Lecciones Aprendidas y Conclusi\'on Final}
+
+% TODO: 2-3 p\'arrafos de conclusi\'on.
+% Cubrir:
+% - Factor determinante del \'exito del proyecto
+% - Principal lecci\'on aprendida
+% - Gesti\'on del cambio cultural en la organizaci\'on
+% - Conclusi\'on general del proyecto
+
+\section{Evidencia}
+
+{{EVIDENCE_IMAGES}}
+
+\end{document}

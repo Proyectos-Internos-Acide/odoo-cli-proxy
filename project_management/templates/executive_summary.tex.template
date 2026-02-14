@@ -1,0 +1,133 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+
+\geometry{margin=2.5cm}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small {{COMPANY_NAME}}}
+\fancyhead[R]{\small Resumen Ejecutivo}
+\fancyfoot[C]{\thepage}
+
+\definecolor{primary}{HTML}{{{PRIMARY_COLOR}}}
+\definecolor{accent}{HTML}{{{ACCENT_COLOR}}}
+
+\titleformat{\section}{\Large\bfseries\color{primary}}{}{0em}{}[\titlerule]
+\titleformat{\subsection}{\large\bfseries\color{accent}}{}{0em}{}
+
+\begin{document}
+
+\begin{center}
+    {\LARGE\bfseries {{PROJECT_DESCRIPTION}}}\\[0.5em]
+    {\Large Resumen Ejecutivo}\\[1em]
+    {\normalsize C\'odigo de Proyecto: {{PROJECT_CODE}}}\\[0.5em]
+    {\normalsize Elaborado por: {{COORDINATOR_NAME}} -- Coordinador General}\\[0.3em]
+    {\small Email: } % TODO: email \\[0.3em]
+    {\small Fecha: {{REPORT_DATE}}}
+\end{center}
+
+\vspace{1em}
+
+\section{Resumen}
+
+% TODO: 2-3 p\'arrafos resumiendo el proyecto.
+% Cubrir: contexto, problema, soluci\'on implementada, resultados clave.
+
+\textbf{Palabras Clave:} Implementaci\'on ERP, Odoo 19, gesti\'on hotelera,
+agencia de viajes, transformaci\'on digital, metodolog\'ia Scrum
+
+\section{Problema}
+
+% TODO: Describir la problem\'atica pre-implementaci\'on.
+% - Gesti\'on manual con hojas de c\'alculo
+% - Falta de integraci\'on entre \'areas (hotel, agencia, restaurante)
+% - Ineficiencias operativas
+
+\section{Objetivo General del Proyecto}
+
+% TODO: Un p\'arrafo describiendo el objetivo general
+
+\section{Justificaci\'on del Proyecto}
+
+% TODO: Por qu\'e era necesaria la implementaci\'on de un ERP
+
+\section{Hip\'otesis}
+
+% TODO: Hip\'otesis del proyecto
+
+\section{Metodolog\'ia Implementada}
+
+% TODO: Describir etapas:
+% 1. Diagn\'ostico y Planificaci\'on
+% 2. Configuraci\'on Iterativa (metodolog\'ia Scrum)
+% 3. Arquitectura Tecnol\'ogica (Odoo 19 SaaS)
+% 4. Capacitaci\'on y acompa\~namiento
+
+\section{Resultados}
+
+\subsection{R1}
+
+% TODO: Nombre y descripci\'on del resultado con datos cuantitativos
+
+\subsection{R2}
+
+% TODO: Nombre y descripci\'on del resultado con datos cuantitativos
+
+\subsection{R3}
+
+% TODO: Nombre y descripci\'on del resultado con datos cuantitativos
+
+\section{Impactos}
+
+\subsection{Impacto Econ\'omico}
+
+% TODO: Reducci\'on de costos, eficiencia operativa, ROI
+
+\subsection{Impacto Tecnol\'ogico}
+
+% TODO: Modernizaci\'on, integraci\'on de procesos, automatizaci\'on
+
+\subsection{Impacto Ambiental}
+
+% TODO: Reducci\'on de uso de papel, digitalizaci\'on de procesos
+
+\section{Conclusiones}
+
+% TODO: 2-3 p\'arrafos de conclusiones
+
+\section{Financiamiento del Proyecto}
+
+\begin{tabularx}{\textwidth}{Xrl}
+    \toprule
+    \textbf{Fuente de Financiamiento} & \textbf{Importe (S/.)} & \textbf{Porcentaje} \\
+    \midrule
+    {[Fuente 1]} & {[Importe]} & {[Porcentaje]} \\
+    {{ENTITY_NAME}} & {[Importe]} & {[Porcentaje]} \\
+    \midrule
+    \textbf{COSTO TOTAL} & \textbf{[Total]} & \textbf{100\%} \\
+    \bottomrule
+\end{tabularx}
+
+\vspace{2em}
+
+\noindent\rule{\textwidth}{0.4pt}
+
+\noindent \textit{El presente resumen ejecutivo fue elaborado por {{COORDINATOR_NAME}}.}
+
+\vspace{1em}
+\noindent \textbf{Contacto:}\\
+{{COORDINATOR_NAME}}\\
+{{ENTITY_NAME}}\\
+% TODO: Tel\'efono y email
+
+\end{document}

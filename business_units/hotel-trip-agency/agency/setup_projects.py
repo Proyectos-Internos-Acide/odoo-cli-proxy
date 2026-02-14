@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 import typer
 from odoo_cli import OdooClient
 from defaults.categories import CATEGORIES
-from agency.defaults.projects import TEMPLATE_NAME, STANDARD_TASKS
+from agency.defaults.projects import TEMPLATE_NAME, STANDARD_TASKS, TEMPLATE_STAGES
 
 app = typer.Typer(help="Configure project templates for travel agency")
 
@@ -62,33 +62,72 @@ def setup():
             changes += 1
 
     # ---------------------------------------------------------------
-    # 2. Create standard tasks in the template
+    # 2. Create kanban stages for the template
     # ---------------------------------------------------------------
-    typer.secho("\n2. Standard tasks", bold=True)
+    typer.secho("\n2. Kanban stages", bold=True)
+
+    existing_stages = client.search_read('project.task.type',
+        domain=[['project_ids', 'in', [template_id]]],
+        fields=['name'])
+    existing_stage_names = {s['name'] for s in existing_stages}
+    pendientes_stage_id = None
+
+    for stage_def in TEMPLATE_STAGES:
+        if stage_def['name'] in existing_stage_names:
+            stage = [s for s in existing_stages if s['name'] == stage_def['name']][0]
+            typer.secho(f"  [OK] {stage_def['name']} (id={stage['id']})", fg=typer.colors.GREEN)
+            if stage_def['name'] == 'Pendientes':
+                pendientes_stage_id = stage['id']
+        else:
+            result = client.execute('project.task.type', 'create', [{
+                'name': stage_def['name'],
+                'sequence': stage_def['sequence'],
+                'project_ids': [(4, template_id)],
+            }])
+            sid = result[0] if isinstance(result, list) else result
+            typer.secho(f"  [CREATED] {stage_def['name']} (id={sid})", fg=typer.colors.GREEN)
+            if stage_def['name'] == 'Pendientes':
+                pendientes_stage_id = sid
+            changes += 1
+
+    # ---------------------------------------------------------------
+    # 3. Create standard tasks in the template
+    # ---------------------------------------------------------------
+    typer.secho("\n3. Standard tasks", bold=True)
 
     existing_tasks = client.search_read('project.task',
         domain=[['project_id', '=', template_id]],
-        fields=['name'])
+        fields=['name', 'stage_id'])
     existing_names = {et['name'] for et in existing_tasks}
 
     for task_def in STANDARD_TASKS:
         task_name = task_def['name']
         if task_name in existing_names:
-            typer.secho(f"  [OK] {task_name} (already exists)", fg=typer.colors.GREEN)
+            task = [t for t in existing_tasks if t['name'] == task_name][0]
+            # Fix stage if missing
+            if not task['stage_id'] and pendientes_stage_id:
+                client.execute('project.task', 'write', [task['id']], {'stage_id': pendientes_stage_id})
+                typer.secho(f"  [FIXED] {task_name} -> Pendientes", fg=typer.colors.GREEN)
+                changes += 1
+            else:
+                typer.secho(f"  [OK] {task_name} (already exists)", fg=typer.colors.GREEN)
         else:
-            result = client.execute('project.task', 'create', [{
+            vals = {
                 'name': task_name,
                 'description': task_def['description'],
                 'project_id': template_id,
-            }])
+            }
+            if pendientes_stage_id:
+                vals['stage_id'] = pendientes_stage_id
+            result = client.execute('project.task', 'create', [vals])
             task_id = result[0] if isinstance(result, list) else result
             typer.secho(f"  [CREATED] {task_name}", fg=typer.colors.GREEN)
             changes += 1
 
     # ---------------------------------------------------------------
-    # 3. Link tour products to the project template
+    # 4. Link tour products to the project template
     # ---------------------------------------------------------------
-    typer.secho("\n3. Link tour products to template", bold=True)
+    typer.secho("\n4. Link tour products to template", bold=True)
 
     tour_products = client.search_read('product.template',
         domain=[['categ_id', '=', CATEGORIES['tours_packages']]],
@@ -117,9 +156,9 @@ def setup():
                 typer.secho(f"  [ERROR] {p['name']}: {str(e)[:80]}", fg=typer.colors.RED)
 
     # ---------------------------------------------------------------
-    # 4. Show existing projects
+    # 5. Show existing projects
     # ---------------------------------------------------------------
-    typer.secho("\n4. Existing projects", bold=True)
+    typer.secho("\n5. Existing projects", bold=True)
 
     projects = client.search_read('project.project', domain=[],
         fields=['name', 'is_template', 'task_count', 'partner_id'])

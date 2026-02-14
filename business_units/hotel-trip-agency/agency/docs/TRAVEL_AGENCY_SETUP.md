@@ -243,6 +243,9 @@ uv run python business_units/hotel-trip-agency/verify_setup.py
 | `setup_products.py` | raiz | Atributos y productos (cross-cutting) |
 | `verify_setup.py` | raiz | Verificacion completa |
 | `check_modules.py` | raiz | Auditoria de modulos y estado |
+| `fix_slot_times_automation.py` | `hotel/` | Parche critico para bug de planning slots |
+| `setup_custom_fields.py` | `agency/` | Campos custom, categorias proveedor, alojamiento externo |
+| `create_test_quotations.py` | `agency/` | Datos de prueba: pasajeros y cotizaciones |
 
 Base path: `business_units/hotel-trip-agency/`
 
@@ -252,10 +255,17 @@ Base path: `business_units/hotel-trip-agency/`
 
 1. Instalar modulos faltantes (mrp) desde UI
 2. `uv run python business_units/hotel-trip-agency/hotel/setup_timezone.py America/Lima`
-3. `uv run python business_units/hotel-trip-agency/agency/setup_sales_settings.py`
-4. `uv run python business_units/hotel-trip-agency/setup_products.py`
-5. `uv run python business_units/hotel-trip-agency/agency/setup_projects.py`
-6. `uv run python business_units/hotel-trip-agency/agency/setup_expenses.py`
-7. `uv run python business_units/hotel-trip-agency/agency/setup_kits.py`
-8. `uv run python business_units/hotel-trip-agency/verify_setup.py`
-9. Configurar catalogo web desde UI (Website Builder)
+3. `uv run python business_units/hotel-trip-agency/hotel/fix_slot_times_automation.py` **(CRITICO)**
+4. `uv run python business_units/hotel-trip-agency/agency/setup_sales_settings.py`
+5. `uv run python business_units/hotel-trip-agency/setup_products.py`
+6. `uv run python business_units/hotel-trip-agency/agency/setup_projects.py`
+7. `uv run python business_units/hotel-trip-agency/agency/setup_expenses.py`
+8. `uv run python business_units/hotel-trip-agency/agency/setup_kits.py`
+9. `uv run python business_units/hotel-trip-agency/agency/setup_custom_fields.py`
+10. `uv run python business_units/hotel-trip-agency/verify_setup.py`
+11. Configurar catalogo web desde UI (Website Builder)
+12. Agregar campos custom a vistas desde Odoo Studio (drag & drop)
+
+> **IMPORTANTE**: El paso 3 (fix_slot_times_automation) es **obligatorio** antes de
+> confirmar cualquier orden de venta. Sin el, la automatizacion del booking engine
+> crashea al crear planning slots sin fechas. Ver `hotel/docs/TIMEZONE_BUG_FIX.md`.
