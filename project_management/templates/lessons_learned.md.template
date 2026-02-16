@@ -1,0 +1,67 @@
+---
+title: "LECCIONES APRENDIDAS"
+subtitle: "{{PROJECT_DESCRIPTION}}"
+author: "{{COMPANY_NAME}}"
+date: "{{PROJECT_CODE}}"
+geometry: margin=2.5cm
+lang: es
+fontsize: 12pt
+---
+
+**{{PROGRAM_NAME}}**
+
+**Titulo del Proyecto**: {{PROJECT_DESCRIPTION}}
+
+**Codigo del Proyecto**: {{PROJECT_CODE}}
+
+---
+
+## Objetivo General del Proyecto
+
+<!-- TODO: Un parrafo describiendo el objetivo general.
+Implementar Odoo 19 como ERP integrado para {{COMPANY_NAME}},
+centralizando la gestion del Hotel, Agencia de Viajes y Restaurante.
+-->
+
+## Resultados Obtenidos
+
+- **R1**: <!-- TODO: Resultado 1 con datos cuantitativos -->
+- **R2**: <!-- TODO: Resultado 2 con datos cuantitativos -->
+- **R3**: <!-- TODO: Resultado 3 con datos cuantitativos -->
+
+Datos del sistema: {{TOTAL_PRODUCTS}} productos, {{TOTAL_CATEGORIES}} categorias,
+{{TOTAL_ATTRIBUTES}} atributos, {{TOTAL_PROJECTS}} proyectos configurados en Odoo.
+
+## Lecciones Aprendidas
+
+### Primera Ronda
+
+| Que salio bien? | Por que se hizo bien? | Tuvieron todo lo necesario para hacer las tareas? | El plan se ejecuto segun lo planeado? |
+|---|---|---|---|
+| <!-- TODO --> | <!-- TODO --> | <!-- TODO --> | <!-- TODO --> |
+
+### Segunda Ronda
+
+| Que salio mal? | Que se tenia que haber hecho diferente? | El entorno de trabajo fue colaborativo y propositivo? | Las partes interesadas participaron eficazmente? |
+|---|---|---|---|
+| <!-- TODO --> | <!-- TODO --> | <!-- TODO --> | <!-- TODO --> |
+
+### Tercera Ronda
+
+| Que condiciones externas afectaron al proyecto? | Se identificaron los riesgos? | Que acciones se tomaron o deberian haberse tomado? | Los cambios durante el proyecto fueron viables y se ajustaron al alcance? |
+|---|---|---|---|
+| <!-- TODO --> | <!-- TODO --> | <!-- TODO --> | <!-- TODO --> |
+
+## Resumen de Lecciones Aprendidas y Conclusion Final
+
+<!-- TODO: 2-3 parrafos de conclusion.
+Cubrir:
+- Factor determinante del exito del proyecto
+- Principal leccion aprendida
+- Gestion del cambio cultural en la organizacion
+- Conclusion general del proyecto y recomendaciones para futuros proyectos
+-->
+
+## Evidencia
+
+{{EVIDENCE_IMAGES}}

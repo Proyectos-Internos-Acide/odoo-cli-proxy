@@ -1,0 +1,43 @@
+---
+title: "Product Increment -- Sprint {{SPRINT_NUMBER}}"
+subtitle: "{{COMPANY_NAME}} -- {{PROJECT_SUBTITLE}}"
+date: "Periodo: {{PERIOD}}"
+geometry: margin=2.5cm
+lang: es
+fontsize: 12pt
+---
+
+# Descripcion del Incremento
+
+<!-- TODO: Describir el incremento del sprint. -->
+
+# Configuracion de Odoo Realizada
+
+{{ODOO_DATA_SECTIONS}}
+
+# Reuniones del Sprint
+
+| Reunion | Fecha | Tema |
+|---|---|---|
+| <!-- TODO: Agregar reuniones del sprint --> | | |
+
+<!-- TODO: Agregar enlaces de grabacion si existen -->
+
+# Resumen de Configuracion por Fecha
+
+| Fecha | Items | Detalle Principal |
+|---|---|---|
+{{CONFIG_SUMMARY_TABLE}}
+
+# Criterios de Aceptacion
+
+| Criterio | Resultado | Estado |
+|---|---|---|
+| <!-- TODO: Agregar criterios --> | | PASS/WARN |
+
+# Evidencia Visual
+
+{{EVIDENCE_IMAGES}}
+
+<!-- TODO: Agregar capturas de pantalla en formato: -->
+<!-- ![Descripcion](img/screenshot.png) -->

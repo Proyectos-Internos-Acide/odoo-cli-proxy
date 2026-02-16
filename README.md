@@ -18,9 +18,10 @@ Designed to work with environment variables (`.env`) for easy configuration in a
    cd py-odoo-cli
    ```
 
-2. Install dependencies:
+2. Install [UV](https://docs.astral.sh/uv/) and dependencies:
    ```bash
-   pip install python-dotenv
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+   uv sync
    ```
 
 3. Configure environment:
@@ -59,22 +60,22 @@ for p in partners:
 
 Check connection:
 ```bash
-python3 main.py test_connection
+uv run python main.py test-connection
 ```
 
 List records:
 ```bash
-python3 main.py list res.partner --limit 5 --fields name,email
+uv run python main.py list res.partner --limit 5 --fields name,email
 ```
 
 List installed modules:
 ```bash
-python3 main.py list_modules
+uv run python main.py list-modules
 ```
 
 List system configurations:
 ```bash
-python3 main.py list_config
+uv run python main.py list-config
 ```
 
 ## Structure

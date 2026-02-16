@@ -1,0 +1,96 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{longtable}
+
+\geometry{margin=2.5cm}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small {{COMPANY_NAME}}}
+\fancyhead[R]{\small Sprint {{SPRINT_NUMBER}} -- Product Increment}
+\fancyfoot[C]{\thepage}
+
+\definecolor{primary}{HTML}{{{PRIMARY_COLOR}}}
+\definecolor{accent}{HTML}{{{ACCENT_COLOR}}}
+\definecolor{success}{HTML}{{{SUCCESS_COLOR}}}
+\definecolor{warn}{HTML}{{{WARN_COLOR}}}
+
+\titleformat{\section}{\Large\bfseries\color{primary}}{}{0em}{}[\titlerule]
+\titleformat{\subsection}{\large\bfseries\color{accent}}{}{0em}{}
+
+\begin{document}
+
+\begin{center}
+    {\LARGE\bfseries Product Increment -- Sprint {{SPRINT_NUMBER}}}\\[0.5em]
+    {\large {{COMPANY_NAME}} -- {{PROJECT_SUBTITLE}}}\\[0.3em]
+    {\normalsize Periodo: {{PERIOD}}}\\[0.3em]
+    {\small Proyecto: {{PROJECT_DESCRIPTION}}}
+\end{center}
+
+\vspace{1em}
+
+\section{Descripci\'on del Incremento}
+
+% TODO: Describir el incremento del sprint.
+% Ejemplo: El incremento del Sprint N consiste en la \textbf{configuraci\'on de ...}
+
+\section{Configuraci\'on de Odoo Realizada}
+
+{{ODOO_DATA_SECTIONS}}
+
+\section{Reuniones del Sprint}
+
+\begin{tabularx}{\textwidth}{llX}
+    \toprule
+    \textbf{Reuni\'on} & \textbf{Fecha} & \textbf{Tema} \\
+    \midrule
+    % TODO: Agregar reuniones del sprint
+    \bottomrule
+\end{tabularx}
+
+% TODO: Agregar enlaces de grabaci\'on si existen
+
+\section{Resumen de Configuraci\'on por Fecha}
+
+\begin{tabularx}{\textwidth}{lrX}
+    \toprule
+    \textbf{Fecha} & \textbf{Items} & \textbf{Detalle Principal} \\
+    \midrule
+    {{CONFIG_SUMMARY_TABLE}}
+    \bottomrule
+\end{tabularx}
+
+\section{Criterios de Aceptaci\'on}
+
+\begin{tabularx}{\textwidth}{Xcc}
+    \toprule
+    \textbf{Criterio} & \textbf{Resultado} & \textbf{Estado} \\
+    \midrule
+    % TODO: Agregar criterios de aceptaci\'on
+    % Criterio 1 & Resultado & \textcolor{success}{PASS} \\
+    % Criterio con advertencia & Parcial & \textcolor{warn}{WARN} \\
+    \bottomrule
+\end{tabularx}
+
+\section{Evidencia Visual}
+
+% TODO: Agregar figuras con capturas de pantalla.
+% Colocar las im\'agenes en la carpeta img/ del sprint.
+%
+% \begin{figure}[h]
+%     \centering
+%     \includegraphics[width=0.9\textwidth]{img/screenshot.png}
+%     \caption{Descripci\'on de la captura}
+% \end{figure}
+
+\end{document}
