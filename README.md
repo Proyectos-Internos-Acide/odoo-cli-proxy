@@ -19,6 +19,14 @@ Designed to work with environment variables (`.env`) for easy configuration in a
    ```
 
 2. Install [UV](https://docs.astral.sh/uv/) and dependencies:
+
+   **Windows (PowerShell):**
+   ```powershell
+   powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+   uv sync
+   ```
+
+   **Linux / macOS:**
    ```bash
    curl -LsSf https://astral.sh/uv/install.sh | sh
    uv sync
@@ -26,6 +34,13 @@ Designed to work with environment variables (`.env`) for easy configuration in a
 
 3. Configure environment:
    Copy `.env.example` to `.env`:
+
+   **Windows (PowerShell):**
+   ```powershell
+   copy .env.example .env
+   ```
+
+   **Linux / macOS:**
    ```bash
    cp .env.example .env
    ```
