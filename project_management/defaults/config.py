@@ -43,10 +43,10 @@ PANDOC_ARGS = [
 REPORT_TYPES = ["implementation", "executive_summary", "lessons_learned"]
 
 # Project metadata (for post-implementation reports)
-PROJECT_CODE = "TBD"
+PROJECT_CODE = r"N\textdegree{} 471-PROINNOVATE-IMTEMD-2025"
 PROJECT_ENTITY = COMPANY_NAME
-PROJECT_RUC = "TBD"
-PROJECT_DATE = "TBD"
-COORDINATOR_NAME = "TBD"
-CONSULTANT_NAME = "TBD"
-PROGRAM_NAME = r"PROGRAMA DE INNOVACI\'ON"
+PROJECT_RUC = "20600144813"
+PROJECT_DATE = "Febrero 2026"
+COORDINATOR_NAME = "Nohemi Milagros Cjumo Ovalle"
+CONSULTANT_NAME = "Marco Rosendo Mejia Miranda"
+PROGRAM_NAME = r"PROGRAMA PROINNOVATE -- IMTEMD 2025"

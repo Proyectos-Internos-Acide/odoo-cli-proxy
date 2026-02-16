@@ -109,8 +109,10 @@ def _create_or_update_automation(client, name, model_id, trigger, trigger_field_
         auto_id = existing[0]['id']
         action_ids = existing[0].get('action_server_ids', [])
         if action_ids:
-            client.execute('ir.actions.server', 'write', [action_ids[0]], {'code': code})
+            client.execute('ir.actions.server', 'write', [action_ids[0]], {
+                'code': code, 'model_id': model_id})
         client.execute('base.automation', 'write', [auto_id], {
+            'model_id': model_id,
             'trigger': trigger,
             'trigger_field_ids': [(6, 0, trigger_field_ids)] if trigger_field_ids else [(5, 0, 0)],
         })
@@ -154,6 +156,9 @@ TASK_FORM_VIEW_ARCH = '''<data>
         <field name="x_seats_needed" nolabel="1" invisible="not x_is_fleet_task"/>
         <label for="x_available_seats" invisible="not x_is_fleet_task or not x_vehicle_id"/>
         <field name="x_available_seats" nolabel="1" invisible="not x_is_fleet_task or not x_vehicle_id" readonly="1"/>
+        <label for="x_tour_group_id" invisible="not x_is_fleet_task"/>
+        <field name="x_tour_group_id" nolabel="1" invisible="not x_is_fleet_task" string="Grupo de Tour"
+               options="{'no_create': True}"/>
     </xpath>
     <xpath expr="//page[@name='extra_info']" position="before">
         <page string="Registro de Trabajo" name="work_log">
@@ -230,6 +235,8 @@ def setup():
         {'name': 'x_operator_ids', 'field_description': 'Operadores Asignados', 'ttype': 'many2many',
          'relation': 'res.partner', 'model': 'project.task'},
         {'name': 'x_use_internal_users', 'field_description': 'Mostrar Usuarios Internos', 'ttype': 'boolean', 'model': 'project.task'},
+        {'name': 'x_tour_group_id', 'field_description': 'Grupo de Tour', 'ttype': 'many2one',
+         'relation': 'x_tour_group', 'model': 'project.task'},
     ]
     for fdef in task_fields:
         fid, created = _create_field(client, fdef, task_model_id)
@@ -322,12 +329,12 @@ def setup():
     typer.secho(f"  [{'CREATED' if created else 'UPDATED'}] Automation {auto_id}", fg=typer.colors.GREEN)
 
     # ── 5. Automation: Propagate Tour Data to Tasks ───────────────────
-    typer.secho("\n5. Automation: Propagate Tour Data to Tasks", bold=True)
-    # on_state_set requires the state field
-    state_field_id = _get_field_id(client, 'sale.order', 'state')
+    # Runs on project.task on_create: pulls dates from linked SO
+    # (Previously used on_state_set on sale.order — fired before tasks existed)
+    typer.secho("\n5. Automation: Propagate Tour Data to Tasks (on task create)", bold=True)
     auto_id, created = _create_or_update_automation(
-        client, 'Propagate Tour Data to Tasks', so_model_id,
-        'on_state_set', [state_field_id] if state_field_id else [], PROPAGATE_TOUR_DATA)
+        client, 'Propagate Tour Data to Tasks', task_model_id,
+        'on_create', [], PROPAGATE_TOUR_DATA)
     typer.secho(f"  [{'CREATED' if created else 'UPDATED'}] Automation {auto_id}", fg=typer.colors.GREEN)
 
     # ── 6. Automation: Warn Vehicle Date Conflict ─────────────────────

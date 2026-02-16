@@ -19,6 +19,9 @@ SALE_ORDER_BIBLIA_ARCH = '''<data>
             <group>
                 <field name="x_num_passengers" invisible="not x_is_tour" required="x_is_tour"/>
                 <field name="x_departure_city" invisible="not x_is_tour"/>
+                <field name="x_tour_group_ids" invisible="not x_is_tour"
+                       widget="many2many_tags" string="Grupos"
+                       options="{'color_field': 'x_color', 'no_create_edit': True}"/>
             </group>
         </group>
     </xpath>
@@ -60,6 +63,7 @@ SALE_ORDER_BIBLIA_ARCH = '''<data>
                     <control><create string="Agregar pasajero"/></control>
                     <field name="x_sequence" widget="handle"/>
                     <field name="x_guest_partner_id" string="Pasajero" required="1"/>
+                    <field name="x_tour_group_id" string="Grupo" options="{'no_create': True}"/>
                     <field name="x_nationality_id" string="Nacionalidad" readonly="1"/>
                     <field name="x_document_number_rel" string="Nro. Doc." readonly="1"/>
                     <field name="x_phone_rel" string="Telefono" readonly="1"/>
@@ -665,6 +669,67 @@ ECOM_TRANSLATIONS_ES = [
     ('Close', 'Cerrar'),
     ('estimated', 'aprox.'),
 ]
+
+
+# ── Tour Group: Form + List views ────────────────────────────────────────
+
+TOUR_GROUP_FORM_ARCH = '''<form>
+    <sheet>
+        <div class="oe_title">
+            <h1><field name="x_name" placeholder="Nombre del grupo..."/></h1>
+        </div>
+        <group>
+            <group>
+                <field name="x_start_date"/>
+                <field name="x_end_date"/>
+                <field name="x_max_capacity"/>
+            </group>
+            <group>
+                <field name="x_color" widget="color_picker"/>
+            </group>
+        </group>
+        <separator string="Pasajeros"/>
+        <field name="x_passenger_ids" widget="many2many_tags"
+               options="{'no_create': True, 'color_field': 'color'}"/>
+        <separator string="Notas Operativas"/>
+        <field name="x_notes" placeholder="Notas operativas del grupo..."/>
+        <notebook>
+            <page string="Ventas Vinculadas" name="linked_sales">
+                <field name="x_sale_order_ids" readonly="1">
+                    <list>
+                        <field name="name" string="Pedido"/>
+                        <field name="partner_id" string="Cliente"/>
+                        <field name="x_tour_start_date" string="Fecha Inicio"/>
+                        <field name="x_tour_end_date" string="Fecha Fin"/>
+                        <field name="state" string="Estado" widget="badge"
+                            decoration-info="state == 'draft'"
+                            decoration-warning="state == 'sent'"
+                            decoration-success="state == 'sale'"/>
+                    </list>
+                </field>
+            </page>
+            <page string="Tareas de Flota" name="linked_tasks">
+                <field name="x_task_ids" readonly="1">
+                    <list>
+                        <field name="name" string="Tarea"/>
+                        <field name="sale_order_id" string="Pedido"/>
+                        <field name="x_vehicle_id" string="Vehiculo"/>
+                        <field name="x_driver_id" string="Chofer"/>
+                        <field name="x_seats_needed" string="Asientos"/>
+                        <field name="stage_id" string="Etapa"/>
+                    </list>
+                </field>
+            </page>
+        </notebook>
+    </sheet>
+</form>'''
+
+TOUR_GROUP_LIST_ARCH = '''<list>
+    <field name="x_name"/>
+    <field name="x_start_date"/>
+    <field name="x_end_date"/>
+    <field name="x_max_capacity"/>
+</list>'''
 
 
 VOUCHER_REPORT_TEMPLATE = '''<?xml version="1.0"?>

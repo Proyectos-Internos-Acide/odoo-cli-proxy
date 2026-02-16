@@ -37,6 +37,9 @@ uv run python business_units/hotel-trip-agency/agency/setup_partner_form.py
 
 # 7. Ecommerce: boton "Solicitar Cotizacion" para tours
 uv run python business_units/hotel-trip-agency/agency/setup_ecommerce.py
+
+# 8. Grupos de Tour (modelo, vistas, menu)
+uv run python business_units/hotel-trip-agency/agency/setup_tour_groups.py
 ```
 
 ## Que crea cada script
@@ -93,12 +96,13 @@ uv run python business_units/hotel-trip-agency/agency/setup_ecommerce.py
 
 **Automatizaciones:**
 - **Validate Tour Dates** (15): Bloquea si fecha fin < fecha inicio
-- **Propagate Tour Data to Tasks** (16): Al confirmar SO, copia fechas y asientos a tareas del proyecto
-- **Warn Vehicle Date Conflict** (17): Al asignar vehiculo en tarea, verifica conflictos:
+- **Propagate Tour Data to Tasks** (16): Al crear una tarea vinculada a un SO con `x_is_tour=True`, copia fechas y asientos desde el SO. Corre en `project.task` con trigger `on_create`.
+- **Warn Vehicle Date Conflict** (17): Al asignar vehiculo en tarea, verifica conflictos **solo contra SOs confirmados** (`state='sale'`):
   - Tours privados: bloquea si vehiculo tiene otros tours en mismas fechas
   - Tours compartidos: bloquea si excede capacidad, advierte si hay superposicion
   - Calcula x_available_seats automaticamente
-- **Sync Tour Data Changes** (18): Si se editan datos del tour en SO confirmada, propaga cambios a tareas. Advierte si cambio a privado tiene conflictos.
+  - Tareas de SOs cancelados o en borrador NO participan en la validacion
+- **Sync Tour Data Changes** (18): Si se editan datos del tour en SO confirmada, propaga cambios a tareas. Advierte si cambio a privado tiene conflictos (solo contra SOs confirmados).
 - **Work Log: Post to Task Chatter** (20): Al crear registro de trabajo, publica en chatter + recalcula horas
 - **Work Log: Recalc Hours on Edit** (21): Al editar horas/operador/tipo/descripcion, publica en chatter + recalcula
 - **Work Log: Recalc Hours on Delete** (22): Al eliminar registro, publica en chatter + recalcula (excluye registro eliminado)
@@ -171,6 +175,15 @@ uv run python business_units/hotel-trip-agency/agency/setup_ecommerce.py
 
 **Prerequisitos**: `website_sale` + `website_crm` instalados
 
+### 8. setup_tour_groups.py
+- Modelo `x_tour_group`: grupos operativos de pasajeros para tours
+- Campos: x_name, x_start_date, x_end_date, x_max_capacity, x_passenger_ids (m2m res.partner), x_notes, x_color
+- ACL: CRUD para Role/User (group_id=1)
+- Campo `x_tour_group_ids` (many2many) en sale.order
+- Campo `x_tour_group_id` (many2one) en project.task (creado por setup_fleet_automations.py)
+- Vistas form + list para x_tour_group
+- Window action + menu item bajo Ventas > Orders > "Grupos de Tour"
+
 ## Flujo Operativo
 
 ### Cotizacion → Proyecto
@@ -242,6 +255,22 @@ Los productos de tour NO muestran "Anadir al carrito" en la tienda web. En su lu
 
 **Nota**: productos que NO son tours (restaurante, hotel, etc.) siguen mostrando "Anadir al carrito" normal.
 
+### Grupos de Tour
+
+Los grupos permiten organizar pasajeros operativamente. Un grupo puede contener pasajeros de multiples ventas (tours compartidos) y una venta puede tener pasajeros en multiples grupos.
+
+1. **Crear grupo**: Ventas > Orders > Grupos de Tour > Nuevo. Asignar nombre, fechas, capacidad maxima.
+2. **Agregar pasajeros**: En el formulario del grupo, agregar contactos al campo "Pasajeros" (many2many tags).
+3. **Vincular a ventas**: En la cotizacion de tour (seccion "Tour"), asignar el grupo en el campo "Grupos" (many2many tags).
+4. **Vincular a tareas**: En las tareas de flota (con vehiculo), asignar el grupo en el campo "Grupo de Tour".
+
+**Casos de uso:**
+- **Tour compartido**: Crear grupo "Cusco Cultural Feb 15-20". Multiples ventas (S00050, S00051) asignan sus pasajeros al mismo grupo.
+- **Tour privado**: El grupo = los pasajeros de una sola venta. Se crea un grupo exclusivo para esa reserva.
+- **Grupos grandes**: Una venta con 40 pasajeros puede dividirse en Grupo A y Grupo B, cada uno con su vehiculo.
+
+**Nota**: El vinculo grupo-venta y grupo-pasajeros es manual. No hay automatizacion que auto-asigne pasajeros a grupos.
+
 ### Datos del pasajero
 
 Los datos personales (restricciones medicas, fecha nacimiento, emergencia) se editan en el **formulario de contacto** (res.partner), NO en la Biblia Operativa. La Biblia los muestra como solo lectura.
@@ -250,7 +279,7 @@ Los datos personales (restricciones medicas, fecha nacimiento, emergencia) se ed
 
 | Archivo | Contenido |
 |---------|-----------|
-| `agency/defaults/views.py` | Arquitecturas XML de todas las vistas (SO, template, partner, PDF, ecommerce) |
+| `agency/defaults/views.py` | Arquitecturas XML de todas las vistas (SO, template, partner, PDF, ecommerce, tour groups) |
 | `agency/defaults/automations.py` | Codigo Python de 9 automatizaciones (flota + work log) + 1 server action (POs) |
 | `agency/defaults/projects.py` | Plantilla de proyecto, etapas, tareas estandar |
 | `agency/defaults/products.py` | Productos de tour |
@@ -374,6 +403,7 @@ Los reportes se crean automaticamente al ejecutar el script. Aparecen en el menu
 | x_inclusions | html | Servicios incluidos | setup_biblia_operativa.py |
 | x_key_times | text | Horarios clave | setup_biblia_operativa.py |
 | x_special_observations | text | Observaciones especiales | setup_biblia_operativa.py |
+| x_tour_group_ids | many2many (x_tour_group) | Grupos de tour | setup_tour_groups.py |
 
 ### sale.order.template
 | Campo | Tipo | Descripcion | Creado por |
@@ -401,6 +431,18 @@ Los reportes se crean automaticamente al ejecutar el script. Aparecen en el menu
 | x_total_hours_logged | float | Horas registradas (auto-calculado) | setup_fleet_automations.py |
 | x_remaining_hours | float | Horas restantes (auto-calculado) | setup_fleet_automations.py |
 | x_work_log_ids | one2many (x_task_work_log) | Registro de trabajo | setup_fleet_automations.py |
+| x_tour_group_id | many2one (x_tour_group) | Grupo de tour (flota) | setup_fleet_automations.py |
+
+### x_tour_group (modelo custom)
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| x_name | char | Nombre del grupo |
+| x_start_date | date | Fecha inicio |
+| x_end_date | date | Fecha fin |
+| x_max_capacity | integer | Capacidad maxima de pasajeros |
+| x_passenger_ids | many2many (res.partner) | Pasajeros del grupo |
+| x_notes | text | Notas operativas |
+| x_color | integer | Color para tags/kanban |
 
 ### x_task_work_log (modelo custom)
 | Campo | Tipo | Descripcion |
@@ -464,6 +506,8 @@ Los reportes se crean automaticamente al ejecutar el script. Aparecen en el menu
 | sale.report_saleorder_document.exchange_rate | sale.order | report template (qweb) | setup_biblia_operativa.py |
 | project.task.form.inherit.agency_fields | project.task | (auto-detectado) | setup_fleet_automations.py |
 | res.partner.form.inherit.agency_guest_fields | res.partner | booking engine view | setup_partner_form.py |
+| x_tour_group.form.agency | x_tour_group | (base) | setup_tour_groups.py |
+| x_tour_group.list.agency | x_tour_group | (base) | setup_tour_groups.py |
 | agency_ecommerce.cta_tour_quote | (qweb) | website_sale.cta_wrapper | setup_ecommerce.py |
 | agency_ecommerce.product_tour_modal | (qweb) | website_sale.product | setup_ecommerce.py |
 | agency_ecommerce.listing_tour_quote | (qweb) | website_sale.shop_product_buttons | setup_ecommerce.py |
@@ -479,9 +523,9 @@ Los reportes se crean automaticamente al ejecutar el script. Aparecen en el menu
 | Nombre | Modelo | Trigger | Descripcion |
 |--------|--------|---------|-------------|
 | Validate Tour Dates (15) | sale.order | on_write | Bloquea si fecha fin < inicio |
-| Propagate Tour Data to Tasks (16) | sale.order | on_state_set | Copia fechas a tareas al confirmar |
-| Warn Vehicle Date Conflict (17) | project.task | on_write | Valida conflictos vehiculo |
-| Sync Tour Data Changes to Tasks (18) | sale.order | on_write | Propaga cambios de SO a tareas |
+| Propagate Tour Data to Tasks (16) | project.task | on_create | Copia fechas del SO a la tarea al crearla |
+| Warn Vehicle Date Conflict (17) | project.task | on_write | Valida conflictos vehiculo (solo SOs confirmados) |
+| Sync Tour Data Changes to Tasks (18) | sale.order | on_write | Propaga cambios de SO a tareas (conflictos solo SOs confirmados) |
 | Copy Biblia Operativa from Template (19) | sale.order | on_create_or_write | Copia Biblia de plantilla a cotizacion |
 | Work Log: Post to Task Chatter (20) | x_task_work_log | on_create | Publica en chatter + recalcula horas |
 | Work Log: Recalc Hours on Edit (21) | x_task_work_log | on_write | Recalcula al editar registro |

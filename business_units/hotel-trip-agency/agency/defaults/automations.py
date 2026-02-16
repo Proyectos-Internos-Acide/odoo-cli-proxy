@@ -15,24 +15,26 @@ for record in records:
 '''
 
 # ── Automation 16: Propagate Tour Data to Tasks ───────────────────────────
-# Model: sale.order | Trigger: on_state_set (confirmation) | Fields: state
+# Model: project.task | Trigger: on_create
+# When a task is created (e.g. from SO confirmation via service_tracking),
+# pull tour dates and passenger count from the linked sale order.
+# Previous approach used on_state_set on sale.order but that fires BEFORE
+# tasks are created by service_tracking, so tasks don't exist yet.
 
 PROPAGATE_TOUR_DATA = '''\
 for record in records:
-    if not record.x_is_tour:
-        continue
-    tasks = env['project.task'].search([('sale_order_id', '=', record.id)])
-    if not tasks:
+    so = record.sale_order_id
+    if not so or not so.x_is_tour:
         continue
     vals = {}
-    if record.x_tour_start_date:
-        vals['x_tour_start_date'] = record.x_tour_start_date
-    if record.x_tour_end_date:
-        vals['x_tour_end_date'] = record.x_tour_end_date
-    if record.x_num_passengers:
-        vals['x_seats_needed'] = record.x_num_passengers
+    if so.x_tour_start_date:
+        vals['x_tour_start_date'] = so.x_tour_start_date
+    if so.x_tour_end_date:
+        vals['x_tour_end_date'] = so.x_tour_end_date
+    if so.x_num_passengers:
+        vals['x_seats_needed'] = so.x_num_passengers
     if vals:
-        tasks.write(vals)
+        record.write(vals)
 '''
 
 # ── Automation 17: Warn Vehicle Date Conflict ─────────────────────────────
@@ -47,6 +49,13 @@ for record in records:
         record.write({"x_available_seats": 0})
         continue
 
+    # Only check this task if its SO is confirmed (sale)
+    my_so = record.sale_order_id
+    if my_so and my_so.state != "sale":
+        record.write({"x_available_seats": 0})
+        continue
+
+    # Only count conflicts from confirmed SOs
     conflicts = env["project.task"].search([
         ("id", "!=", record.id),
         ("x_vehicle_id", "=", record.x_vehicle_id.id),
@@ -55,11 +64,12 @@ for record in records:
         ("x_tour_end_date", "!=", False),
         ("x_tour_start_date", "<=", record.x_tour_end_date),
         ("x_tour_end_date", ">=", record.x_tour_start_date),
+        ("sale_order_id.state", "=", "sale"),
     ])
 
     vehicle_capacity = record.x_vehicle_id.seats or 0
     other_seats = sum(c.x_seats_needed or 0 for c in conflicts)
-    my_type = record.sale_order_id.x_service_type if record.sale_order_id else False
+    my_type = my_so.x_service_type if my_so else False
     is_private = my_type == "private"
 
     # Check if any conflict is private
@@ -135,7 +145,7 @@ for record in records:
     vals["x_seats_needed"] = record.x_num_passengers or 0
     tasks.write(vals)
 
-    # Check private tour conflicts
+    # Check private tour conflicts (only against confirmed SOs)
     if record.x_service_type == "private":
         fleet_tasks = tasks.filtered(lambda t: t.x_is_fleet_task and t.x_vehicle_id)
         for ft in fleet_tasks:
@@ -149,6 +159,7 @@ for record in records:
                 ("x_tour_end_date", "!=", False),
                 ("x_tour_start_date", "<=", ft.x_tour_end_date),
                 ("x_tour_end_date", ">=", ft.x_tour_start_date),
+                ("sale_order_id.state", "=", "sale"),
             ])
             if conflicts:
                 nl = chr(10)
