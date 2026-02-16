@@ -103,11 +103,11 @@ uv run python main.py list-config
 
 ## Business Units
 
-Directorio `business_units/` contiene los scripts de configuración organizados por unidad de negocio. Cada script configura una parte específica de la instancia Odoo mediante XML-RPC — creando campos personalizados, vistas, automatizaciones, productos, categorías, etc.
+Directorio `business_units/` contiene los scripts de configuración organizados por unidad de negocio (rubro empresarial). Cada script configura una parte específica de la instancia Odoo mediante XML-RPC — creando campos personalizados, vistas, automatizaciones, productos, categorías, etc.
 
 La carpeta está pensada para que un desarrollador pueda **replicar o restaurar** toda la configuración de una instancia Odoo ejecutando los scripts en orden.
 
-Actualmente existe una unidad de negocio: `hotel-trip-agency/`.
+Actualmente existe una rubro empresarial(business-unit): `hotel-trip-agency/`.
 
 ### Verificación y auditoría
 
