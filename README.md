@@ -14,6 +14,7 @@ Incluye una librería Python reutilizable, scripts de configuración por unidad 
   - [Agencia de Viajes](#agencia-de-viajes)
   - [Restaurante](#restaurante)
   - [Defaults compartidos](#defaults-compartidos)
+- [Servidor MCP](#servidor-mcp)
 - [Project Management](#project-management)
 - [Estructura del proyecto](#estructura-del-proyecto)
 
@@ -234,6 +235,47 @@ Reportes de problemas específicos de instancias de test. No contiene scripts, s
 
 ---
 
+## Servidor MCP
+
+El proyecto incluye un servidor [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) que expone las operaciones de Odoo como herramientas para asistentes de IA como Claude Code. Archivo: `mcp_server.py`.
+
+### Tools disponibles
+
+| Tool | Descripción | Parámetros principales |
+|------|-------------|------------------------|
+| `search_read` | Buscar y leer registros | model, domain (JSON), fields (CSV), limit, offset, order |
+| `execute` | Ejecutar cualquier método XML-RPC | model, method, args (JSON), kwargs (JSON) |
+| `read_fields` | Inspeccionar campos de un modelo | model, attributes (CSV) |
+| `list_models` | Listar modelos disponibles | filter (opcional) |
+| `create_record` | Crear un registro | model, vals (JSON) |
+| `write_record` | Actualizar registros | model, ids (JSON), vals (JSON) |
+| `unlink_record` | Eliminar registros | model, ids (JSON) |
+
+### Probar con MCP Inspector
+
+```bash
+uv run mcp dev mcp_server.py
+```
+
+### Registrar en Claude Code
+
+Agregar a `.claude/settings.json` (global) o al settings del proyecto:
+
+```json
+{
+  "mcpServers": {
+    "odoo": {
+      "command": "uv",
+      "args": ["run", "--directory", "/ruta/al/py-odoo-cli", "mcp_server.py"]
+    }
+  }
+}
+```
+
+Una vez registrado, Claude Code puede interactuar directamente con la instancia Odoo. Por ejemplo: "busca las cotizaciones del último mes" o "muestra los campos del modelo sale.order".
+
+---
+
 ## Project Management
 
 Directorio `project_management/` es un sistema de generación de **reportes documentarios del proyecto** — documentación formal de las entregas, avances por sprint y reportes post-implementación. Genera PDFs a partir de plantillas LaTeX o Markdown.
@@ -299,6 +341,7 @@ py-odoo-cli/
 │   ├── client.py                      # Clase OdooClient
 │   └── config.py                      # Carga de credenciales
 ├── main.py                            # CLI (Typer)
+├── mcp_server.py                      # Servidor MCP para asistentes IA
 ├── business_units/                    # Configuración por unidad de negocio
 │   └── hotel-trip-agency/
 │       ├── check_modules.py           # Auditoría de módulos
