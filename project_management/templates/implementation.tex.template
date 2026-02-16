@@ -1,0 +1,285 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{longtable}
+
+\geometry{margin=2.5cm}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small {{COMPANY_NAME}}}
+\fancyhead[R]{\small Informe de Implementaci\'on}
+\fancyfoot[C]{\thepage}
+
+\definecolor{primary}{HTML}{{{PRIMARY_COLOR}}}
+\definecolor{accent}{HTML}{{{ACCENT_COLOR}}}
+\definecolor{success}{HTML}{{{SUCCESS_COLOR}}}
+\definecolor{warn}{HTML}{{{WARN_COLOR}}}
+
+\titleformat{\section}{\Large\bfseries\color{primary}}{}{0em}{}[\titlerule]
+\titleformat{\subsection}{\large\bfseries\color{accent}}{}{0em}{}
+
+\begin{document}
+
+% --- Title Page ---
+\begin{titlepage}
+    \centering
+    \vspace*{3cm}
+    {\Huge\bfseries INFORME DE IMPLEMENTACI\'ON}\\[1.5cm]
+    {\LARGE {{PROJECT_DESCRIPTION}}}\\[2cm]
+    {\Large {{COMPANY_NAME}}}\\[0.5cm]
+    {\large {{PROJECT_SUBTITLE}}}\\[3cm]
+
+    \begin{tabular}{ll}
+        \textbf{Entidad Solicitante} & {{ENTITY_NAME}} \\
+        \textbf{RUC} & {{RUC}} \\
+        \textbf{C\'odigo de Proyecto} & {{PROJECT_CODE}} \\
+        \textbf{Fecha de Informe} & {{REPORT_DATE}} \\
+    \end{tabular}
+
+    \vfill
+
+    \begin{tabular}{ll}
+        \textbf{{{COORDINATOR_NAME}}} & Coordinador General \\
+        \textbf{{{CONSULTANT_NAME}}} & Consultor \\
+    \end{tabular}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+\listoffigures
+\listoftables
+\newpage
+
+\section{Implementaci\'on}
+
+\subsection{An\'alisis Inicial de Procesos y Necesidades}
+
+% TODO: Describir el proceso de an\'alisis inicial.
+% Puntos a cubrir:
+% - Entrevistas con la gerencia y personal operativo
+% - Identificaci\'on de puntos de dolor en los procesos manuales
+% - Validaci\'on de objetivos del proyecto
+% - Formalizaci\'on de necesidades en requerimientos funcionales
+
+\subsection{Requerimientos Funcionales y No Funcionales}
+
+\subsubsection{Requerimientos Funcionales}
+
+\begin{tabularx}{\textwidth}{clX}
+    \toprule
+    \textbf{C\'odigo} & \textbf{Requerimiento} & \textbf{Descripci\'on} \\
+    \midrule
+    RF-001 & {[Requerimiento]} & {[Descripci\'on]} \\
+    RF-002 & {[Requerimiento]} & {[Descripci\'on]} \\
+    RF-003 & {[Requerimiento]} & {[Descripci\'on]} \\
+    RF-004 & {[Requerimiento]} & {[Descripci\'on]} \\
+    RF-005 & {[Requerimiento]} & {[Descripci\'on]} \\
+    \bottomrule
+\end{tabularx}
+
+\subsubsection{Requerimientos No Funcionales}
+
+\begin{tabularx}{\textwidth}{clX}
+    \toprule
+    \textbf{C\'odigo} & \textbf{Requerimiento} & \textbf{Descripci\'on} \\
+    \midrule
+    RNF-01 & {[Requerimiento]} & {[Descripci\'on]} \\
+    RNF-02 & {[Requerimiento]} & {[Descripci\'on]} \\
+    RNF-03 & {[Requerimiento]} & {[Descripci\'on]} \\
+    \bottomrule
+\end{tabularx}
+
+\subsection{Dise\~no del Sistema de Gesti\'on Digital}
+
+\subsubsection{Arquitectura del Sistema}
+
+% TODO: Describir la arquitectura de Odoo 19 (SaaS).
+
+\subsubsection{Dise\~no de la Experiencia e Interfaz de Usuario (UX/UI)}
+
+% TODO: Describir personalizaci\'on de la interfaz de Odoo.
+
+\subsubsection{Configuraci\'on de la Base de Datos}
+
+% TODO: Describir la estructura de datos configurada en Odoo.
+
+\subsection{Selecci\'on y Aplicaci\'on de Tecnolog\'ias}
+
+\subsubsection{Backend}
+
+% TODO: Odoo 19 (saas-19.1), Python, XML-RPC API
+
+\subsubsection{Frontend}
+
+% TODO: Odoo Website, eCommerce, Self-Ordering, Portal
+
+\subsubsection{Base de Datos}
+
+% TODO: PostgreSQL (gestionado por Odoo SaaS)
+
+\subsubsection{Infraestructura y Despliegue}
+
+% TODO: Odoo.sh / SaaS, dominio, configuraci\'on DNS
+
+\subsection{Desarrollo Iterativo y Pruebas}
+
+% TODO: Describir el proceso de sprints.
+
+\subsection{Diagramas T\'ecnicos del Sistema}
+
+\subsubsection{Diagrama de Arquitectura e Infraestructura}
+
+% TODO: Incluir diagrama de arquitectura.
+% \begin{figure}[h]
+%     \centering
+%     \includegraphics[width=0.9\textwidth]{img/architecture.png}
+%     \caption{Diagrama de Arquitectura}
+% \end{figure}
+
+\subsubsection{M\'odulos de Odoo y su Integraci\'on}
+
+% TODO: Describir los m\'odulos de Odoo habilitados.
+
+\subsection{Desarrollo Iterativo Basado en Sprints}
+
+\subsubsection{Sprint 1}
+
+% TODO: Resumen del Sprint 1
+
+\subsubsection{Sprint 2}
+
+% TODO: Resumen del Sprint 2
+
+\subsubsection{Sprint 3}
+
+% TODO: Resumen del Sprint 3
+
+% TODO: Agregar m\'as sprints seg\'un corresponda
+
+\subsection{M\'odulos del Sistema y su Integraci\'on}
+
+% TODO: Describir cada m\'odulo configurado.
+% Datos de Odoo: {{TOTAL_PRODUCTS}} productos, {{TOTAL_CATEGORIES}} categor\'ias,
+% {{TOTAL_ATTRIBUTES}} atributos, {{TOTAL_PROJECTS}} proyectos.
+
+\section{Resultados}
+
+% TODO: Completar con m\'etricas reales del proyecto.
+
+\subsection{M\'etrica R1}
+
+% TODO: Nombre y descripci\'on de la m\'etrica
+
+\begin{tabularx}{\textwidth}{Xlll}
+    \toprule
+    \textbf{Indicador} & \textbf{Antes (manual)} & \textbf{Despu\'es (sistema)} & \textbf{Mejora} \\
+    \midrule
+    {[Indicador]} & {[Antes]} & {[Despu\'es]} & {[Mejora]} \\
+    \bottomrule
+\end{tabularx}
+
+\subsection{M\'etrica R2}
+
+% TODO: Nombre y descripci\'on de la m\'etrica
+
+\begin{tabularx}{\textwidth}{Xlll}
+    \toprule
+    \textbf{Indicador} & \textbf{Antes (manual)} & \textbf{Despu\'es (sistema)} & \textbf{Mejora} \\
+    \midrule
+    {[Indicador]} & {[Antes]} & {[Despu\'es]} & {[Mejora]} \\
+    \bottomrule
+\end{tabularx}
+
+\subsection{M\'etrica R3}
+
+% TODO: Nombre y descripci\'on de la m\'etrica
+
+\begin{tabularx}{\textwidth}{Xlll}
+    \toprule
+    \textbf{Indicador} & \textbf{Antes (manual)} & \textbf{Despu\'es (sistema)} & \textbf{Mejora} \\
+    \midrule
+    {[Indicador]} & {[Antes]} & {[Despu\'es]} & {[Mejora]} \\
+    \bottomrule
+\end{tabularx}
+
+\section{Plan de Capacitaciones}
+
+\subsection{Objetivo de la Capacitaci\'on}
+
+% TODO: Describir el objetivo
+
+\subsection{Alcance}
+
+% TODO: A qui\'enes va dirigida
+
+\subsection{Metodolog\'ia}
+
+% TODO: Sesiones din\'amicas, ejercicios pr\'acticos, etc.
+
+\subsection{Recursos Utilizados}
+
+% TODO: Materiales, equipos, infraestructura
+
+\subsection{Cronograma de Capacitaciones}
+
+\begin{tabularx}{\textwidth}{lXllc}
+    \toprule
+    \textbf{Sesi\'on} & \textbf{Tema Principal} & \textbf{Dirigido a} & \textbf{Horas} & \textbf{Mes} \\
+    \midrule
+    Sesi\'on 1 & {[Tema]} & {[Audiencia]} & 4 & {[Mes]} \\
+    Sesi\'on 2 & {[Tema]} & {[Audiencia]} & 4 & {[Mes]} \\
+    Sesi\'on 3 & {[Tema]} & {[Audiencia]} & 4 & {[Mes]} \\
+    \bottomrule
+\end{tabularx}
+
+\subsection{Desarrollo de las Sesiones}
+
+\subsubsection{Sesi\'on 1}
+
+% TODO: Describir contenido impartido y evidencia
+
+\subsubsection{Sesi\'on 2}
+
+% TODO: Describir contenido impartido y evidencia
+
+\subsubsection{Sesi\'on 3}
+
+% TODO: Describir contenido impartido y evidencia
+
+\subsection{Evaluaci\'on de la Adopci\'on}
+
+% TODO: Resultados de la evaluaci\'on
+
+\section{Conclusiones}
+
+% TODO: 3-5 p\'arrafos de conclusiones
+
+\section{Recomendaciones}
+
+% TODO: 3-5 recomendaciones
+
+\section{Anexos}
+
+\subsection{Diagramas de Procesos}
+
+% TODO: Insertar diagramas de procesos y UML
+
+\subsection{Requerimientos Funcionales Completos}
+
+% TODO: Tabla completa de RF
+
+\subsection{Evidencia de Capacitaciones}
+
+{{EVIDENCE_IMAGES}}
+
+\end{document}

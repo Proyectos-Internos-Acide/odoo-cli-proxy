@@ -75,6 +75,7 @@ tz_info = dateutil.tz.gettz(tz)
 for record in records:
     if not record.sale_line_id: continue
     if not record.role_id.x_is_a_room_offer: continue
+    if not record.start_datetime or not record.end_datetime: continue
     pickup_time = record.sale_line_id.product_id.pickup_time or 12.0
     return_time = record.sale_line_id.product_id.return_time or 11.0
     # Convert to local timezone to get the correct local date
@@ -98,6 +99,7 @@ for record in records:
     })
 for record in records:
     if not record.sale_line_id: continue
+    if not record.start_datetime or not record.end_datetime: continue
     nights = 0
     if record.sale_line_id.planning_slot_ids:
         nights = sum(record.sale_line_id.planning_slot_ids.mapped('x_nights'))
@@ -117,6 +119,13 @@ for record in records:
 | Constraint violation al escribir campos | Usar `record.write({...})` para escribir ambos campos en un solo UPDATE |
 | Defaults inapropiados (18.0/9.0) | Cambiados a 12.0/11.0 (check-in mediodia, check-out 11 AM) |
 | Modifica asignaciones manuales | Agregar `if not record.sale_line_id: continue` al inicio |
+| Crash con False datetimes | Agregar `if not record.start_datetime or not record.end_datetime: continue` (productos servicio sin fechas rental) |
+
+> **IMPORTANTE**: El guard para `False` datetimes es critico. Cuando se confirma una
+> orden de venta con productos tipo servicio (no rental), `sale_planning` crea planning
+> slots SIN `start_datetime`/`end_datetime`. Sin este guard, la automatizacion crashea
+> con `AttributeError: 'bool' object has no attribute 'astimezone'` y bloquea la
+> confirmacion de CUALQUIER orden de venta que pase por `sale_planning`.
 
 ### Aplicar el fix via XML-RPC
 
@@ -141,7 +150,7 @@ client.execute('ir.actions.server', 'write', [server_action_id], {'code': fixed_
 ### Corregir slots existentes
 
 ```bash
-uv run python hotel-trip-agency/debug_planning.py sale-vs-planning S00020
+uv run python business_units/hotel-trip-agency/hotel/debug_planning.py sale-vs-planning S00020
 ```
 
 Para forzar la re-ejecucion de la automatizacion en slots existentes, escribir un valor

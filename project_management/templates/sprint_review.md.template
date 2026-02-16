@@ -1,0 +1,49 @@
+---
+title: "Sprint Review -- Sprint {{SPRINT_NUMBER}}"
+subtitle: "{{COMPANY_NAME}} -- {{PROJECT_SUBTITLE}}"
+date: "Periodo: {{PERIOD}}"
+geometry: margin=2.5cm
+lang: es
+fontsize: 12pt
+---
+
+# Objetivo del Sprint
+
+<!-- TODO: Describir el objetivo principal del sprint. -->
+
+# Resumen de lo Realizado
+
+<!-- TODO: Agregar subsecciones con las actividades realizadas. -->
+<!-- Usar ## para cada area de trabajo. -->
+
+{{ODOO_SUMMARY_SECTION}}
+
+# Sprint Retrospective
+
+## Resumen
+
+<!-- TODO: Describir el resumen de la retrospectiva. -->
+
+## Tabla Retrospectiva
+
+| Dejar de hacer | Continuar haciendo | Implementar |
+|---|---|---|
+| <!-- TODO --> | <!-- TODO --> | <!-- TODO --> |
+| <!-- TODO --> | <!-- TODO --> | <!-- TODO --> |
+| <!-- TODO --> | <!-- TODO --> | <!-- TODO --> |
+
+# Reuniones del Sprint
+
+| Reunion | Fecha | Tema |
+|---|---|---|
+| <!-- TODO: Agregar reuniones del sprint --> | | |
+
+<!-- TODO: Agregar enlaces de grabacion si existen -->
+<!-- **Enlace de grabacion**: https://... -->
+
+# Evidencia Visual
+
+{{EVIDENCE_IMAGES}}
+
+<!-- TODO: Agregar capturas de pantalla en formato: -->
+<!-- ![Descripcion](img/screenshot.png) -->

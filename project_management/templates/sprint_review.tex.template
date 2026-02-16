@@ -1,0 +1,111 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{longtable}
+
+\geometry{margin=2.5cm}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small {{COMPANY_NAME}}}
+\fancyhead[R]{\small Sprint {{SPRINT_NUMBER}} -- Sprint Review}
+\fancyfoot[C]{\thepage}
+
+\definecolor{primary}{HTML}{{{PRIMARY_COLOR}}}
+\definecolor{accent}{HTML}{{{ACCENT_COLOR}}}
+
+\titleformat{\section}{\Large\bfseries\color{primary}}{}{0em}{}[\titlerule]
+\titleformat{\subsection}{\large\bfseries\color{accent}}{}{0em}{}
+
+\begin{document}
+
+\begin{center}
+    {\LARGE\bfseries Sprint Review -- Sprint {{SPRINT_NUMBER}}}\\[0.5em]
+    {\large {{COMPANY_NAME}} -- {{PROJECT_SUBTITLE}}}\\[0.3em]
+    {\normalsize Periodo: {{PERIOD}}}\\[0.3em]
+    {\small Proyecto: {{PROJECT_DESCRIPTION}}}
+\end{center}
+
+\vspace{1em}
+
+\section{Objetivo del Sprint}
+
+% TODO: Describir el objetivo principal del sprint.
+% Ejemplo: El Sprint N se enfoc\'o en la \textbf{configuraci\'on de ...} en Odoo 19.
+
+\section{Resumen de lo Realizado}
+
+% TODO: Agregar subsecciones con las actividades realizadas.
+% Usar \subsection{} para cada \'area de trabajo.
+% Incluir tablas (tabularx) y listas (itemize/enumerate) seg\'un corresponda.
+
+\section{Sprint Retrospective}
+
+\subsection{Resumen}
+
+% TODO: Describir el resumen de la retrospectiva.
+
+\subsection{Tabla Retrospectiva}
+
+\begin{tabularx}{\textwidth}{|X|X|X|}
+    \hline
+    \textbf{Dejar de hacer} & \textbf{Continuar haciendo} & \textbf{Implementar} \\
+    \hline
+    % TODO: Item 1
+    &
+    % TODO: Item 1
+    &
+    % TODO: Item 1
+    \\
+    \hline
+    % TODO: Item 2
+    &
+    % TODO: Item 2
+    &
+    % TODO: Item 2
+    \\
+    \hline
+    % TODO: Item 3
+    &
+    % TODO: Item 3
+    &
+    % TODO: Item 3
+    \\
+    \hline
+\end{tabularx}
+
+\section{Reuniones del Sprint}
+
+\begin{tabularx}{\textwidth}{llX}
+    \toprule
+    \textbf{Reuni\'on} & \textbf{Fecha} & \textbf{Tema} \\
+    \midrule
+    % TODO: Agregar reuniones del sprint
+    % Ejemplo: 1era Reuni\'on & DD/MM/YYYY & Tema de la reuni\'on \\
+    \bottomrule
+\end{tabularx}
+
+% TODO: Agregar enlaces de grabaci\'on si existen
+% \textbf{Enlace de grabaci\'on}: \url{https://...}
+
+\section{Evidencia Visual}
+
+% TODO: Agregar figuras con capturas de pantalla.
+% Colocar las im\'agenes en la carpeta img/ del sprint.
+%
+% \begin{figure}[h]
+%     \centering
+%     \includegraphics[width=0.9\textwidth]{img/screenshot.png}
+%     \caption{Descripci\'on de la captura}
+% \end{figure}
+
+\end{document}

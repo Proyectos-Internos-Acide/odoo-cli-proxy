@@ -121,7 +121,8 @@ Usar con `debug_planning.py` o directamente:
 #!/usr/bin/env python3
 """Configura timezone para todos los componentes de un hotel en Odoo."""
 import sys, os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+# Adjust path to point to project root where odoo_cli package lives
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
 from odoo_cli import OdooClient
 
 TIMEZONE = 'America/Lima'  # Cambiar segun ubicacion del hotel
@@ -173,7 +174,7 @@ print(f'\nConfiguracion completa. Timezone: {TIMEZONE}')
 Despues de configurar, usar el comando de debug para verificar:
 
 ```bash
-uv run python hotel-trip-agency/debug_planning.py timezone
+uv run python business_units/hotel-trip-agency/hotel/debug_planning.py timezone
 ```
 
 Salida esperada (todo en America/Lima):

@@ -1,0 +1,110 @@
+---
+title: "{{PROJECT_DESCRIPTION}}"
+subtitle: "Resumen Ejecutivo"
+author: "{{COORDINATOR_NAME}}"
+date: "{{REPORT_DATE}}"
+geometry: margin=2.5cm
+lang: es
+fontsize: 12pt
+---
+
+**Codigo de Proyecto**: {{PROJECT_CODE}}
+
+**Elaborado por**: {{COORDINATOR_NAME}} -- Coordinador General
+
+**Email**: <!-- TODO: email -->
+
+---
+
+## Resumen
+
+<!-- TODO: 2-3 parrafos resumiendo el proyecto.
+Cubrir: contexto, problema, solucion implementada, resultados clave.
+Datos de Odoo: {{TOTAL_PRODUCTS}} productos, {{TOTAL_CATEGORIES}} categorias,
+{{TOTAL_ATTRIBUTES}} atributos, {{TOTAL_PROJECTS}} proyectos configurados.
+-->
+
+**Palabras Clave**: Implementacion ERP, Odoo 19, gestion hotelera, agencia de viajes,
+transformacion digital, metodologia Scrum
+
+## Problema
+
+<!-- TODO: Describir la problematica pre-implementacion.
+- Gestion manual con hojas de calculo
+- Falta de integracion entre areas (hotel, agencia, restaurante)
+- Ineficiencias operativas
+- Perdida de informacion y errores manuales
+-->
+
+## Objetivo General del Proyecto
+
+<!-- TODO: Un parrafo describiendo el objetivo general -->
+
+## Justificacion del Proyecto
+
+<!-- TODO: Por que era necesaria la implementacion de un ERP -->
+
+## Hipotesis
+
+<!-- TODO: Hipotesis del proyecto -->
+
+## Metodologia Implementada
+
+<!-- TODO: Describir etapas:
+1. Diagnostico y Planificacion
+2. Configuracion Iterativa (metodologia Scrum)
+3. Arquitectura Tecnologica (Odoo 19 SaaS)
+4. Capacitacion y acompanamiento
+-->
+
+## Resultados
+
+### R1
+
+<!-- TODO: Nombre y descripcion del resultado con datos cuantitativos -->
+
+### R2
+
+<!-- TODO: Nombre y descripcion del resultado con datos cuantitativos -->
+
+### R3
+
+<!-- TODO: Nombre y descripcion del resultado con datos cuantitativos -->
+
+## Impactos
+
+### Impacto Economico
+
+<!-- TODO: Reduccion de costos, eficiencia operativa, ROI -->
+
+### Impacto Tecnologico
+
+<!-- TODO: Modernizacion, integracion de procesos, automatizacion -->
+
+### Impacto Ambiental
+
+<!-- TODO: Reduccion de uso de papel, digitalizacion de procesos -->
+
+## Conclusiones
+
+<!-- TODO: 2-3 parrafos de conclusiones -->
+
+## Financiamiento del Proyecto
+
+| Fuente de Financiamiento | Importe (S/.) | Porcentaje |
+|---|---|---|
+| <!-- TODO: Fuente 1 --> | <!-- TODO --> | <!-- TODO --> |
+| {{ENTITY_NAME}} | <!-- TODO --> | <!-- TODO --> |
+| **COSTO TOTAL** | **<!-- TODO -->** | **100%** |
+
+---
+
+*El presente resumen ejecutivo fue elaborado por {{COORDINATOR_NAME}}.*
+
+**Contacto:**
+
+{{COORDINATOR_NAME}}
+
+{{ENTITY_NAME}}
+
+<!-- TODO: Telefono y email -->
