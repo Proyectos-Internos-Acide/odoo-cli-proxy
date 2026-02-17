@@ -6,7 +6,10 @@ Creates:
 - Custom fields on sale.order (tour dates, passengers, is_tour)
 - Model x_task_work_log (structured work log by contact/operator)
 - Task form view with fleet fields + operator + work log tab
-- 4 automations: validate dates, propagate data, vehicle conflicts, sync changes
+- Fleet service types for vehicle maintenance tracking
+- 8 automations: validate dates, propagate data, vehicle conflicts (incl. fleet
+  service check), sync changes, work log CRUD, allocated hours recalc
+- 1 cross-validation automation: warn when vehicle enters service with active tours
 
 Depends on: setup_custom_fields.py (creates x_service_type, x_departure_city on sale.order)
 
@@ -30,7 +33,9 @@ from agency.defaults.automations import (
     RECALC_HOURS_ON_WRITE,
     RECALC_HOURS_ON_UNLINK,
     RECALC_ON_ALLOCATED_CHANGE,
+    WARN_TOUR_ON_SERVICE_STATE,
 )
+from agency.defaults.fleet import FLEET_SERVICE_TYPES
 
 app = typer.Typer(help="Setup fleet automations and task fields for tours")
 
@@ -403,6 +408,40 @@ def setup():
         'on_write', trigger_fields_23, RECALC_ON_ALLOCATED_CHANGE)
     typer.secho(f"  [{'CREATED' if created else 'UPDATED'}] Automation {auto_id}", fg=typer.colors.GREEN)
 
+    # ── 12. Fleet Service Types ──────────────────────────────────────
+    typer.secho("\n12. Fleet Service Types", bold=True)
+    for st in FLEET_SERVICE_TYPES:
+        existing = client.search_read('fleet.service.type',
+            domain=[['name', '=', st['name']]], fields=['id'], limit=1)
+        if existing:
+            typer.secho(f"  [OK] {st['name']} ({st['category']})", fg=typer.colors.GREEN)
+        else:
+            result = client.execute('fleet.service.type', 'create', [{
+                'name': st['name'],
+                'category': st['category'],
+            }])
+            st_id = result[0] if isinstance(result, list) else result
+            typer.secho(f"  [CREATED] {st['name']} ({st['category']}) id={st_id}", fg=typer.colors.GREEN)
+
+    # ── 13. Automation: Warn Tour on Fleet Service State Change ────
+    typer.secho("\n13. Automation: Warn Tour on Fleet Service State Change", bold=True)
+    svc_model_id = _get_model_id(client, 'fleet.vehicle.log.services')
+    if not svc_model_id:
+        typer.secho("  [SKIP] fleet.vehicle.log.services model not found", fg=typer.colors.YELLOW)
+    else:
+        state_field_id = _get_field_id(client, 'fleet.vehicle.log.services', 'state')
+        trigger_fields_24 = [state_field_id] if state_field_id else []
+        auto_id, created = _create_or_update_automation(
+            client, 'Warn Tour on Fleet Service State', svc_model_id,
+            'on_write', trigger_fields_24, WARN_TOUR_ON_SERVICE_STATE)
+        typer.secho(f"  [{'CREATED' if created else 'UPDATED'}] on_write Automation {auto_id}", fg=typer.colors.GREEN)
+
+        # Also create an on_create automation for new services created directly in "running"
+        auto_id2, created2 = _create_or_update_automation(
+            client, 'Warn Tour on Fleet Service Create', svc_model_id,
+            'on_create', [], WARN_TOUR_ON_SERVICE_STATE)
+        typer.secho(f"  [{'CREATED' if created2 else 'UPDATED'}] on_create Automation {auto_id2}", fg=typer.colors.GREEN)
+
     # ── Summary ───────────────────────────────────────────────────────
     typer.secho("\n" + "=" * 70, bold=True)
     typer.secho("  FLEET AUTOMATIONS SETUP COMPLETE", fg=typer.colors.BLUE, bold=True)
@@ -414,15 +453,22 @@ def setup():
     typer.secho("                x_work_log_ids, x_total_hours_logged, x_remaining_hours,", fg=typer.colors.CYAN)
     typer.secho("                x_operator_ids (m2m, subtasks only)", fg=typer.colors.CYAN)
     typer.secho("  x_task_work_log: x_task_id, x_partner_id, x_service_type, x_description, x_date, x_hours_spent", fg=typer.colors.CYAN)
+    typer.secho("\nFleet Service Types:", fg=typer.colors.CYAN)
+    for st in FLEET_SERVICE_TYPES:
+        typer.secho(f"  - {st['name']} ({st['category']})", fg=typer.colors.CYAN)
+
     typer.secho("\nAutomations:", fg=typer.colors.CYAN)
     typer.secho("  - Validate Tour Dates: end >= start", fg=typer.colors.CYAN)
     typer.secho("  - Propagate Tour Data: SO confirmation -> task dates + seats", fg=typer.colors.CYAN)
-    typer.secho("  - Warn Vehicle Conflict: blocks private conflicts, warns capacity overflow", fg=typer.colors.CYAN)
+    typer.secho("  - Warn Vehicle Conflict: blocks private conflicts, warns capacity overflow,", fg=typer.colors.CYAN)
+    typer.secho("    blocks if vehicle has fleet service in progress (En proceso)", fg=typer.colors.CYAN)
     typer.secho("  - Sync Tour Data Changes: SO edits -> task updates + private warnings", fg=typer.colors.CYAN)
     typer.secho("  - Work Log to Chatter: posts + recalculates hours on create", fg=typer.colors.CYAN)
     typer.secho("  - Recalc Hours on Edit: updates totals when hours modified", fg=typer.colors.CYAN)
     typer.secho("  - Recalc Hours on Delete: updates totals when log entry removed", fg=typer.colors.CYAN)
     typer.secho("  - Recalc Remaining on Allocated: updates remaining when budget changes", fg=typer.colors.CYAN)
+    typer.secho("  - Warn Tour on Fleet Service State: warns when vehicle enters service", fg=typer.colors.CYAN)
+    typer.secho("    with active tour assignments (posts to service chatter)", fg=typer.colors.CYAN)
 
 
 if __name__ == "__main__":

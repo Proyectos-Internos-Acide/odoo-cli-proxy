@@ -55,6 +55,24 @@ for record in records:
         record.write({"x_available_seats": 0})
         continue
 
+    # Block if vehicle has a fleet service "En proceso" (running = in the shop)
+    services_in_progress = env["fleet.vehicle.log.services"].search([
+        ("vehicle_id", "=", record.x_vehicle_id.id),
+        ("state", "=", "running"),
+    ])
+    if services_in_progress:
+        nl = chr(10)
+        vehicle_name = record.x_vehicle_id.display_name
+        svc_details = []
+        for svc in services_in_progress:
+            svc_desc = svc.description or "Sin descripcion"
+            svc_date = str(svc.date) if svc.date else "Sin fecha"
+            svc_details.append("- " + svc_desc + " (" + svc_date + ")")
+        msg = "BLOQUEADO: El vehiculo " + vehicle_name + " esta en servicio/taller:" + nl
+        msg += nl.join(svc_details) + nl + nl
+        msg += "Complete o cancele el servicio antes de asignar el vehiculo a un tour."
+        raise UserError(msg)
+
     # Only count conflicts from confirmed SOs
     conflicts = env["project.task"].search([
         ("id", "!=", record.id),
@@ -292,6 +310,40 @@ for record in records:
     rt = ("-" if remaining < 0 else "") + str(int(ra)) + "h " + str(int((ra - int(ra)) * 60)).zfill(2) + "min"
     body = "Horas asignadas actualizadas: " + ah + nl + "Totales: " + tt + " registradas | " + rt + " restantes"
     record.message_post(body=body, message_type="comment", subtype_xmlid="mail.mt_note")
+'''
+
+# ── Automation 24: Warn Tour on Fleet Service State Change ───────────────
+# Model: fleet.vehicle.log.services | Trigger: on_create + on_write (state)
+# When a service enters "running" (En proceso), check if the vehicle has
+# active tour assignments and warn via chatter (does NOT block — emergency
+# repairs may be needed).
+
+WARN_TOUR_ON_SERVICE_STATE = '''\
+for record in records:
+    if record.state != "running":
+        continue
+    if not record.vehicle_id:
+        continue
+    nl = chr(10)
+    today = datetime.date.today()
+    active_tours = env["project.task"].search([
+        ("x_vehicle_id", "=", record.vehicle_id.id),
+        ("x_is_fleet_task", "=", True),
+        ("x_tour_start_date", "!=", False),
+        ("x_tour_end_date", "!=", False),
+        ("x_tour_end_date", ">=", today),
+        ("sale_order_id.state", "=", "sale"),
+    ])
+    if active_tours:
+        vehicle_name = record.vehicle_id.display_name
+        tour_details = []
+        for t in active_tours:
+            so_name = t.sale_order_id.name if t.sale_order_id else "Sin SO"
+            tour_details.append("- " + so_name + ": " + str(t.x_tour_start_date) + " a " + str(t.x_tour_end_date) + " (" + str(t.x_seats_needed or 0) + " asientos)")
+        msg = "ATENCION: El vehiculo " + vehicle_name + " tiene tours activos asignados:" + nl
+        msg += nl.join(tour_details) + nl + nl
+        msg += "Revise las asignaciones de vehiculo en las tareas de los proyectos afectados."
+        record.message_post(body=msg, message_type="comment", subtype_xmlid="mail.mt_note")
 '''
 
 # ── Server Action: Create POs from Biblia Operativa Operators ────────────

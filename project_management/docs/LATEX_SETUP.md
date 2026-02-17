@@ -86,6 +86,65 @@ pandoc --version
 
 **Note:** Pandoc uses `pdflatex` as its PDF engine, so LaTeX must also be installed for Markdown-to-PDF conversion.
 
+## PlantUML (for UML diagrams)
+
+PlantUML generates professional UML diagrams (use cases, sequences, class/ER).
+
+### Dependencies
+
+PlantUML requires **Java** and **Graphviz**:
+
+```bash
+# Arch Linux
+sudo pacman -S graphviz    # Required for use-case, class, and ER diagrams
+# Note: Java (openjdk) should already be installed
+```
+
+```bash
+# Ubuntu / Debian
+sudo apt install graphviz default-jre
+```
+
+### Installation (user-local, no sudo)
+
+```bash
+mkdir -p ~/.local/lib ~/.local/bin
+curl -L -o ~/.local/lib/plantuml.jar \
+  "https://github.com/plantuml/plantuml/releases/download/v1.2024.7/plantuml-1.2024.7.jar"
+printf '#!/bin/sh\njava -jar ~/.local/lib/plantuml.jar "$@"\n' > ~/.local/bin/plantuml
+chmod +x ~/.local/bin/plantuml
+```
+
+### Verify
+
+```bash
+plantuml -version
+```
+
+### Usage
+
+```bash
+# Generate PNG from .puml file
+plantuml -tpng diagram.puml -o /absolute/path/to/output/
+
+# Generate SVG (vector, higher quality)
+plantuml -tsvg diagram.puml -o /absolute/path/to/output/
+```
+
+**Important:** The `-o` flag requires an **absolute path**. Relative paths create nested directories.
+
+### Graphviz dependency matrix
+
+| Diagram type     | Needs Graphviz? |
+|------------------|-----------------|
+| Sequence         | No              |
+| Activity         | No              |
+| Use Case         | **Yes**         |
+| Class / ER       | **Yes**         |
+| Component        | **Yes**         |
+
+Without Graphviz, affected diagrams produce a small error image (~10KB).
+
 ## LaTeX packages used in templates
 
 | Package      | Purpose                                            |
@@ -103,3 +162,11 @@ pandoc --version
 | `fancyhdr`   | Custom page headers and footers                     |
 | `titlesec`   | Styled section headings with colored rules          |
 | `longtable`  | Tables that span multiple pages                     |
+| `float`      | Precise figure/table placement (`[H]`)              |
+| `amsmath`    | Mathematical formulas                               |
+| `helvet`     | Helvetica/Arial font family                         |
+| `setspace`   | Line spacing control (`\onehalfspacing`)            |
+| `etoolbox`   | Environment hooks (auto `\noindent` on tabularx)    |
+| `tikz`       | Native LaTeX vector diagrams                        |
+
+See `STYLE_GUIDE.md` for the full standard preamble and style configurations.

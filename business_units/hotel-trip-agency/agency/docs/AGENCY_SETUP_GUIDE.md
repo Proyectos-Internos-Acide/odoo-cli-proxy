@@ -98,6 +98,7 @@ uv run python business_units/hotel-trip-agency/agency/setup_tour_groups.py
 - **Validate Tour Dates** (15): Bloquea si fecha fin < fecha inicio
 - **Propagate Tour Data to Tasks** (16): Al crear una tarea vinculada a un SO con `x_is_tour=True`, copia fechas y asientos desde el SO. Corre en `project.task` con trigger `on_create`.
 - **Warn Vehicle Date Conflict** (17): Al asignar vehiculo en tarea, verifica conflictos **solo contra SOs confirmados** (`state='sale'`):
+  - **Servicios en proceso**: bloquea si vehiculo tiene servicio de Fleet en estado "En proceso" (en taller)
   - Tours privados: bloquea si vehiculo tiene otros tours en mismas fechas
   - Tours compartidos: bloquea si excede capacidad, advierte si hay superposicion
   - Calcula x_available_seats automaticamente
@@ -107,6 +108,11 @@ uv run python business_units/hotel-trip-agency/agency/setup_tour_groups.py
 - **Work Log: Recalc Hours on Edit** (21): Al editar horas/operador/tipo/descripcion, publica en chatter + recalcula
 - **Work Log: Recalc Hours on Delete** (22): Al eliminar registro, publica en chatter + recalcula (excluye registro eliminado)
 - **Task: Recalc Remaining on Allocated Change** (23): Al cambiar horas asignadas, recalcula restantes + publica en chatter
+- **Warn Tour on Fleet Service State** (24): Al crear o cambiar un servicio de Fleet a "En proceso", advierte en chatter del servicio si el vehiculo tiene tours activos asignados (SOs confirmados con fecha fin futura). NO bloquea (permite reparaciones de emergencia).
+
+**Tipos de servicio de Fleet:**
+- Servicios (puntuales): Cambio de aceite, Revision tecnica, Lavado, Reparacion general, Cambio de llantas
+- Contratos (recurrentes): SOAT, Seguro vehicular
 
 ### 5. setup_biblia_operativa.py (depende de #2 y #4)
 **Modelos custom:**
