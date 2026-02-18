@@ -19,11 +19,17 @@ from pathlib import Path
 import typer
 
 from defaults.config import (
+    CITY,
+    CO_CONSULTANT_NAME,
     COLORS,
     COMPANY_NAME,
     CONSULTANT_NAME,
     COORDINATOR_NAME,
+    COUNTRY,
+    COVER_IMAGE,
     GENERATED_DIR,
+    LEGAL_REPRESENTATIVE,
+    LOGO_IMAGE,
     PROGRAM_NAME,
     PROJECT_CODE,
     PROJECT_DATE,
@@ -31,7 +37,10 @@ from defaults.config import (
     PROJECT_ENTITY,
     PROJECT_RUC,
     PROJECT_SUBTITLE,
+    REPORT_DATE_END,
+    REPORT_DATE_START,
     REPORT_TYPES,
+    YEAR,
 )
 from helpers.renderer import (
     render_template,
@@ -104,16 +113,33 @@ def create(
 
     # Build replacements
     replacements: dict[str, str] = {
+        # Company
         "COMPANY_NAME": COMPANY_NAME,
+        "ENTITY_NAME_UPPER": entity_name.upper().replace(
+            r"A\&F", r"A \& F"
+        ) if r"\&" in entity_name else entity_name.upper(),
         "PROJECT_SUBTITLE": PROJECT_SUBTITLE,
         "PROJECT_DESCRIPTION": PROJECT_DESCRIPTION,
-        "PROJECT_CODE": project_code,
-        "ENTITY_NAME": entity_name,
         "RUC": ruc,
+        "LEGAL_REPRESENTATIVE": LEGAL_REPRESENTATIVE,
+        # Project
+        "PROJECT_CODE": project_code,
+        "PROGRAM_NAME": PROGRAM_NAME,
         "REPORT_DATE": report_date,
+        "REPORT_DATE_START": REPORT_DATE_START,
+        "REPORT_DATE_END": REPORT_DATE_END,
+        # People
         "COORDINATOR_NAME": COORDINATOR_NAME,
         "CONSULTANT_NAME": CONSULTANT_NAME,
-        "PROGRAM_NAME": PROGRAM_NAME,
+        "CO_CONSULTANT_NAME": CO_CONSULTANT_NAME,
+        # Location
+        "CITY": CITY,
+        "COUNTRY": COUNTRY,
+        "YEAR": YEAR,
+        # Images
+        "COVER_IMAGE": COVER_IMAGE,
+        "LOGO_IMAGE": LOGO_IMAGE,
+        # Colors
         "PRIMARY_COLOR": COLORS["primary"],
         "ACCENT_COLOR": COLORS["accent"],
         "SUCCESS_COLOR": COLORS["success"],

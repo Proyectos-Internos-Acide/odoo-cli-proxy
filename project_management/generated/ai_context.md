@@ -1,3 +1,187 @@
+# Contexto para Generar Informe de Implementacion
+
+Generado el 2026-02-18 13:07
+
+---
+
+# Instrucciones para Generar Informe de Implementacion con IA
+
+Estas instrucciones son para que un agente de IA (Claude Code, Cursor, Antigravity,
+u otro) genere el contenido completo del Informe de Implementacion.
+
+## Contexto del Proyecto
+
+Este proyecto genera informes PDF de implementacion de ERP para el programa
+ProInnovate del gobierno peruano. Los informes documentan la implementacion de
+Odoo 19 en empresas beneficiarias.
+
+## Archivos Clave que el Agente Debe Leer
+
+Antes de generar contenido, el agente DEBE leer estos archivos:
+
+### Configuracion y estilo
+1. `project_management/defaults/config.py` — Datos de la empresa, proyecto, personas
+2. `project_management/docs/STYLE_GUIDE.md` — Formato LaTeX completo
+3. `project_management/docs/REPORT_CHECKLIST.md` — Lista de inputs necesarios
+
+### Plantilla
+4. `project_management/templates/implementation.tex.template` — Estructura del informe
+
+### Reporte actual (si existe)
+5. `project_management/generated/reports/implementation/implementation.tex` — Archivo a editar
+
+## Documentos de Entrada
+
+El usuario debe proporcionar o indicar la ruta de:
+
+1. **Informe de Diagnostico** — Contiene: analisis de madurez digital, brechas,
+   procesos actuales de la empresa. Se usa para la Seccion 1.
+2. **Informe de Plan de Implementacion** — Contiene: arquitectura propuesta,
+   requerimientos funcionales/no funcionales, cronograma. Se usa para Seccion 1.
+3. **Sprint Reviews / Product Increments** — Resumen de lo hecho en cada sprint.
+   Se usa para la subseccion de desarrollo iterativo.
+
+## Instrucciones para el Agente
+
+### Paso 1: Leer contexto
+
+Lee los archivos de configuracion (1-3 arriba) y el reporte actual (5).
+Identifica todas las secciones con `% TODO`.
+
+### Paso 2: Leer documentos de entrada
+
+Lee los documentos que el usuario proporcione (diagnostico, plan, sprints).
+Extrae la informacion relevante para cada seccion.
+
+### Paso 3: Completar las secciones TODO
+
+Para cada `% TODO` en el .tex, genera contenido LaTeX que:
+
+- Use el formato definido en STYLE_GUIDE.md (normalsize, hierarchical indent)
+- NO agregue `[leftmargin=...]` a listas individuales (el preambulo lo maneja)
+- Ponga `\caption` y `\label` ARRIBA de `\includegraphics` en figuras
+- Deje una linea en blanco antes de `\begin{tabularx}`
+- Use `\textbf{}` para enfasis, NO `\texttt{}` en columnas estrechas
+- Escriba en espanol con acentos LaTeX (`\'a`, `\'e`, `\'i`, `\'o`, `\'u`, `\~n`)
+
+### Paso 4: Generar diagramas PlantUML
+
+Crear archivos `.puml` en `diagrams/` para:
+
+1. **use_case.puml** — Diagrama de casos de uso
+   - Actores: los roles de la empresa (recepcionista, agente, cocinero, gerente, cliente)
+   - Casos de uso: las funcionalidades principales del sistema
+
+2. **sequence_tour.puml** — Flujo principal del negocio
+   - El proceso mas importante (ej: gestion de un tour desde cotizacion hasta cierre)
+
+3. **sequence_reservation.puml** — Flujo secundario
+   - Un proceso secundario (ej: reserva de habitacion, pedido en restaurante)
+
+4. **data_model.puml** — Modelo de datos
+   - Los modelos principales de Odoo configurados y sus relaciones
+
+Todos los diagramas deben usar este encabezado:
+```plantuml
+@startuml
+!theme plain
+skinparam backgroundColor white
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam shadowing false
+skinparam roundCorner 8
+```
+
+### Paso 5: Generar PNGs y compilar
+
+```bash
+cd project_management/generated/reports/implementation/
+for f in diagrams/*.puml; do plantuml -tpng "$f" -o "$(pwd)/img/"; done
+pdflatex -interaction=nonstopmode implementation.tex
+pdflatex -interaction=nonstopmode implementation.tex
+```
+
+### Paso 6: Verificar overflows
+
+```bash
+grep "Overfull" implementation.log
+```
+
+Si hay overflows significativos (>20pt), corregir:
+- Tablas: ajustar column specs (ver STYLE_GUIDE.md > Table Column Patterns)
+- Texto largo en listas: simplificar o dividir en mas items
+- `\texttt{}`: reemplazar con texto plano en contextos estrechos
+
+## Reglas de Contenido
+
+### Tono y estilo de redaccion
+- Formal, tercera persona, pasado ("se implemento", "se configuro")
+- Parrafos cortos (3-5 oraciones)
+- Datos concretos: IDs, cantidades, fechas, nombres de modulos
+- No inventar datos — si no hay informacion, dejar un TODO especifico
+
+### Secciones y su fuente de datos
+
+| Seccion | Fuente principal |
+|---------|-----------------|
+| 1.1 Analisis Inicial | Informe de Diagnostico |
+| 1.2 Requerimientos | Informe de Plan de Implementacion |
+| 1.3 Diseno del Sistema | Plan + datos de Odoo |
+| 1.4 Tecnologias | Fijo: Odoo 19, PostgreSQL, Python |
+| 1.5 Sprints | Sprint Reviews + Product Increments |
+| 1.6 Modulos | Capturas de pantalla + datos de Odoo |
+| 2. Resultados | Metricas antes/despues del proyecto |
+| 3. Capacitaciones | Registro de sesiones |
+| 4. Conclusiones | Sintesis de todo lo anterior |
+| 5. Recomendaciones | Basado en lecciones aprendidas |
+| 6. Anexos | Presupuesto, cronograma, KPIs, evidencia |
+
+### Tablas de metricas (Seccion 2)
+
+Cada metrica R1-R6 debe tener:
+- Nombre del indicador
+- Valor ANTES (proceso manual)
+- Valor DESPUES (con el sistema)
+- Porcentaje de mejora
+- Breve descripcion de como se midio
+
+## Ejemplo de Uso con Claude Code
+
+```
+usuario> Lee los archivos de project_management/docs/AI_INSTRUCTIONS.md y
+         project_management/docs/REPORT_CHECKLIST.md, luego lee el informe
+         de diagnostico en ~/docs/diagnostico.pdf y completa todas las
+         secciones TODO del informe de implementacion.
+```
+
+---
+
+## Datos del Proyecto
+
+- **Empresa beneficiaria**: A\&F Destiny E.I.R.L.
+- **RUC**: 20600144813
+- **Representante legal**: Nohemi Milagros Cjumo Ovalle
+- **Codigo de proyecto**: N\textdegree{} 471-PROINNOVATE-IMTEMD-2025
+- **Programa**: PROGRAMA PROINNOVATE -- IMTEMD 2025
+- **Empresa implementadora**: VISEPRO
+- **Coordinador General**: Nohemi Milagros Cjumo Ovalle
+- **Consultor**: Marco Rosendo Mejia Miranda
+- **Co-Consultor**: Gonzalo Enrique Guti\'errez Castillo
+- **Ciudad**: CUSCO
+- **Pais**: PER\'U
+- **Ano**: 2026
+- **Fecha de informe**: 01/01/2026 -- 28/02/2026
+- **Imagen de portada**: VISEPRO_portada.jpg
+- **Logo**: MACHU-PICCHU-AF-DESTINY-LOGO.png
+- **Descripcion del proyecto**: Fortalecimiento de la Competitividad y Optimizaci\'on de Procesos en A\&F Destiny E.I.R.L. mediante la Digitalizaci\'on de Reservas, Gesti\'on de Datos y Estrategias de Gesti\'on Comercial.
+
+
+---
+
+## Plantilla LaTeX (referencia de estructura)
+
+```latex
+
 \documentclass[11pt,a4paper]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -436,3 +620,25 @@ Co-Consultor
 {{EVIDENCE_IMAGES}}
 
 \end{document}
+
+```
+
+
+---
+
+## Reglas de Formato LaTeX
+
+- Acentos: `\'a`, `\'e`, `\'i`, `\'o`, `\'u`, `\~n`
+- Captions ARRIBA de `\includegraphics`
+- Linea en blanco antes de `\begin{tabularx}`
+- NO agregar `[leftmargin=...]` a listas individuales
+- Usar `\textbf{}` para enfasis, evitar `\texttt{}` en columnas estrechas
+- Redaccion formal, tercera persona, tiempo pasado
+
+
+---
+
+## Instruccion Final
+
+
+Con toda la informacion de arriba, genera el contenido completo para todas las secciones marcadas con `% TODO` en el archivo `implementation.tex`. Tambien genera los archivos `.puml` para los 4 diagramas (use_case, sequence_tour, sequence_reservation, data_model). Escribe el contenido directamente en LaTeX listo para copiar al archivo .tex.

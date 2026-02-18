@@ -80,12 +80,15 @@ Edit the generated files and complete the `TODO` sections:
 Place PNG files in the sprint's `img/` folder. Reference in LaTeX:
 
 ```latex
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
+    \caption{Description of the figure}
+    \label{fig:screenshot_name}
     \includegraphics[width=0.9\textwidth]{img/screenshot_name.png}
-    \caption{Description}
 \end{figure}
 ```
+
+**Important:** Caption and label go ABOVE `\includegraphics` (see `STYLE_GUIDE.md` > Captions).
 
 Reference in Markdown:
 
@@ -109,6 +112,9 @@ uv run python project_management/scripts/clean_sprint.py --all
 ```
 
 ## Post-Implementation Reports
+
+> **First time?** See `REPORT_CHECKLIST.md` for a complete list of everything you need
+> (documents, images, metadata, diagrams) before starting.
 
 Three report types are available for project completion:
 
@@ -157,6 +163,141 @@ uv run python project_management/scripts/query_odoo.py \
 
 ## Adapting for Other Projects
 
-1. Edit `project_management/defaults/config.py` to change company name, project subtitle, description, colors, and project metadata.
+1. Edit `project_management/defaults/config.py` — all project metadata is centralized there:
+   company name, RUC, project code, people (coordinator, consultant, co-consultant),
+   city, year, images (cover, logo), dates, colors.
 2. The templates use `{{PLACEHOLDER}}` tokens replaced by values in `config.py`.
-3. Run `create_sprint.py` or `create_report.py` as usual.
+3. Place the cover image and logo in the report's `img/` folder.
+4. Run `create_sprint.py` or `create_report.py` as usual.
+5. See `REPORT_CHECKLIST.md` for the full list of required inputs.
+
+## Replication Guide for AI Agents
+
+Complete checklist for an AI agent to replicate this report pipeline from scratch.
+
+### 1. Environment Setup
+
+Install required system packages (see `LATEX_SETUP.md` for full details):
+
+```bash
+# Arch Linux
+sudo pacman -S texlive-basic texlive-latexrecommended texlive-latexextra \
+  texlive-fontsrecommended texlive-langspanish graphviz
+
+# Ubuntu / Debian
+sudo apt install texlive-latex-base texlive-latex-recommended texlive-latex-extra \
+  texlive-fonts-recommended texlive-lang-spanish graphviz default-jre
+
+# Pandoc (optional, for .md → PDF)
+sudo pacman -S pandoc    # Arch
+sudo apt install pandoc  # Ubuntu
+```
+
+Install PlantUML (user-local):
+
+```bash
+mkdir -p ~/.local/lib ~/.local/bin
+curl -L -o ~/.local/lib/plantuml.jar \
+  "https://github.com/plantuml/plantuml/releases/download/v1.2024.7/plantuml-1.2024.7.jar"
+printf '#!/bin/sh\njava -jar ~/.local/lib/plantuml.jar "$@"\n' > ~/.local/bin/plantuml
+chmod +x ~/.local/bin/plantuml
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+Verify all tools:
+
+```bash
+pdflatex --version      # TeX Live
+plantuml -version        # PlantUML + Java
+dot -V                   # Graphviz
+pandoc --version         # Pandoc (optional)
+```
+
+### 2. Required LaTeX Packages
+
+All these must be available (installed via texlive-latexextra on Linux):
+
+| Package | Purpose |
+|---|---|
+| `inputenc`, `fontenc`, `babel` | UTF-8, T1 encoding, Spanish |
+| `geometry` | Page margins (2.5cm) |
+| `graphicx` | Image inclusion |
+| `booktabs`, `tabularx`, `longtable` | Professional tables |
+| `enumitem` | Custom list indentation |
+| `hyperref` | Clickable links |
+| `xcolor` | Custom colors |
+| `fancyhdr` | Headers and footers |
+| `titlesec` | Section title formatting |
+| `float` | Figure/table placement `[H]` |
+| `amsmath` | Math support |
+| `tikz` | Vector diagrams |
+| `helvet` | Helvetica/Arial font |
+| `setspace` | Line spacing (1.5) |
+| `etoolbox` | Environment hooks |
+| `caption` | Caption positioning and alignment |
+
+### 3. Document Structure
+
+Follow the directory layout in `LATEX_SETUP.md` > Report Directory Structure.
+
+Key conventions:
+- **Preamble**: Copy the full preamble from `STYLE_GUIDE.md` > Full LaTeX Preamble
+- **Replace placeholders**: `COMPANY_NAME`, `CONTRACT_NUMBER`, `Report Title`
+- **Colors**: Define `primary`, `accent`, `success`, `warn` before `\ifhierarchicalindent`
+- **Figures**: Caption + label ABOVE `\includegraphics`; tables: caption ABOVE `\begin{tabularx}`
+- **Lists**: Do NOT add `[leftmargin=...]` to individual lists — the preamble handles it globally
+- **Tables**: Always leave a blank line before `\begin{tabularx}` to avoid inline rendering
+- **Wide content** (tables, images, diagrams): Wrap in `\begin{landscape}...\end{landscape}` (from `pdflscape`); use `\linewidth` not `\textwidth`
+
+### 4. PlantUML Diagrams
+
+Create `.puml` files in the `diagrams/` folder. Standard style header:
+
+```plantuml
+@startuml
+!theme plain
+skinparam backgroundColor white
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam shadowing false
+skinparam roundCorner 8
+```
+
+Standard diagram types for implementation reports:
+1. **Use Case** (`use_case.puml`) — actors + system functionality
+2. **Sequence: Main Flow** (`sequence_tour.puml`) — core business process
+3. **Sequence: Secondary Flow** (`sequence_reservation.puml`) — secondary process
+4. **Data Model / ER** (`data_model.puml`) — entity relationships
+
+Generate PNGs:
+
+```bash
+cd generated/reports/<report_name>/
+for f in diagrams/*.puml; do plantuml -tpng "$f" -o "$(pwd)/img/"; done
+```
+
+### 5. Compilation
+
+```bash
+cd generated/reports/<report_name>/
+pdflatex -interaction=nonstopmode <report>.tex
+pdflatex -interaction=nonstopmode <report>.tex   # 2nd pass for TOC/refs
+```
+
+Check for issues:
+
+```bash
+# Count overflows (aim for 0-3 cosmetic only)
+grep -c "Overfull" <report>.log
+
+# See overflow details
+grep "Overfull" <report>.log
+```
+
+### 6. Known Pitfalls (see STYLE_GUIDE.md for details)
+
+- **Helvetica is 15-20% wider than Computer Modern** — all table column widths need adjusting
+- **`\texttt{}` does NOT hyphenate** — avoid in narrow `p{}` columns; use plain text or `\allowbreak{}`
+- **tabularx without blank line** — renders inline, causes overflow
+- **`\list` resets `\leftskip`** — lists won't inherit hierarchical indent without the `\listlabelindent` mechanism
+- **booktabs rules extend ~17pt** beyond tabularx width — cosmetic, accepted

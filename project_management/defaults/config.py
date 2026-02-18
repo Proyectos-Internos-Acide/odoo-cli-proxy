@@ -1,14 +1,54 @@
 """Default configuration for sprint report generation."""
 
-# Company information (used in LaTeX headers and title blocks)
+# =========================================================================
+# COMPANY / BENEFICIARY INFORMATION
+# =========================================================================
 COMPANY_NAME = r"A\&F Destiny E.I.R.L."
 PROJECT_SUBTITLE = r"Hotel \& Trip Agency"
 PROJECT_DESCRIPTION = (
-    r"Implementaci\'on de ERP Odoo 19 para Hotel, "
-    r"Agencia de Viajes y Restaurante"
+    r"Fortalecimiento de la Competitividad y Optimizaci\'on de Procesos "
+    r"en A\&F Destiny E.I.R.L. mediante la Digitalizaci\'on de Reservas, "
+    r"Gesti\'on de Datos y Estrategias de Gesti\'on Comercial."
 )
+PROJECT_RUC = "20600144813"
+LEGAL_REPRESENTATIVE = "Nohemi Milagros Cjumo Ovalle"
 
-# LaTeX theme colors (hex without #)
+# =========================================================================
+# IMPLEMENTING COMPANY
+# =========================================================================
+IMPLEMENTING_COMPANY = "VISEPRO"
+
+# =========================================================================
+# PROJECT METADATA
+# =========================================================================
+PROJECT_CODE = r"N\textdegree{} 471-PROINNOVATE-IMTEMD-2025"
+PROGRAM_NAME = r"PROGRAMA PROINNOVATE -- IMTEMD 2025"
+REPORT_DATE_START = "01/01/2026"
+REPORT_DATE_END = "28/02/2026"
+
+# =========================================================================
+# PEOPLE
+# =========================================================================
+COORDINATOR_NAME = "Nohemi Milagros Cjumo Ovalle"
+CONSULTANT_NAME = "Marco Rosendo Mejia Miranda"
+CO_CONSULTANT_NAME = r"Gonzalo Enrique Guti\'errez Castillo"
+
+# =========================================================================
+# LOCATION
+# =========================================================================
+CITY = "CUSCO"
+COUNTRY = r"PER\'U"
+YEAR = "2026"
+
+# =========================================================================
+# IMAGES (relative to report's img/ folder)
+# =========================================================================
+COVER_IMAGE = "VISEPRO_portada.jpg"      # Full-bleed cover page
+LOGO_IMAGE = "MACHU-PICCHU-AF-DESTINY-LOGO.png"  # Company logo for title page
+
+# =========================================================================
+# LATEX THEME COLORS (hex without #)
+# =========================================================================
 COLORS = {
     "primary": "2C3E50",
     "accent": "2980B9",
@@ -16,20 +56,19 @@ COLORS = {
     "warn": "F39C12",
 }
 
-# Output directory (relative to project_management/)
+# =========================================================================
+# BUILD SETTINGS
+# =========================================================================
 GENERATED_DIR = "generated"
 
-# Auxiliary file extensions to clean after compilation
 AUX_EXTENSIONS = [
     ".aux", ".log", ".out", ".toc", ".lof", ".lot",
     ".fls", ".fdb_latexmk", ".synctex.gz",
 ]
 
-# LaTeX compiler
 LATEX_CMD = "pdflatex"
 LATEX_ARGS = ["-interaction=nonstopmode"]
 
-# Pandoc compiler (for markdown -> PDF)
 PANDOC_CMD = "pandoc"
 PANDOC_ARGS = [
     "--pdf-engine=pdflatex",
@@ -39,14 +78,8 @@ PANDOC_ARGS = [
     "--highlight-style=tango",
 ]
 
-# Post-implementation report types
 REPORT_TYPES = ["implementation", "executive_summary", "lessons_learned"]
 
-# Project metadata (for post-implementation reports)
-PROJECT_CODE = r"N\textdegree{} 471-PROINNOVATE-IMTEMD-2025"
+# Backward compatibility aliases
 PROJECT_ENTITY = COMPANY_NAME
-PROJECT_RUC = "20600144813"
 PROJECT_DATE = "Febrero 2026"
-COORDINATOR_NAME = "Nohemi Milagros Cjumo Ovalle"
-CONSULTANT_NAME = "Marco Rosendo Mejia Miranda"
-PROGRAM_NAME = r"PROGRAMA PROINNOVATE -- IMTEMD 2025"

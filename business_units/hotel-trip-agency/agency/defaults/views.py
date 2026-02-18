@@ -637,6 +637,35 @@ ECOM_PRICE_PREFIX_DYNAMIC_ARCH = '''<data>
     </xpath>
 </data>'''.replace('__IS_TOUR__', _IS_TOUR).replace('__NOT_TOUR__', _NOT_TOUR)
 
+# ── Ecommerce: Extended description section for tours ────────────────────
+# Renders x_extended_description (html field) below the main product section
+# and ABOVE the specifications/accordion section. Only shown for tour products.
+# Inherits from website_sale.product (product detail page).
+
+ECOM_EXTENDED_DESC_ARCH = '''<data>
+    <xpath expr="//section[@id='product_detail']" position="after">
+        <section t-if="(__IS_TOUR__) and product.x_extended_description"
+                 class="container py-4" id="tour_extended_description">
+            <div t-field="product.x_extended_description"
+                 class="o_wsale_extended_description"/>
+        </section>
+    </xpath>
+</data>'''.replace('__IS_TOUR__', _IS_TOUR).replace('__NOT_TOUR__', _NOT_TOUR)
+
+# ── Backend Form: Add x_extended_description to product.template ecommerce tab ──
+# Inherits from the website_sale product form view that contains description_ecommerce.
+# Places the new field below the existing "Descripcion Larga" field.
+
+PRODUCT_EXTENDED_DESC_FORM_ARCH = '''<data>
+    <xpath expr="//group[@name='ecom_description']" position="after">
+        <group string="Extended Description" name="ecom_extended_description">
+            <field colspan="2" name="x_extended_description" nolabel="1"
+                   placeholder="Detailed tour content (itinerary, includes, conditions, etc.)"/>
+        </group>
+    </xpath>
+</data>'''
+
+
 # ── Ecommerce i18n: English → Spanish translation mapping ────────────────
 # Used by setup_ecommerce.py to write es_419 translations after the base arch.
 # Order: longest strings first to avoid partial matches during replacement.
