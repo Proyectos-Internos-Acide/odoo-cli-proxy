@@ -56,6 +56,15 @@ ODOO_USER=email@ejemplo.com
 ODOO_PASSWORD=tu-api-key
 ```
 
+Para usar el comparador de instancias, agregar también las credenciales de la instancia destino (dejar vacío para deshabilitar):
+
+```env
+TARGET_MIGRATION_URL=https://nueva-instancia.odoo.com
+TARGET_MIGRATION_DB=nueva-instancia
+TARGET_MIGRATION_USERNAME=email@ejemplo.com
+TARGET_MIGRATION_PASSWORD=api-key
+```
+
 ## Librería odoo\_cli
 
 Paquete Python reutilizable para interactuar con Odoo por XML-RPC. Se encuentra en `odoo_cli/`.
@@ -64,6 +73,7 @@ Paquete Python reutilizable para interactuar con Odoo por XML-RPC. Se encuentra 
 |-------------|----------------------------------------------|
 | `config.py` | Carga credenciales desde `.env`              |
 | `client.py` | Clase `OdooClient` con métodos XML-RPC       |
+| `target.py` | Factory `get_target_client()` para instancia de migración |
 
 Créditos a [@rogerinfas](https://github.com/rogerinfas)
 
@@ -83,6 +93,24 @@ client.execute('res.partner', 'write', [[partner_id]], {'name': 'Nuevo nombre'})
 ```
 
 > **Nota:** Usar `client.execute()` directamente en lugar de `client.write()` o `client.create()`, ya que los wrappers tienen bugs conocidos.
+
+### Conexión a múltiples instancias
+
+`OdooClient` acepta credenciales explícitas para conectarse a cualquier instancia sin depender de `.env`:
+
+```python
+from odoo_cli import OdooClient, get_target_client
+
+# Instancia source (desde .env)
+source = OdooClient()
+
+# Instancia target (desde TARGET_MIGRATION_* en .env, o None si no configurada)
+target = get_target_client()
+
+# Instancia arbitraria (credenciales explícitas)
+other = OdooClient(url='https://otra.odoo.com', db='otra_db',
+                   username='admin@mail.com', password='api-key')
+```
 
 ## CLI
 
@@ -114,11 +142,12 @@ Actualmente existe una unidad de negocio: `hotel-trip-agency/`.
 
 Scripts de nivel superior para verificar el estado de la instancia:
 
-| Script              | Descripción                                                  |
-|---------------------|--------------------------------------------------------------|
-| `check_modules.py`  | Audita módulos instalados vs. requeridos                     |
-| `verify_setup.py`   | Verificación completa: módulos, categorías, atributos, zona horaria |
-| `setup_products.py` | Configura atributos de producto y asigna categorías          |
+| Script                 | Descripción                                                  |
+|------------------------|--------------------------------------------------------------|
+| `check_modules.py`     | Audita módulos instalados vs. requeridos                     |
+| `verify_setup.py`      | Verificación completa: módulos, categorías, atributos, zona horaria |
+| `setup_products.py`    | Configura atributos de producto y asigna categorías          |
+| `compare_instances.py` | Compara configuración entre instancia source y target para migración |
 
 ```bash
 uv run python business_units/hotel-trip-agency/verify_setup.py
@@ -339,13 +368,15 @@ project_management/
 py-odoo-cli/
 ├── odoo_cli/                          # Librería XML-RPC reutilizable
 │   ├── client.py                      # Clase OdooClient
-│   └── config.py                      # Carga de credenciales
+│   ├── config.py                      # Carga de credenciales
+│   └── target.py                      # Factory para instancia de migración
 ├── main.py                            # CLI (Typer)
 ├── mcp_server.py                      # Servidor MCP para asistentes IA
 ├── business_units/                    # Configuración por unidad de negocio
 │   └── hotel-trip-agency/
 │       ├── check_modules.py           # Auditoría de módulos
 │       ├── verify_setup.py            # Verificación completa
+│       ├── compare_instances.py       # Comparador source vs target
 │       ├── setup_products.py          # Productos y atributos
 │       ├── defaults/                  # Datos compartidos (categorías, módulos, i18n)
 │       ├── hotel/                     # Zona horaria, planning, atributos

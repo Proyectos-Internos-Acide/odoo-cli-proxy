@@ -5,17 +5,25 @@ from typing import Any, List, Dict, Optional, Union
 from .config import Config
 
 class OdooClient:
-    def __init__(self):
-        Config.validate()
-        self.url = Config.ODOO_URL
-        self.db = Config.ODOO_DB
-        self.username = Config.ODOO_USER
-        self.password = Config.ODOO_PASSWORD
+    def __init__(self, url=None, db=None, username=None, password=None, verify_ssl=None):
+        if url is not None:
+            self.url = url
+            self.db = db
+            self.username = username
+            self.password = password
+            _verify = verify_ssl if verify_ssl is not None else False
+        else:
+            Config.validate()
+            self.url = Config.ODOO_URL
+            self.db = Config.ODOO_DB
+            self.username = Config.ODOO_USER
+            self.password = Config.ODOO_PASSWORD
+            _verify = Config.ODOO_VERIFY_SSL
+
         self.uid = None
         self.logger = logging.getLogger(__name__)
-        
-        # Create SSL context based on configuration
-        if Config.ODOO_VERIFY_SSL:
+
+        if _verify:
             self.context = ssl.create_default_context()
         else:
             self.context = ssl._create_unverified_context()

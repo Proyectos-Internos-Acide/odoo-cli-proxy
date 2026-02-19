@@ -42,6 +42,32 @@ uv run python business_units/hotel-trip-agency/agency/setup_ecommerce.py
 uv run python business_units/hotel-trip-agency/agency/setup_tour_groups.py
 ```
 
+## Automatizaciones Nativas del Booking Engine
+
+El modulo `booking_engine` (pre-instalado en instancias con hotel) incluye 14 automatizaciones nativas. **No requieren setup** — vienen con el modulo. Se documentan aqui como referencia operativa.
+
+### POS / Contabilidad
+- **Account POS Settle Due** (1): Modulo `account_pos_settle_due`. Al confirmar una factura (`account.move.state=posted`), resetea `customer_due_total=0` en los pedidos POS vinculados y guarda la referencia al asiento contable.
+
+### Planning Slots (Habitaciones)
+- **Fix Slot Times** (2): Al crear/modificar un planning slot vinculado a una linea de venta con rol de habitacion (`x_is_a_room_offer`), ajusta `start_datetime`/`end_datetime` segun `pickup_time`/`return_time` del producto, convirtiendo correctamente entre UTC y zona horaria local. Tambien actualiza fechas y noches en la linea de venta. **PARCHEADA** por `fix_slot_times_automation.py` (ver seccion siguiente).
+- **Set Rental Start/Return Hours on Create** (3): Al crear/modificar una SO con fechas de alquiler, ajusta las horas de `rental_start_date` y `rental_return_date` segun `pickup_time`/`return_time` del primer producto con periodicidad de alquiler. Recalcula precios con `action_update_rental_prices()`.
+
+### Room Offer → Planning Role (sincronizacion)
+- **Create role on stay offer creation** (4): Al crear un producto con `x_is_a_room_offer=True` sin `planning_role_id`, crea automaticamente un `planning.role` con `sync_shift_rental=True`.
+- **Edit role name on stay offer modification** (5): Al editar un producto de habitacion, sincroniza el nombre al `planning.role` vinculado.
+- **Delete role on stay offer deletion** (6): Al eliminar un producto de habitacion, elimina el `planning.role` vinculado.
+
+### HouseKeeping (Limpieza de habitaciones)
+- **On check in** (7): Al cambiar `rental_status` a `return` (check-in), marca los resources (habitaciones) de los planning slots como `x_occupancy=occupied`.
+- **On check out** (8): Al cambiar `rental_status` a `returned` (check-out), marca los resources como `x_occupancy=vacant`.
+- **On task stage reaching Clean** (9): Cuando una tarea de limpieza llega al stage "Clean" (id=17), si no hay aprobadores configurados, la pasa automaticamente a "Ready" (stage 18) con `state=1_done`.
+- **On task stage set to Ready** (10): Trigger `on_change`. Valida que el usuario tenga permisos de aprobador antes de permitir marcar una tarea como "Ready". Si no es aprobador, lanza `UserError`.
+- **On stage change** (11): Al cambiar el stage de una tarea de housekeeping (`x_is_house_keeping_project`), ejecuta un `object_write` (no code — actualiza estado directamente).
+- **Activate House Keeping** (12): Al activar `x_module_house_keeping` en configuracion, aplica el grupo `booking_engine.group_house_keeping` a todos los usuarios y desarchiva las automatizaciones y cron de housekeeping.
+- **Deactivate House Keeping** (13): Al desactivar `x_module_house_keeping`, remueve el grupo y archiva las automatizaciones y cron.
+- **On approvers setting set** (14): Al cambiar `x_setting_approvers` en configuracion, guarda el parametro `booking_engine.x_approvers_setting` como booleano.
+
 ## Que crea cada script
 
 ### 1. fix_slot_times_automation.py
@@ -108,7 +134,8 @@ uv run python business_units/hotel-trip-agency/agency/setup_tour_groups.py
 - **Work Log: Recalc Hours on Edit** (21): Al editar horas/operador/tipo/descripcion, publica en chatter + recalcula
 - **Work Log: Recalc Hours on Delete** (22): Al eliminar registro, publica en chatter + recalcula (excluye registro eliminado)
 - **Task: Recalc Remaining on Allocated Change** (23): Al cambiar horas asignadas, recalcula restantes + publica en chatter
-- **Warn Tour on Fleet Service State** (24): Al crear o cambiar un servicio de Fleet a "En proceso", advierte en chatter del servicio si el vehiculo tiene tours activos asignados (SOs confirmados con fecha fin futura). NO bloquea (permite reparaciones de emergencia).
+- **Warn Tour on Fleet Service State** (24): Al cambiar el estado de un servicio de Fleet a "En proceso", advierte en chatter del servicio si el vehiculo tiene tours activos asignados (SOs confirmados con fecha fin futura). NO bloquea (permite reparaciones de emergencia).
+- **Warn Tour on Fleet Service Create** (25): Al crear un nuevo servicio de Fleet con estado "En proceso", ejecuta la misma validacion que la automatizacion 24. Separada porque `on_create` y `on_write` requieren automatizaciones distintas en Odoo.
 
 **Tipos de servicio de Fleet:**
 - Servicios (puntuales): Cambio de aceite, Revision tecnica, Lavado, Reparacion general, Cambio de llantas
@@ -526,23 +553,103 @@ Los reportes se crean automaticamente al ejecutar el script. Aparecen en el menu
 
 ## Referencia: Automatizaciones
 
-| Nombre | Modelo | Trigger | Descripcion |
-|--------|--------|---------|-------------|
-| Validate Tour Dates (15) | sale.order | on_write | Bloquea si fecha fin < inicio |
-| Propagate Tour Data to Tasks (16) | project.task | on_create | Copia fechas del SO a la tarea al crearla |
-| Warn Vehicle Date Conflict (17) | project.task | on_write | Valida conflictos vehiculo (solo SOs confirmados) |
-| Sync Tour Data Changes to Tasks (18) | sale.order | on_write | Propaga cambios de SO a tareas (conflictos solo SOs confirmados) |
-| Copy Biblia Operativa from Template (19) | sale.order | on_create_or_write | Copia Biblia de plantilla a cotizacion |
-| Work Log: Post to Task Chatter (20) | x_task_work_log | on_create | Publica en chatter + recalcula horas |
-| Work Log: Recalc Hours on Edit (21) | x_task_work_log | on_write | Recalcula al editar registro |
-| Work Log: Recalc Hours on Delete (22) | x_task_work_log | on_unlink | Recalcula al eliminar registro |
-| Task: Recalc Remaining on Allocated (23) | project.task | on_write | Recalcula restantes al cambiar asignadas |
+### Booking Engine (nativas, IDs 1-14)
+
+| ID | Nombre | Modelo | Trigger | Origen |
+|----|--------|--------|---------|--------|
+| 1 | Account POS Settle Due | account.move | on_create_or_write (state) | account_pos_settle_due |
+| 2 | Fix Slot Times | planning.slot | on_create_or_write (end_datetime, sale_line_id, start_datetime) | booking_engine (parcheada) |
+| 3 | Set Rental Start/Return Hours | sale.order | on_create_or_write (rental_return_date, rental_start_date) | booking_engine |
+| 4 | Create role on stay offer creation | product.template | on_create_or_write | booking_engine |
+| 5 | Edit role name on stay offer modification | product.template | on_write | booking_engine |
+| 6 | Delete role on stay offer deletion | product.template | on_unlink | booking_engine |
+| 7 | HouseKeeping: On check in | sale.order | on_create_or_write (rental_status) | booking_engine |
+| 8 | HouseKeeping: On check out | sale.order | on_create_or_write (rental_status) | booking_engine |
+| 9 | HouseKeeping: On task stage reaching Clean | project.task | on_create_or_write (stage_id) | booking_engine |
+| 10 | HouseKeeping: On task stage set to Ready | project.task | on_change | booking_engine |
+| 11 | HouseKeeping: On stage change | project.task | on_create_or_write (stage_id) | booking_engine |
+| 12 | Activate House Keeping | res.config.settings | on_create_or_write | booking_engine |
+| 13 | Deactivate House Keeping | res.config.settings | on_create_or_write | booking_engine |
+| 14 | HouseKeeping: On approvers setting set | res.config.settings | on_create_or_write (x_setting_approvers) | booking_engine |
+
+### Agencia / Tours (custom, IDs 15-25)
+
+| ID | Nombre | Modelo | Trigger | Creado por |
+|----|--------|--------|---------|------------|
+| 15 | Validate Tour Dates | sale.order | on_write (x_tour_start_date, x_tour_end_date) | setup_fleet_automations.py |
+| 16 | Propagate Tour Data to Tasks | project.task | on_create | setup_fleet_automations.py |
+| 17 | Warn Vehicle Date Conflict | project.task | on_write (x_vehicle_id, x_seats_needed, x_tour_start_date, x_tour_end_date) | setup_fleet_automations.py |
+| 18 | Sync Tour Data Changes to Tasks | sale.order | on_write (x_service_type, x_num_passengers, x_departure_city, x_tour_start_date, x_tour_end_date) | setup_fleet_automations.py |
+| 19 | Copy Biblia Operativa from Template | sale.order | on_create_or_write | setup_biblia_operativa.py |
+| 20 | Work Log: Post to Task Chatter | x_task_work_log | on_create | setup_fleet_automations.py |
+| 21 | Work Log: Recalc Hours on Edit | x_task_work_log | on_write (x_hours_spent, x_partner_id, x_service_type, x_description) | setup_fleet_automations.py |
+| 22 | Work Log: Recalc Hours on Delete | x_task_work_log | on_unlink | setup_fleet_automations.py |
+| 23 | Task: Recalc Remaining on Allocated | project.task | on_write (allocated_hours) | setup_fleet_automations.py |
+| 24 | Warn Tour on Fleet Service State | fleet.vehicle.log.services | on_write (state) | setup_fleet_automations.py |
+| 25 | Warn Tour on Fleet Service Create | fleet.vehicle.log.services | on_create | setup_fleet_automations.py |
 
 ### Server Actions (botones en vista)
 
-| Nombre | Modelo | Trigger | Descripcion |
-|--------|--------|---------|-------------|
-| Create POs from Biblia Operators | sale.order | Boton en Biblia Operativa | Genera POs agrupados por proveedor desde operadores |
+| Nombre | Modelo | Trigger | Creado por |
+|--------|--------|---------|------------|
+| Create POs from Biblia Operators (1181) | sale.order | Boton en Biblia Operativa | setup_biblia_operativa.py |
+
+## Comparador de Instancias (Migracion)
+
+Para replicar la configuracion en una nueva instancia Odoo, se puede usar el comparador que detecta que configuraciones custom existen en la instancia source pero faltan en la target.
+
+### Configuracion
+
+Agregar credenciales de la instancia destino en `.env` (dejar vacio para deshabilitar):
+
+```
+TARGET_MIGRATION_URL=https://nueva-instancia.odoo.com/
+TARGET_MIGRATION_DB=nueva-instancia
+TARGET_MIGRATION_USERNAME=admin@empresa.com
+TARGET_MIGRATION_PASSWORD=api-key-aqui
+```
+
+### Uso
+
+```bash
+# Comparacion completa (9 categorias)
+uv run python business_units/hotel-trip-agency/compare_instances.py
+
+# Solo una categoria
+uv run python business_units/hotel-trip-agency/compare_instances.py --category automations
+
+# Modo verbose (muestra tambien los OK y EXTRA)
+uv run python business_units/hotel-trip-agency/compare_instances.py --verbose
+```
+
+### Categorias de comparacion
+
+| Categoria | Modelo | Que compara |
+|-----------|--------|-------------|
+| models | ir.model | Modelos custom (state=manual, ej: x_itinerary_line) |
+| fields | ir.model.fields | Campos custom (x_*, state=manual) |
+| automations | base.automation | Automatizaciones sin ir.model.data (creadas por scripts) |
+| server_actions | ir.actions.server | Server actions de codigo custom |
+| views | ir.ui.view | Vistas heredadas custom (sin ir.model.data) |
+| acls | ir.model.access | ACLs para modelos custom (x_*) |
+| products | product.template | Productos de servicio con sale_ok=True |
+| templates | sale.order.template | Plantillas de cotizacion |
+| reports | ir.actions.report | Reportes PDF custom |
+
+### Como funciona
+
+1. Conecta a ambas instancias (source via `ODOO_*`, target via `TARGET_MIGRATION_*`)
+2. Para cada categoria, consulta `ir.model.data` para distinguir registros nativos (de modulos) vs custom (creados por scripts XML-RPC)
+3. Compara por match key (nombre, modelo+campo, etc.) y reporta: `[FALTA]`, `[OK]`, `[EXTRA]`
+4. **Read-only**: nunca escribe en ninguna instancia
+
+### Archivos
+
+| Archivo | Proposito |
+|---------|-----------|
+| `odoo_cli/client.py` | `OdooClient` acepta kwargs opcionales (url, db, username, password) |
+| `odoo_cli/target.py` | Factory `get_target_client()` — retorna None si vars vacias |
+| `compare_instances.py` | Script principal de comparacion |
 
 ## Notas Importantes
 
