@@ -59,7 +59,10 @@
     "title": "City Tour Cusco",
     "price_pen": "S/30.00",
     "description": "Conoce la mágica ciudad del imperio incaico a través de una completa experiencia todo incluido. En este paquete turístico podrás disfrutar de realizar los siguientes tours: City Tour Cusco + 04 Ruinas, Valle Sagrado, Machu Picchu..\nDisfruta de un viaje Inolvidable en Cusco y sus alrededores en un Tour con muchas experiencias y destinos arqueológicos cerca de la Ciudad",
-    "details": {},
+    "details": {
+      "departure_location": "Hotel",
+      "return_location": "Ciudad del Cusco"
+    },
     "includes": [
       "Guía profesional de turismo",
       "Recojo en el hotel",
@@ -73,7 +76,7 @@
       "Dinero extra",
       "Gafas de sol"
     ],
-    "itinerary": "9:00 a 9:30 am recojo en su hotel para empezar visitando la famosaPlaza San Blasa dónde llegamos hablando de la historia del lugar y su importancia, luego nos dirigimos caminando hacia la calleHatun Rumiyocimportante por laPiedra de los 12 ángulosluego de ello nos dirigimos caminando hacia laPlaza de Armasdónde tendremos la más completa información del lugar, luego seguiremos caminando hacia laPlaza Regocijoimportante por elPalacio Municipal del Cuscodespués seguiremos en dirección a laPlaza San Franciscoimportante por elJardín Botánicode especies nativas de losAndesposteriormente nos dirigimos alArco de Santa Claraimportante lugar por  nuestra  independencia. Luego ya finalizando el tour nos dirigiremos alTradicional Mercado de San Pedro.",
+    "itinerary": "9:00 a 9:30 am recojo en su hotel para empezar visitando la famosa Plaza San Blas a dónde llegamos hablando de la historia del lugar y su importancia, luego nos dirigimos caminando hacia la calle Hatun Rumiyoc importante por la Piedra de los 12 ángulos luego de ello nos dirigimos caminando hacia la Plaza de Armas dónde tendremos la más completa información del lugar, luego seguiremos caminando hacia la Plaza Regocijo importante por el Palacio Municipal del Cusco después seguiremos en dirección a la Plaza San Francisco importante por el Jardín Botánico de especies nativas de los Andes posteriormente nos dirigimos al Arco de Santa Clara importante lugar por nuestra independencia. Luego ya finalizando el tour nos dirigiremos al Tradicional Mercado de San Pedro.",
     "schedule": "Lunes a Domingo09:00 hrs",
     "conditions": "Tours son en servicio privado.El tour es peatonal, no se hace uso de movilidad.El servicio culmina en la plaza.Niños: A partir de los 5 años cumplidos pagan la misma tarifa.En caso de No show, cancelaciones o postergaciones se les cobrará el 100%",
     "booking": "Pago al 100% para poder garantizar su reservaPuede pagar con cualquier tarjeta de crédito/débito o por depósito bancarioConsultar disponibilidad antes de realizar el pago",
@@ -81,7 +84,7 @@
     "images": [
       "https://machupicchuafdestiny.com/wp-content/uploads/elementor/thumbs/Free-Walking-Tour-Cusco-1-pzinbaqrox0g5iu4ihj7sy458b9uxoafva4g92jos0.jpg"
     ],
-    "duration": "",
+    "duration": "1 día",
     "difficulty": "Moderado",
     "description_en": "Discover the magical city of the Inca Empire through a complete all-inclusive experience. In this tour package you can enjoy the following tours: City Tour Cusco + 4 Ruins, Sacred Valley, Machu Picchu.\nEnjoy an unforgettable trip in Cusco and its surroundings on a tour with many experiences and archaeological destinations near the city.",
     "itinerary_en": "9:00 to 9:30 am pickup at your hotel to start visiting the famous Plaza San Blas, where we will talk about the history of the place and its importance. Then we walk to Hatun Rumiyoc street, famous for the Twelve-Angle Stone. From there we walk to the Plaza de Armas where we will have the most complete information about the place. We continue walking to Plaza Regocijo, notable for the Municipal Palace of Cusco. Then we head to Plaza San Francisco, famous for the Botanical Garden with native species of the Andes. Next, we visit the Arch of Santa Clara, an important place for our independence. Finally, to wrap up the tour, we head to the Traditional San Pedro Market.",
@@ -102,7 +105,11 @@
     "recommendations_en": [
       "Extra money",
       "Sunglasses"
-    ]
+    ],
+    "details_en": {
+      "departure_location": "Hotel",
+      "return_location": "Cusco City"
+    }
   },
   {
     "slug": "circuito-sur",
