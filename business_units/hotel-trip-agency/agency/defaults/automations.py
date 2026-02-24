@@ -384,8 +384,13 @@ for record in records:
         for op in ops:
             stype_label = stype_labels.get(op.x_service_type, op.x_service_type or "")
             desc = stype_label + " - " + record.name
+            if op.x_description:
+                desc = stype_label + ": " + op.x_description + " - " + record.name
             if op.x_name:
-                desc = op.x_name + " (" + stype_label + ") - " + record.name
+                desc = op.x_name + " (" + stype_label + ")"
+                if op.x_description:
+                    desc = desc + " " + op.x_description
+                desc = desc + " - " + record.name
             env["purchase.order.line"].create({
                 "order_id": po.id,
                 "product_id": product.id,

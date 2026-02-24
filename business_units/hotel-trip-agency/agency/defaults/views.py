@@ -109,21 +109,40 @@ SALE_ORDER_BIBLIA_ARCH = '''<data>
             </field>
             <separator string="Operadores Asignados"/>
             <field name="x_operator_line_ids">
-                <list editable="bottom">
-                    <control><create string="Agregar operador"/></control>
+                <list>
                     <field name="x_sequence" widget="handle"/>
-                    <field name="x_partner_id" string="Operador" required="1"/>
-                    <field name="x_service_type" string="Tipo de Servicio" required="1"/>
-                    <field name="x_phone_rel" string="Telefono" readonly="1"/>
-                    <field name="x_email_rel" string="Email" readonly="1"/>
+                    <field name="x_partner_id" string="Operador" class="text-wrap"/>
+                    <field name="x_service_type" string="Tipo de Servicio"/>
+                    <field name="x_description" string="Descripcion" class="text-wrap"/>
+                    <field name="x_date" string="Fecha"/>
                     <field name="x_cost" string="Costo Est." widget="monetary"/>
-                    <field name="x_purchase_order_id" string="Pedido Compra" readonly="1"/>
-                    <field name="x_po_state" string="Estado PO" readonly="1" widget="badge"
+                    <field name="x_purchase_order_id" string="Pedido Compra"/>
+                    <field name="x_po_state" string="Estado PO" widget="badge"
                         decoration-info="x_po_state == 'draft'"
                         decoration-warning="x_po_state == 'sent'"
                         decoration-success="x_po_state == 'purchase'"
                         invisible="not x_purchase_order_id"/>
                 </list>
+                <form string="Operador">
+                    <group>
+                        <group string="Servicio">
+                            <field name="x_partner_id" string="Operador" required="1"/>
+                            <field name="x_service_type" string="Tipo de Servicio" required="1"/>
+                            <field name="x_description" string="Descripcion"
+                                placeholder="Ej: Cusco a Ollantaytambo"/>
+                            <field name="x_date" string="Fecha"/>
+                        </group>
+                        <group string="Contacto y Costo">
+                            <field name="x_phone_rel" string="Telefono" readonly="1"/>
+                            <field name="x_email_rel" string="Email" readonly="1"/>
+                            <field name="x_cost" string="Costo Estimado" widget="monetary"/>
+                        </group>
+                    </group>
+                    <group string="Pedido de Compra" invisible="not x_purchase_order_id">
+                        <field name="x_purchase_order_id" readonly="1"/>
+                        <field name="x_po_state" string="Estado" widget="badge" readonly="1"/>
+                    </group>
+                </form>
             </field>
             <div class="mt-2 mb-3">
                 <button name="{create_po_action_id}" type="action"
@@ -167,14 +186,28 @@ TEMPLATE_BIBLIA_ARCH = '''<data>
             </field>
             <separator string="Operadores por Defecto"/>
             <field name="x_operator_line_ids">
-                <list editable="bottom">
-                    <control><create string="Agregar operador"/></control>
+                <list>
                     <field name="x_sequence" widget="handle"/>
-                    <field name="x_partner_id" string="Operador" required="1"/>
-                    <field name="x_service_type" string="Tipo de Servicio" required="1"/>
-                    <field name="x_phone_rel" string="Telefono" readonly="1"/>
-                    <field name="x_email_rel" string="Email" readonly="1"/>
+                    <field name="x_partner_id" string="Operador" class="text-wrap"/>
+                    <field name="x_service_type" string="Tipo de Servicio"/>
+                    <field name="x_description" string="Descripcion" class="text-wrap"/>
+                    <field name="x_date" string="Fecha"/>
                 </list>
+                <form string="Operador">
+                    <group>
+                        <group string="Servicio">
+                            <field name="x_partner_id" string="Operador" required="1"/>
+                            <field name="x_service_type" string="Tipo de Servicio" required="1"/>
+                            <field name="x_description" string="Descripcion"
+                                placeholder="Ej: Cusco a Ollantaytambo"/>
+                            <field name="x_date" string="Fecha"/>
+                        </group>
+                        <group string="Contacto">
+                            <field name="x_phone_rel" string="Telefono" readonly="1"/>
+                            <field name="x_email_rel" string="Email" readonly="1"/>
+                        </group>
+                    </group>
+                </form>
             </field>
             <separator string="Servicios Incluidos"/>
             <field name="x_inclusions" placeholder="Detalle de servicios incluidos en el paquete..."/>
@@ -269,6 +302,8 @@ BIBLIA_AUTOMATION_CODE = '''for record in records:
             "x_partner_id": op.x_partner_id.id if op.x_partner_id else False,
             "x_service_type": op.x_service_type or False,
             "x_name": op.x_name or False,
+            "x_description": op.x_description or False,
+            "x_date": op.x_date or False,
         })
 '''
 
@@ -369,6 +404,8 @@ BIBLIA_REPORT_TEMPLATE = '''<?xml version="1.0"?>
                                 <tr style="background-color: #1a5276 !important; -webkit-print-color-adjust: exact;">
                                     <th style="background-color: #1a5276; color: white;">Operador</th>
                                     <th style="background-color: #1a5276; color: white;">Tipo de Servicio</th>
+                                    <th style="background-color: #1a5276; color: white;">Descripcion</th>
+                                    <th style="background-color: #1a5276; color: white;">Fecha</th>
                                     <th style="background-color: #1a5276; color: white;">Telefono</th>
                                     <th style="background-color: #1a5276; color: white;">Email</th>
                                 </tr>
@@ -378,6 +415,8 @@ BIBLIA_REPORT_TEMPLATE = '''<?xml version="1.0"?>
                                     <tr>
                                         <td><span t-field="op.x_partner_id"/></td>
                                         <td><span t-field="op.x_service_type"/></td>
+                                        <td><t t-if="op.x_description"><span t-field="op.x_description"/></t><t t-else="">-</t></td>
+                                        <td><t t-if="op.x_date"><span t-field="op.x_date"/></t><t t-else="">-</t></td>
                                         <td><span t-field="op.x_phone_rel"/></td>
                                         <td><span t-field="op.x_email_rel"/></td>
                                     </tr>
@@ -847,6 +886,7 @@ VOUCHER_REPORT_TEMPLATE = '''<?xml version="1.0"?>
                                 <thead>
                                     <tr style="background-color: #1a5276 !important; -webkit-print-color-adjust: exact;">
                                         <th style="background-color: #1a5276; color: white;">Servicio</th>
+                                        <th style="background-color: #1a5276; color: white;">Descripcion</th>
                                         <th style="background-color: #1a5276; color: white;">Operador</th>
                                         <th style="background-color: #1a5276; color: white;">Telefono</th>
                                     </tr>
@@ -855,6 +895,7 @@ VOUCHER_REPORT_TEMPLATE = '''<?xml version="1.0"?>
                                     <t t-foreach="doc.x_operator_line_ids" t-as="op">
                                         <tr>
                                             <td><span t-field="op.x_service_type"/></td>
+                                            <td><t t-if="op.x_description"><span t-field="op.x_description"/></t><t t-else="">-</t></td>
                                             <td><span t-field="op.x_partner_id"/></td>
                                             <td><span t-field="op.x_phone_rel"/></td>
                                         </tr>

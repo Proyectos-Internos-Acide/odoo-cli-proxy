@@ -183,6 +183,10 @@ def setup():
          'relation': 'purchase.order', 'readonly': True, 'model': 'x_operator_line'},
         {'name': 'x_po_state', 'field_description': 'Estado PO', 'ttype': 'selection',
          'related': 'x_purchase_order_id.state', 'readonly': True, 'store': False, 'model': 'x_operator_line'},
+        {'name': 'x_description', 'field_description': 'Descripcion', 'ttype': 'char',
+         'model': 'x_operator_line'},
+        {'name': 'x_date', 'field_description': 'Fecha', 'ttype': 'date',
+         'model': 'x_operator_line'},
     ]
     for fdef in operator_fields:
         fid, created = _create_field(client, fdef, oper_model_id)
