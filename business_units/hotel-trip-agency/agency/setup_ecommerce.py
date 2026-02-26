@@ -34,6 +34,8 @@ from agency.defaults.views import (
 
 app = typer.Typer(help="Setup ecommerce tour quote button (replaces add-to-cart for tours)")
 
+target_option = typer.Option(False, "--target", help="Run against TARGET_MIGRATION (production) instance")
+
 
 # ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -100,10 +102,19 @@ def _upsert_qweb_view(client, name, arch_en, parent_key, translations=None):
 # ── Main setup ────────────────────────────────────────────────────────────
 
 @app.command()
-def setup():
+def setup(target: bool = target_option):
     """Create ecommerce QWeb views for tour quote button."""
-    client = OdooClient()
-    client.connect()
+    if target:
+        from odoo_cli.target import get_target_client
+        client = get_target_client()
+        if not client:
+            typer.secho("[ERROR] TARGET_MIGRATION_* variables not configured", fg=typer.colors.RED)
+            raise typer.Exit(1)
+        client.connect()
+        typer.secho(f"Connected to TARGET (production) as uid={client.uid}", fg=typer.colors.YELLOW, bold=True)
+    else:
+        client = OdooClient()
+        client.connect()
 
     typer.secho("=" * 70, bold=True)
     typer.secho("  ECOMMERCE TOUR QUOTE SETUP", bold=True)
@@ -156,8 +167,8 @@ def setup():
         translations=es_translations,
     )
 
-    # ── 6. Price prefix: "estimated" / "aprox." for tours ──────
-    typer.secho("\n6. Price prefix: 'estimated' / 'aprox.' for tour prices", bold=True)
+    # ── 6. Price prefix: "from" / "desde" for tours ───────────
+    typer.secho("\n6. Price prefix: 'from' / 'desde' for tour prices", bold=True)
     _upsert_qweb_view(client,
         name='agency_ecommerce.price_prefix_tour',
         arch_en=ECOM_PRICE_PREFIX_TOUR_ARCH,
@@ -202,13 +213,13 @@ def setup():
     typer.secho("  3. agency_ecommerce.listing_tour_quote — listing button → 'Cotizar'", fg=typer.colors.CYAN)
     typer.secho("  4. agency_ecommerce.wishlist_tour_quote — wishlist cards → 'Cotizar'", fg=typer.colors.CYAN)
     typer.secho("  5. agency_ecommerce.dynamic_snippet_tour_quote — dynamic catalog → 'Cotizar'", fg=typer.colors.CYAN)
-    typer.secho("  6. agency_ecommerce.price_prefix_tour — 'estimated' / 'aprox.' (product page)", fg=typer.colors.CYAN)
-    typer.secho("  7. agency_ecommerce.price_prefix_listing — 'estimated' / 'aprox.' (listing)", fg=typer.colors.CYAN)
-    typer.secho("  8. agency_ecommerce.price_prefix_wishlist — 'estimated' / 'aprox.' (wishlist)", fg=typer.colors.CYAN)
-    typer.secho("  9. agency_ecommerce.price_prefix_dynamic — 'estimated' / 'aprox.' (dynamic snippets)", fg=typer.colors.CYAN)
+    typer.secho("  6. agency_ecommerce.price_prefix_tour — 'from' / 'desde' (product page)", fg=typer.colors.CYAN)
+    typer.secho("  7. agency_ecommerce.price_prefix_listing — 'from' / 'desde' (listing)", fg=typer.colors.CYAN)
+    typer.secho("  8. agency_ecommerce.price_prefix_wishlist — 'from' / 'desde' (wishlist)", fg=typer.colors.CYAN)
+    typer.secho("  9. agency_ecommerce.price_prefix_dynamic — 'from' / 'desde' (dynamic snippets)", fg=typer.colors.CYAN)
     typer.secho("\nVerificacion:", fg=typer.colors.YELLOW)
-    typer.secho("  - Ir a /shop — tours muestran 'Cotizar' + precio con prefijo 'aprox.'", fg=typer.colors.YELLOW)
-    typer.secho("  - Click en tour → 'Solicitar Cotizacion' + precio con prefijo 'aprox.'", fg=typer.colors.YELLOW)
+    typer.secho("  - Ir a /shop — tours muestran 'Cotizar' + precio con prefijo 'desde'", fg=typer.colors.YELLOW)
+    typer.secho("  - Click en tour → 'Solicitar Cotizacion' + precio con prefijo 'desde'", fg=typer.colors.YELLOW)
     typer.secho("  - Lista de deseos y bloques dinamicos — idem", fg=typer.colors.YELLOW)
     typer.secho("  - Formulario → verificar lead en CRM > Pipeline", fg=typer.colors.YELLOW)
 

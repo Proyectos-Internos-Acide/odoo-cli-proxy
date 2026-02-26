@@ -5,18 +5,23 @@ Creates:
 - x_itinerary_line custom model (structured itinerary table)
 - x_operator_line custom model (assigned operators/suppliers)
 - Related fields on x_guests_line (passenger details from res.partner)
-- Fields on sale.order (itinerary o2m, operators o2m, inclusions, key_times, observations)
+- Fields on sale.order (itinerary o2m, operators o2m, inclusions, key_times, observations, financials)
 - Fields on sale.order.template (is_tour, itinerary o2m, operators o2m, inclusions, etc.)
 - ACL rules for both custom models
 - View 4487 update: Biblia Operativa tab on sale.order form
 - Inherited view on sale.order.template form
 - Automation: copy Biblia Operativa from template to quotation
+- Server actions: Create POs, Create Budget
+- Automations: Recalc financials (on operator create/write/unlink), Autofill from product
 
 Usage:
     uv run python business_units/hotel-trip-agency/agency/setup_biblia_operativa.py
+    uv run python business_units/hotel-trip-agency/agency/setup_biblia_operativa.py --target prod
+    uv run python business_units/hotel-trip-agency/agency/setup_biblia_operativa.py --target both
 """
 import sys
 import os
+import argparse
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
@@ -33,7 +38,14 @@ from agency.defaults.views import (
     VOUCHER_REPORT_KEY,
     VOUCHER_REPORT_TEMPLATE,
 )
-from agency.defaults.automations import CREATE_POS_FROM_OPERATORS
+from agency.defaults.automations import (
+    CREATE_POS_FROM_OPERATORS,
+    RECALC_TOUR_FINANCIALS,
+    RECALC_TOUR_FINANCIALS_UNLINK,
+    CREATE_BUDGET_FROM_BIBLIA,
+    VIEW_TOUR_BUDGET,
+    AUTOFILL_FROM_PRODUCT,
+)
 
 app = typer.Typer(help="Setup Biblia Operativa (itinerary, operators, passengers, views, automation)")
 
@@ -100,6 +112,64 @@ def _ensure_acl(client, name, model_id, group_id=1):
     return aid, True
 
 
+def _create_or_update_automation(client, name, model_id, trigger, code,
+                                  trigger_field_ids=None, model_name=None):
+    """Create or update a base.automation + ir.actions.server pair. Returns automation id."""
+    existing = client.search_read('base.automation',
+        domain=[['name', '=', name]],
+        fields=['id', 'action_server_ids'])
+    if existing:
+        auto_id = existing[0]['id']
+        action_ids = existing[0].get('action_server_ids', [])
+        if action_ids:
+            client.execute('ir.actions.server', 'write', [action_ids[0]], {'code': code})
+        update_vals = {'trigger': trigger}
+        if model_name:
+            mid = _get_model_id(client, model_name)
+            if mid:
+                update_vals['model_id'] = mid
+        if trigger_field_ids is not None:
+            update_vals['trigger_field_ids'] = trigger_field_ids
+        else:
+            update_vals['trigger_field_ids'] = [(5, 0, 0)]
+        client.execute('base.automation', 'write', [auto_id], update_vals)
+        return auto_id
+    else:
+        action_result = client.execute('ir.actions.server', 'create', [{
+            'name': name,
+            'model_id': model_id,
+            'state': 'code',
+            'code': code,
+        }])
+        action_id = action_result[0] if isinstance(action_result, list) else action_result
+        auto_vals = {
+            'name': name,
+            'model_id': model_id,
+            'trigger': trigger,
+            'action_server_ids': [(6, 0, [action_id])],
+            'active': True,
+        }
+        if trigger_field_ids is not None:
+            auto_vals['trigger_field_ids'] = trigger_field_ids
+        else:
+            auto_vals['trigger_field_ids'] = []
+        auto_result = client.execute('base.automation', 'create', [auto_vals])
+        auto_id = auto_result[0] if isinstance(auto_result, list) else auto_result
+        return auto_id
+
+
+def _get_trigger_field_ids(client, model_name, field_names):
+    """Get field IDs for automation trigger_field_ids."""
+    ids = []
+    for fname in field_names:
+        result = client.search_read('ir.model.fields',
+            domain=[['model', '=', model_name], ['name', '=', fname]],
+            fields=['id'], limit=1)
+        if result:
+            ids.append(result[0]['id'])
+    return [(6, 0, ids)] if ids else [(5, 0, 0)]
+
+
 # View architectures and automation code imported from defaults/views.py
 
 
@@ -109,17 +179,54 @@ TEMPLATE_VIEW_ARCH = TEMPLATE_BIBLIA_ARCH
 AUTOMATION_CODE = BIBLIA_AUTOMATION_CODE
 
 
+# ── Multi-instance support ────────────────────────────────────────────────
+
+def _get_clients(target):
+    """Return list of (label, client) tuples based on target."""
+    clients = []
+    if target in ('test', 'both'):
+        clients.append(('TEST', OdooClient()))
+    if target in ('prod', 'both'):
+        from dotenv import load_dotenv
+        load_dotenv()
+        prod_url = os.environ.get('TARGET_MIGRATION_URL')
+        prod_db = os.environ.get('TARGET_MIGRATION_DB')
+        prod_user = os.environ.get('TARGET_MIGRATION_USERNAME')
+        prod_pass = os.environ.get('TARGET_MIGRATION_PASSWORD')
+        if not all([prod_url, prod_db, prod_user, prod_pass]):
+            typer.secho("  [ERROR] Production credentials not found in .env", fg=typer.colors.RED)
+            raise typer.Exit(1)
+        clients.append(('PROD', OdooClient(url=prod_url, db=prod_db,
+                                            username=prod_user, password=prod_pass)))
+    return clients
+
+
 # ── Main setup ────────────────────────────────────────────────────────────
 
 @app.command()
-def setup():
+def setup(target: str = typer.Option("test", help="Target instance: test, prod, or both")):
     """Create Biblia Operativa models, fields, views, and automation."""
-    client = OdooClient()
-    client.connect()
+    if target not in ('test', 'prod', 'both'):
+        typer.secho(f"Invalid target: {target}. Use test, prod, or both.", fg=typer.colors.RED)
+        raise typer.Exit(1)
 
-    typer.secho("=" * 70, bold=True)
-    typer.secho("  BIBLIA OPERATIVA SETUP", bold=True)
-    typer.secho("=" * 70, bold=True)
+    clients = _get_clients(target)
+
+    for label, client in clients:
+        client.connect()
+        typer.secho(f"\n{'=' * 70}", bold=True)
+        typer.secho(f"  BIBLIA OPERATIVA SETUP — {label} ({client.db})", bold=True)
+        typer.secho(f"{'=' * 70}", bold=True)
+
+        _run_setup(client, label)
+
+    typer.secho(f"\n{'=' * 70}", bold=True)
+    typer.secho("  ALL INSTANCES COMPLETE", fg=typer.colors.BLUE, bold=True)
+    typer.secho(f"{'=' * 70}", bold=True)
+
+
+def _run_setup(client, label):
+    """Run all setup steps on a single client instance."""
 
     # ── 1. Model x_itinerary_line ─────────────────────────────────────
     typer.secho("\n1. Model x_itinerary_line", bold=True)
@@ -157,6 +264,7 @@ def setup():
     # ── 5. Fields on x_operator_line ──────────────────────────────────
     typer.secho("\n5. Fields on x_operator_line", bold=True)
     operator_fields = [
+        {'name': 'x_name', 'field_description': 'Nombre', 'ttype': 'char', 'model': 'x_operator_line'},
         {'name': 'x_sequence', 'field_description': 'Secuencia', 'ttype': 'integer', 'model': 'x_operator_line'},
         {'name': 'x_partner_id', 'field_description': 'Operador', 'ttype': 'many2one',
          'relation': 'res.partner', 'model': 'x_operator_line'},
@@ -187,6 +295,21 @@ def setup():
          'model': 'x_operator_line'},
         {'name': 'x_date', 'field_description': 'Fecha', 'ttype': 'date',
          'model': 'x_operator_line'},
+        # ── New fields: currency, PEN equivalent, product, PO sync ──
+        {'name': 'x_cost_currency_id', 'field_description': 'Moneda Costo', 'ttype': 'many2one',
+         'relation': 'res.currency', 'model': 'x_operator_line'},
+        {'name': 'x_cost_pen', 'field_description': 'Equiv. PEN', 'ttype': 'float',
+         'readonly': True, 'model': 'x_operator_line'},
+        {'name': 'x_product_id', 'field_description': 'Servicio', 'ttype': 'many2one',
+         'relation': 'product.product', 'model': 'x_operator_line'},
+        {'name': 'x_po_line_id', 'field_description': 'Linea PO', 'ttype': 'many2one',
+         'relation': 'purchase.order.line', 'readonly': True, 'model': 'x_operator_line'},
+        {'name': 'x_po_price', 'field_description': 'Precio PO', 'ttype': 'float',
+         'related': 'x_po_line_id.price_unit', 'readonly': True, 'store': False,
+         'model': 'x_operator_line'},
+        {'name': 'x_company_currency_id', 'field_description': 'Moneda Empresa', 'ttype': 'many2one',
+         'relation': 'res.currency', 'related': 'x_sale_order_id.company_id.currency_id',
+         'readonly': True, 'store': False, 'model': 'x_operator_line'},
     ]
     for fdef in operator_fields:
         fid, created = _create_field(client, fdef, oper_model_id)
@@ -255,6 +378,24 @@ def setup():
          'model': 'sale.order', 'translate': True},
         {'name': 'x_special_observations', 'field_description': 'Observaciones Especiales', 'ttype': 'text',
          'model': 'sale.order', 'translate': True},
+        # ── New fields: financial summary ──
+        {'name': 'x_total_estimated_cost', 'field_description': 'Costo Est. Total (PEN)', 'ttype': 'float',
+         'readonly': True, 'model': 'sale.order'},
+        {'name': 'x_estimated_margin', 'field_description': 'Margen Estimado (PEN)', 'ttype': 'float',
+         'readonly': True, 'model': 'sale.order'},
+        {'name': 'x_estimated_margin_percent', 'field_description': 'Margen %', 'ttype': 'float',
+         'readonly': True, 'model': 'sale.order'},
+        {'name': 'x_company_currency_id', 'field_description': 'Moneda Empresa', 'ttype': 'many2one',
+         'relation': 'res.currency', 'related': 'company_id.currency_id',
+         'readonly': True, 'store': False, 'model': 'sale.order'},
+        # ── SO-currency equivalents (visible when SO is not in PEN) ──
+        {'name': 'x_total_estimated_cost_cur', 'field_description': 'Costo Est. Total (Moneda SO)',
+         'ttype': 'float', 'readonly': True, 'model': 'sale.order'},
+        {'name': 'x_estimated_margin_cur', 'field_description': 'Margen Estimado (Moneda SO)',
+         'ttype': 'float', 'readonly': True, 'model': 'sale.order'},
+        # ── Budget link ──
+        {'name': 'x_budget_id', 'field_description': 'Presupuesto',
+         'ttype': 'many2one', 'relation': 'budget.analytic', 'model': 'sale.order'},
     ]
     for fdef in so_fields:
         fid, created = _create_field(client, fdef, so_model_id)
@@ -285,13 +426,15 @@ def setup():
 
     # ── 10. View: sale.order Biblia Operativa tab ─────────────────────
     typer.secho("\n10. View: sale.order form (Biblia Operativa + Tour section)", bold=True)
-    # Look up existing action IDs for buttons (reports + PO creation)
+    # Look up existing action IDs for buttons (reports + PO creation + budget)
     _biblia_rpt = client.search_read('ir.actions.report',
         domain=[['report_name', '=', BIBLIA_REPORT_KEY]], fields=['id'], limit=1)
     _voucher_rpt = client.search_read('ir.actions.report',
         domain=[['report_name', '=', VOUCHER_REPORT_KEY]], fields=['id'], limit=1)
     _create_po_sa = client.search_read('ir.actions.server',
         domain=[['name', '=', 'Create POs from Biblia Operators']], fields=['id'], limit=1)
+    _create_budget_sa = client.search_read('ir.actions.server',
+        domain=[['name', '=', 'Create Budget from Biblia']], fields=['id'], limit=1)
     # Build arch: replace placeholders if actions exist, otherwise strip buttons
     so_arch = SALE_ORDER_VIEW_ARCH
     if _biblia_rpt and _voucher_rpt:
@@ -308,10 +451,25 @@ def setup():
         so_arch = so_arch.replace('{create_po_action_id}', str(_create_po_sa[0]['id']))
         typer.secho(f"  Button: CreatePO→{_create_po_sa[0]['id']}", fg=typer.colors.CYAN)
     else:
-        # First run: server action not yet created — remove PO button, will be added in step 19
         import re
         so_arch = re.sub(r'<button[^>]*name="\{create_po_action_id\}"[^/]*/>', '', so_arch)
         typer.secho("  Button: CreatePO deferred to step 19", fg=typer.colors.CYAN)
+    if _create_budget_sa:
+        so_arch = so_arch.replace('{create_budget_action_id}', str(_create_budget_sa[0]['id']))
+        typer.secho(f"  Button: CreateBudget→{_create_budget_sa[0]['id']}", fg=typer.colors.CYAN)
+    else:
+        import re
+        so_arch = re.sub(r'<button[^>]*name="\{create_budget_action_id\}"[^/]*/>', '', so_arch)
+        typer.secho("  Button: CreateBudget deferred to step 19", fg=typer.colors.CYAN)
+    _view_budget_sa = client.search_read('ir.actions.server',
+        domain=[['name', '=', 'View Tour Budget']], fields=['id'], limit=1)
+    if _view_budget_sa:
+        so_arch = so_arch.replace('{view_budget_action_id}', str(_view_budget_sa[0]['id']))
+        typer.secho(f"  StatButton: ViewBudget→{_view_budget_sa[0]['id']}", fg=typer.colors.CYAN)
+    else:
+        import re
+        so_arch = re.sub(r'<button[^>]*name="\{view_budget_action_id\}"[^>]*>.*?</button>', '', so_arch, flags=re.DOTALL)
+        typer.secho("  StatButton: ViewBudget deferred to step 20b", fg=typer.colors.CYAN)
 
     SO_VIEW_NAME = 'sale.order.form.inherit.agency_biblia'
     existing_view = client.search_read('ir.ui.view',
@@ -587,10 +745,21 @@ def setup():
     biblia_report_id = biblia_report[0]['id'] if biblia_report else 0
     voucher_report_id = voucher_report[0]['id'] if voucher_report else 0
 
+    # Budget server action (created in step 20, look up if exists from previous run)
+    budget_sa = client.search_read('ir.actions.server',
+        domain=[['name', '=', 'Create Budget from Biblia']], fields=['id'], limit=1)
+    budget_sa_id = budget_sa[0]['id'] if budget_sa else 0
+
+    # View Budget server action (created in step 20b, look up if exists from previous run)
+    view_budget_sa = client.search_read('ir.actions.server',
+        domain=[['name', '=', 'View Tour Budget']], fields=['id'], limit=1)
+    view_budget_sa_id = view_budget_sa[0]['id'] if view_budget_sa else 0
+
     so_view_final = client.search_read('ir.ui.view',
         domain=[['name', '=', 'sale.order.form.inherit.agency_biblia']],
         fields=['id'], limit=1)
     if so_view_final and biblia_report_id and voucher_report_id and sa_id:
+        import re
         arch_final = SALE_ORDER_VIEW_ARCH.replace(
             '{biblia_report_action_id}', str(biblia_report_id)
         ).replace(
@@ -598,28 +767,160 @@ def setup():
         ).replace(
             '{create_po_action_id}', str(sa_id)
         )
+        if budget_sa_id:
+            arch_final = arch_final.replace('{create_budget_action_id}', str(budget_sa_id))
+        else:
+            arch_final = re.sub(r'<button[^>]*name="\{create_budget_action_id\}"[^/]*/>', '', arch_final)
+        if view_budget_sa_id:
+            arch_final = arch_final.replace('{view_budget_action_id}', str(view_budget_sa_id))
+        else:
+            arch_final = re.sub(r'<button[^>]*name="\{view_budget_action_id\}"[^>]*>.*?</button>', '', arch_final, flags=re.DOTALL)
         client.execute('ir.ui.view', 'write', [so_view_final[0]['id']], {'arch': arch_final})
-        typer.secho(f"  [OK] Biblia→{biblia_report_id}, Voucher→{voucher_report_id}, CreatePO→{sa_id}", fg=typer.colors.GREEN)
+        typer.secho(f"  [OK] Biblia→{biblia_report_id}, Voucher→{voucher_report_id}, CreatePO→{sa_id}, Budget→{budget_sa_id or 'pending'}, ViewBudget→{view_budget_sa_id or 'pending'}", fg=typer.colors.GREEN)
     else:
         typer.secho("  [WARN] Could not inject all action IDs (missing view or actions)", fg=typer.colors.YELLOW)
 
+    # ── 20. Server action: Create Budget from Biblia ─────────────────
+    typer.secho("\n20. Server action: Create Budget from Biblia", bold=True)
+    BUDGET_ACTION_NAME = 'Create Budget from Biblia'
+    existing_budget_sa = client.search_read('ir.actions.server',
+        domain=[['name', '=', BUDGET_ACTION_NAME]],
+        fields=['id'])
+    if existing_budget_sa:
+        budget_sa_id = existing_budget_sa[0]['id']
+        client.execute('ir.actions.server', 'write', [budget_sa_id], {
+            'code': CREATE_BUDGET_FROM_BIBLIA,
+        })
+        typer.secho(f"  [UPDATED] Server action {budget_sa_id}", fg=typer.colors.GREEN)
+    else:
+        result = client.execute('ir.actions.server', 'create', [{
+            'name': BUDGET_ACTION_NAME,
+            'model_id': so_model_id,
+            'state': 'code',
+            'code': CREATE_BUDGET_FROM_BIBLIA,
+        }])
+        budget_sa_id = result[0] if isinstance(result, list) else result
+        typer.secho(f"  [CREATED] Server action {budget_sa_id}", fg=typer.colors.GREEN)
+
+    # ── 20b. Server action: View Tour Budget (stat button) ───────────
+    typer.secho("\n20b. Server action: View Tour Budget", bold=True)
+    VIEW_BUDGET_ACTION_NAME = 'View Tour Budget'
+    existing_vb_sa = client.search_read('ir.actions.server',
+        domain=[['name', '=', VIEW_BUDGET_ACTION_NAME]],
+        fields=['id'])
+    if existing_vb_sa:
+        view_budget_sa_id = existing_vb_sa[0]['id']
+        client.execute('ir.actions.server', 'write', [view_budget_sa_id], {
+            'code': VIEW_TOUR_BUDGET,
+        })
+        typer.secho(f"  [UPDATED] Server action {view_budget_sa_id}", fg=typer.colors.GREEN)
+    else:
+        result = client.execute('ir.actions.server', 'create', [{
+            'name': VIEW_BUDGET_ACTION_NAME,
+            'model_id': so_model_id,
+            'state': 'code',
+            'code': VIEW_TOUR_BUDGET,
+        }])
+        view_budget_sa_id = result[0] if isinstance(result, list) else result
+        typer.secho(f"  [CREATED] Server action {view_budget_sa_id}", fg=typer.colors.GREEN)
+
+    # Re-inject all deferred buttons into SO view now that we have all action IDs
+    if so_view_final:
+        current_arch = client.search_read('ir.ui.view',
+            domain=[['name', '=', 'sale.order.form.inherit.agency_biblia']],
+            fields=['id', 'arch'], limit=1)
+        if current_arch:
+            import re
+            needs_reinject = ('{create_budget_action_id}' in current_arch[0].get('arch', '')
+                              or '{view_budget_action_id}' in current_arch[0].get('arch', ''))
+            if needs_reinject or 'view_budget_action_id' not in current_arch[0].get('arch', ''):
+                # Full re-inject with all action IDs
+                arch_full = SALE_ORDER_VIEW_ARCH.replace(
+                    '{biblia_report_action_id}', str(biblia_report_id)
+                ).replace(
+                    '{voucher_report_action_id}', str(voucher_report_id)
+                ).replace(
+                    '{create_po_action_id}', str(sa_id)
+                ).replace(
+                    '{create_budget_action_id}', str(budget_sa_id)
+                ).replace(
+                    '{view_budget_action_id}', str(view_budget_sa_id)
+                )
+                client.execute('ir.ui.view', 'write', [current_arch[0]['id']], {'arch': arch_full})
+                typer.secho(f"  [OK] Full re-inject: Budget→{budget_sa_id}, ViewBudget→{view_budget_sa_id}", fg=typer.colors.GREEN)
+
+    # ── 21. Automations: Recalc Tour Financials (26, 27, 28) ─────────
+    typer.secho("\n21. Automations: Recalc Tour Financials", bold=True)
+
+    # Automation 26: on_create
+    auto_id = _create_or_update_automation(
+        client,
+        name='Recalc Tour Financials on Operator Create',
+        model_id=oper_model_id,
+        trigger='on_create',
+        code=RECALC_TOUR_FINANCIALS,
+        model_name='x_operator_line',
+    )
+    typer.secho(f"  [OK] Aut 26 (on_create) id={auto_id}", fg=typer.colors.GREEN)
+
+    # Automation 27: on_write (trigger fields: x_cost, x_cost_currency_id)
+    trigger_fields_27 = _get_trigger_field_ids(client, 'x_operator_line',
+        ['x_cost', 'x_cost_currency_id'])
+    auto_id = _create_or_update_automation(
+        client,
+        name='Recalc Tour Financials on Operator Write',
+        model_id=oper_model_id,
+        trigger='on_write',
+        code=RECALC_TOUR_FINANCIALS,
+        trigger_field_ids=trigger_fields_27,
+        model_name='x_operator_line',
+    )
+    typer.secho(f"  [OK] Aut 27 (on_write) id={auto_id}", fg=typer.colors.GREEN)
+
+    # Automation 28: on_unlink
+    auto_id = _create_or_update_automation(
+        client,
+        name='Recalc Tour Financials on Operator Delete',
+        model_id=oper_model_id,
+        trigger='on_unlink',
+        code=RECALC_TOUR_FINANCIALS_UNLINK,
+        model_name='x_operator_line',
+    )
+    typer.secho(f"  [OK] Aut 28 (on_unlink) id={auto_id}", fg=typer.colors.GREEN)
+
+    # ── 22. Automation: Autofill from Product (29) ───────────────────
+    typer.secho("\n22. Automation: Autofill from Product", bold=True)
+    trigger_fields_29 = _get_trigger_field_ids(client, 'x_operator_line', ['x_product_id'])
+    auto_id = _create_or_update_automation(
+        client,
+        name='Autofill Operator from Product',
+        model_id=oper_model_id,
+        trigger='on_write',
+        code=AUTOFILL_FROM_PRODUCT,
+        trigger_field_ids=trigger_fields_29,
+        model_name='x_operator_line',
+    )
+    typer.secho(f"  [OK] Aut 29 (autofill) id={auto_id}", fg=typer.colors.GREEN)
+
     # ── Summary ───────────────────────────────────────────────────────
-    typer.secho("\n" + "=" * 70, bold=True)
-    typer.secho("  BIBLIA OPERATIVA SETUP COMPLETE", fg=typer.colors.BLUE, bold=True)
-    typer.secho("=" * 70, bold=True)
-    typer.secho("\nCreated:", fg=typer.colors.CYAN)
+    typer.secho(f"\n{'=' * 70}", bold=True)
+    typer.secho(f"  BIBLIA OPERATIVA SETUP COMPLETE — {label}", fg=typer.colors.BLUE, bold=True)
+    typer.secho(f"{'=' * 70}", bold=True)
+    typer.secho("\nCreated/Updated:", fg=typer.colors.CYAN)
     typer.secho("  - Model: x_itinerary_line (structured itinerary table)", fg=typer.colors.CYAN)
-    typer.secho("  - Model: x_operator_line (assigned operators/suppliers)", fg=typer.colors.CYAN)
+    typer.secho("  - Model: x_operator_line (operators + currency + product + PO sync)", fg=typer.colors.CYAN)
     typer.secho("  - Related fields on x_guests_line (passenger details from res.partner)", fg=typer.colors.CYAN)
-    typer.secho("  - sale.order: itinerary, operators, inclusions, key_times, observations", fg=typer.colors.CYAN)
+    typer.secho("  - sale.order: itinerary, operators, inclusions, financials (cost/margin/margin%)", fg=typer.colors.CYAN)
     typer.secho("  - sale.order.template: is_tour, itinerary, operators, inclusions, etc.", fg=typer.colors.CYAN)
     typer.secho("  - ACL: full CRUD for Role/User on both custom models", fg=typer.colors.CYAN)
     typer.secho("  - Views: Biblia Operativa tab on SO form + template form", fg=typer.colors.CYAN)
     typer.secho("  - Automation: copies Biblia from template to quotation (on_create_or_write)", fg=typer.colors.CYAN)
-    typer.secho("  - PDF: Biblia Operativa report (Print menu on sale.order)", fg=typer.colors.CYAN)
-    typer.secho("  - PDF: Voucher Pasajero report (Print menu, one page per passenger)", fg=typer.colors.CYAN)
-    typer.secho("\nNote: Passenger data (restrictions, birthdate, etc.) is filled in the", fg=typer.colors.YELLOW)
-    typer.secho("  contact form (res.partner) and shown as readonly in the Biblia.", fg=typer.colors.YELLOW)
+    typer.secho("  - PDF: Biblia Operativa + Voucher Pasajero reports", fg=typer.colors.CYAN)
+    typer.secho("  - Server action: Create POs (with analytic_distribution + currency + PO sync)", fg=typer.colors.CYAN)
+    typer.secho("  - Server action: Create Budget from Biblia (budget.analytic)", fg=typer.colors.CYAN)
+    typer.secho("  - Automations 26-28: Recalc financials on operator create/write/delete", fg=typer.colors.CYAN)
+    typer.secho("  - Automation 29: Autofill operator from product selection", fg=typer.colors.CYAN)
+    typer.secho("  - Exchange rate view: uses SO rate (not live rate)", fg=typer.colors.CYAN)
 
 
 if __name__ == "__main__":

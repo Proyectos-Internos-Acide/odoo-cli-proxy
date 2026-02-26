@@ -7,6 +7,13 @@ Centralized here so they can be reviewed and maintained independently of scripts
 # ── Sale Order Form: Biblia Operativa tab (view 4487) ─────────────────────
 
 SALE_ORDER_BIBLIA_ARCH = '''<data>
+    <xpath expr="//div[@name='button_box']" position="inside">
+        <button class="oe_stat_button" type="action" name="{view_budget_action_id}"
+                icon="fa-bar-chart" invisible="not x_budget_id">
+            <field name="x_budget_id" invisible="1"/>
+            <span class="o_stat_text">Presupuesto</span>
+        </button>
+    </xpath>
     <xpath expr="//group[@name='sale_header']" position="after">
         <group string="Tour" name="tour_info">
             <group>
@@ -108,24 +115,34 @@ SALE_ORDER_BIBLIA_ARCH = '''<data>
                 </form>
             </field>
             <separator string="Operadores Asignados"/>
-            <field name="x_operator_line_ids">
+            <field name="x_operator_line_ids" context="{'default_x_cost_currency_id': currency_id}">
                 <list>
                     <field name="x_sequence" widget="handle"/>
+                    <field name="x_product_id" string="Servicio" optional="show"
+                        domain="[('type', '=', 'service')]"/>
                     <field name="x_partner_id" string="Operador" class="text-wrap"/>
                     <field name="x_service_type" string="Tipo de Servicio"/>
                     <field name="x_description" string="Descripcion" class="text-wrap"/>
                     <field name="x_date" string="Fecha"/>
-                    <field name="x_cost" string="Costo Est." widget="monetary"/>
+                    <field name="x_cost_currency_id" string="Mon." optional="hide"/>
+                    <field name="x_cost" string="Costo Est." widget="monetary"
+                        options="{'currency_field': 'x_cost_currency_id'}"/>
+                    <field name="x_cost_pen" string="Equiv. PEN" readonly="1" optional="hide"/>
                     <field name="x_purchase_order_id" string="Pedido Compra"/>
                     <field name="x_po_state" string="Estado PO" widget="badge"
                         decoration-info="x_po_state == 'draft'"
                         decoration-warning="x_po_state == 'sent'"
                         decoration-success="x_po_state == 'purchase'"
                         invisible="not x_purchase_order_id"/>
+                    <field name="x_po_price" string="Precio PO" readonly="1"
+                        widget="monetary" options="{'currency_field': 'x_cost_currency_id'}"
+                        optional="show"/>
                 </list>
                 <form string="Operador">
                     <group>
                         <group string="Servicio">
+                            <field name="x_product_id" string="Producto/Servicio"
+                                domain="[('type', '=', 'service')]"/>
                             <field name="x_partner_id" string="Operador" required="1"/>
                             <field name="x_service_type" string="Tipo de Servicio" required="1"/>
                             <field name="x_description" string="Descripcion"
@@ -135,21 +152,49 @@ SALE_ORDER_BIBLIA_ARCH = '''<data>
                         <group string="Contacto y Costo">
                             <field name="x_phone_rel" string="Telefono" readonly="1"/>
                             <field name="x_email_rel" string="Email" readonly="1"/>
-                            <field name="x_cost" string="Costo Estimado" widget="monetary"/>
+                            <field name="x_cost_currency_id" string="Moneda"/>
+                            <field name="x_cost" string="Costo Estimado" widget="monetary"
+                                options="{'currency_field': 'x_cost_currency_id'}"/>
+                            <field name="x_cost_pen" string="Equivalente PEN" readonly="1"/>
                         </group>
                     </group>
                     <group string="Pedido de Compra" invisible="not x_purchase_order_id">
                         <field name="x_purchase_order_id" readonly="1"/>
                         <field name="x_po_state" string="Estado" widget="badge" readonly="1"/>
+                        <field name="x_po_line_id" readonly="1" invisible="1"/>
+                        <field name="x_po_price" string="Precio Real PO" readonly="1"
+                            widget="monetary" options="{'currency_field': 'x_cost_currency_id'}"/>
                     </group>
                 </form>
             </field>
-            <div class="mt-2 mb-3">
+            <div class="d-flex gap-2 mt-2 mb-3">
                 <button name="{create_po_action_id}" type="action"
                     string="Generar Pedidos de Compra"
                     class="btn btn-secondary" icon="fa-shopping-cart"
                     confirm="Se crearan pedidos de compra para todos los operadores que no tengan uno asignado. Continuar?"/>
+                <button name="{create_budget_action_id}" type="action"
+                    string="Crear Presupuesto" class="btn btn-secondary" icon="fa-bar-chart"
+                    confirm="Se creara un presupuesto basado en los costos estimados. Continuar?"/>
             </div>
+            <group string="Resumen Financiero" col="4" invisible="not x_is_tour" name="financial_summary">
+                <field name="x_company_currency_id" invisible="1"/>
+                <field name="x_total_estimated_cost" string="Costo Est. Total (PEN)"
+                    widget="monetary" options="{'currency_field': 'x_company_currency_id'}" readonly="1"/>
+                <field name="x_estimated_margin" string="Margen Estimado (PEN)"
+                    widget="monetary" options="{'currency_field': 'x_company_currency_id'}" readonly="1"
+                    decoration-success="x_estimated_margin &gt; 0"
+                    decoration-danger="x_estimated_margin &lt; 0"/>
+                <field name="x_estimated_margin_percent" string="Margen %"
+                    widget="percentage" readonly="1"/>
+                <field name="x_total_estimated_cost_cur" string="Costo Est. Total"
+                    widget="monetary" readonly="1"
+                    invisible="currency_id == x_company_currency_id"/>
+                <field name="x_estimated_margin_cur" string="Margen Estimado"
+                    widget="monetary" readonly="1"
+                    decoration-success="x_estimated_margin_cur &gt; 0"
+                    decoration-danger="x_estimated_margin_cur &lt; 0"
+                    invisible="currency_id == x_company_currency_id"/>
+            </group>
             <separator string="Servicios Incluidos"/>
             <field name="x_inclusions" placeholder="Detalle de servicios incluidos en el paquete..."/>
             <group string="Horarios y Observaciones">
@@ -188,23 +233,33 @@ TEMPLATE_BIBLIA_ARCH = '''<data>
             <field name="x_operator_line_ids">
                 <list>
                     <field name="x_sequence" widget="handle"/>
+                    <field name="x_product_id" string="Servicio" optional="show"
+                        domain="[('type', '=', 'service')]"/>
                     <field name="x_partner_id" string="Operador" class="text-wrap"/>
                     <field name="x_service_type" string="Tipo de Servicio"/>
                     <field name="x_description" string="Descripcion" class="text-wrap"/>
                     <field name="x_date" string="Fecha"/>
+                    <field name="x_cost_currency_id" string="Mon." optional="hide"/>
+                    <field name="x_cost" string="Costo Est." widget="monetary"
+                        options="{'currency_field': 'x_cost_currency_id'}"/>
                 </list>
                 <form string="Operador">
                     <group>
                         <group string="Servicio">
+                            <field name="x_product_id" string="Producto/Servicio"
+                                domain="[('type', '=', 'service')]"/>
                             <field name="x_partner_id" string="Operador" required="1"/>
                             <field name="x_service_type" string="Tipo de Servicio" required="1"/>
                             <field name="x_description" string="Descripcion"
                                 placeholder="Ej: Cusco a Ollantaytambo"/>
                             <field name="x_date" string="Fecha"/>
                         </group>
-                        <group string="Contacto">
+                        <group string="Contacto y Costo">
                             <field name="x_phone_rel" string="Telefono" readonly="1"/>
                             <field name="x_email_rel" string="Email" readonly="1"/>
+                            <field name="x_cost_currency_id" string="Moneda"/>
+                            <field name="x_cost" string="Costo Estimado" widget="monetary"
+                                options="{'currency_field': 'x_cost_currency_id'}"/>
                         </group>
                     </group>
                 </form>
@@ -252,10 +307,9 @@ PARTNER_GUEST_FIELDS_ARCH = '''<data>
 EXCHANGE_RATE_ARCH = '''<data>
     <xpath expr="//div[@name='so_total_summary']" position="inside">
         <div class="text-end mt-2" style="font-size: 0.85em; color: #555;">
-            <t t-set="usd_currency" t-value="doc.env.ref('base.USD')"/>
             <t t-set="company_currency" t-value="doc.company_id.currency_id"/>
-            <t t-if="usd_currency and company_currency and usd_currency.active">
-                <em>Tipo de cambio: 1 <t t-out="usd_currency.name"/> = <t t-out="'%.4f' % usd_currency.inverse_rate"/> <t t-out="company_currency.name"/></em>
+            <t t-if="doc.currency_id != company_currency and doc.currency_rate">
+                <em>Tipo de cambio: 1 <t t-out="doc.currency_id.name"/> = <t t-out="'%.4f' % (1.0 / doc.currency_rate)"/> <t t-out="company_currency.name"/></em>
             </t>
         </div>
     </xpath>
@@ -304,6 +358,9 @@ BIBLIA_AUTOMATION_CODE = '''for record in records:
             "x_name": op.x_name or False,
             "x_description": op.x_description or False,
             "x_date": op.x_date or False,
+            "x_product_id": op.x_product_id.id if op.x_product_id else False,
+            "x_cost_currency_id": op.x_cost_currency_id.id if op.x_cost_currency_id else False,
+            "x_cost": op.x_cost or 0,
         })
 '''
 
@@ -451,18 +508,9 @@ BIBLIA_REPORT_TEMPLATE = '''<?xml version="1.0"?>
 VOUCHER_REPORT_KEY = 'agency_report_voucher_pasajero'
 
 # ── Ecommerce: Tour detection conditions ─────────────────────────────────
-# Matches if EITHER internal category OR public ecommerce category is Tours.
-# Covers subcategories (Adventure, All of Cusco, etc.) via parent_id check.
-_IS_TOUR = (
-    "product.categ_id.name == 'Tours y Paquetes turísticos'"
-    " or 'Tours' in product.public_categ_ids.mapped('name')"
-    " or 'Tours' in product.public_categ_ids.parent_id.mapped('name')"
-)
-_NOT_TOUR = (
-    "product.categ_id.name != 'Tours y Paquetes turísticos'"
-    " and 'Tours' not in product.public_categ_ids.mapped('name')"
-    " and 'Tours' not in product.public_categ_ids.parent_id.mapped('name')"
-)
+# Single source of truth: x_is_tour boolean on product.template.
+_IS_TOUR = "product.x_is_tour"
+_NOT_TOUR = "not product.x_is_tour"
 
 # ── Ecommerce: Hide add-to-cart + show "Request Quote" for tours ─────────
 # Inherits from website_sale.cta_wrapper (product detail CTA buttons)
@@ -645,34 +693,34 @@ ECOM_DYNAMIC_SNIPPET_TOUR_ARCH = '''<data>
     </xpath>
 </data>'''.replace('__IS_TOUR__', _IS_TOUR).replace('__NOT_TOUR__', _NOT_TOUR)
 
-# ── Ecommerce: "estimated" price prefix for tours ────────────────────────
+# ── Ecommerce: "from" price prefix for tours ─────────────────────────────
 # Each price context has its own template, so we need separate inherited views.
 
 # Product detail page: website_sale.product_price (oe_price span)
 ECOM_PRICE_PREFIX_TOUR_ARCH = '''<data>
     <xpath expr="//span[hasclass('oe_price')]" position="before">
-        <small t-if="__IS_TOUR__" class="text-muted me-1">estimated</small>
+        <small t-if="__IS_TOUR__" class="text-muted me-1">from</small>
     </xpath>
 </data>'''.replace('__IS_TOUR__', _IS_TOUR).replace('__NOT_TOUR__', _NOT_TOUR)
 
 # Shop listing cards: website_sale.products_item (product_price div > span.fw-bold)
 ECOM_PRICE_PREFIX_LISTING_ARCH = '''<data>
     <xpath expr="//div[hasclass('product_price')]/span[hasclass('fw-bold')]" position="before">
-        <small t-if="__IS_TOUR__" class="text-muted me-1">estimated</small>
+        <small t-if="__IS_TOUR__" class="text-muted me-1">from</small>
     </xpath>
 </data>'''.replace('__IS_TOUR__', _IS_TOUR).replace('__NOT_TOUR__', _NOT_TOUR)
 
 # Wishlist cards: website_sale_wishlist.product_wishlist (o_wish_price div > span)
 ECOM_PRICE_PREFIX_WISHLIST_ARCH = '''<data>
     <xpath expr="//div[hasclass('o_wish_price')]/span" position="before">
-        <small t-if="__IS_TOUR__" class="text-muted me-1">estimated</small>
+        <small t-if="__IS_TOUR__" class="text-muted me-1">from</small>
     </xpath>
 </data>'''.replace('__IS_TOUR__', _IS_TOUR).replace('__NOT_TOUR__', _NOT_TOUR)
 
 # Dynamic snippet cards: website_sale.price_dynamic_filter_template_product_product
 ECOM_PRICE_PREFIX_DYNAMIC_ARCH = '''<data>
     <xpath expr="//span[@name='product_price']" position="before">
-        <small t-if="__IS_TOUR__" class="text-muted me-1">estimated</small>
+        <small t-if="__IS_TOUR__" class="text-muted me-1">from</small>
     </xpath>
 </data>'''.replace('__IS_TOUR__', _IS_TOUR).replace('__NOT_TOUR__', _NOT_TOUR)
 
@@ -704,13 +752,213 @@ PRODUCT_EXTENDED_DESC_FORM_ARCH = '''<data>
     </xpath>
 </data>'''
 
+# ── Backend Form: product.template General Info — x_is_tour checkbox ─────
+# Inherits from the product.template form to add Is a Tour in General Info.
+
+PRODUCT_IS_TOUR_FORM_ARCH = '''<data>
+    <xpath expr="//field[@name='type']" position="after">
+        <field name="x_is_tour"/>
+    </xpath>
+</data>'''
+
+# ── Backend Form: product.template ecommerce tab — Tour sections ─────────
+# All tour-specific fields in the ecommerce tab, visible only when x_is_tour.
+# Placed AFTER ecom_extended_description group.
+
+PRODUCT_TOUR_FIELDS_FORM_ARCH = '''<data>
+    <xpath expr="//group[@name='ecom_extended_description']" position="after">
+        <group string="Tour Details" invisible="not x_is_tour" name="tour_details">
+            <field colspan="2" name="x_tour_details" nolabel="1"
+                   placeholder="General tour description and highlights..."/>
+        </group>
+        <group string="Departure &amp; Return" invisible="not x_is_tour" name="tour_departure">
+            <group>
+                <field name="x_tour_departure_location"/>
+                <field name="x_tour_departure_time"/>
+            </group>
+            <group>
+                <field name="x_tour_return_location"/>
+                <field name="x_tour_return_time"/>
+            </group>
+        </group>
+        <group string="Includes" invisible="not x_is_tour" name="tour_includes">
+            <field colspan="2" name="x_tour_includes_ids" nolabel="1">
+                <list editable="bottom">
+                    <field name="x_sequence" widget="handle"/>
+                    <field name="x_name"/>
+                </list>
+            </field>
+        </group>
+        <group string="Does NOT Include" invisible="not x_is_tour" name="tour_excludes">
+            <field colspan="2" name="x_tour_excludes_ids" nolabel="1">
+                <list editable="bottom">
+                    <field name="x_sequence" widget="handle"/>
+                    <field name="x_name"/>
+                </list>
+            </field>
+        </group>
+        <group string="Recommendations" invisible="not x_is_tour" name="tour_recommendations">
+            <field colspan="2" name="x_tour_recommendations_ids" nolabel="1">
+                <list editable="bottom">
+                    <field name="x_sequence" widget="handle"/>
+                    <field name="x_name"/>
+                </list>
+            </field>
+        </group>
+        <group string="Itinerary" invisible="not x_is_tour" name="tour_itinerary">
+            <field colspan="2" name="x_tour_itinerary" nolabel="1"
+                   placeholder="Day-by-day itinerary..."/>
+        </group>
+        <group string="Departures" invisible="not x_is_tour" name="tour_schedule">
+            <field colspan="2" name="x_tour_schedule" nolabel="1"
+                   placeholder="Departure schedule and frequency..."/>
+        </group>
+        <group string="Conditions" invisible="not x_is_tour" name="tour_conditions">
+            <field colspan="2" name="x_tour_conditions" nolabel="1"
+                   placeholder="Terms and conditions..."/>
+        </group>
+        <group string="Booking Considerations" invisible="not x_is_tour" name="tour_booking">
+            <field colspan="2" name="x_tour_booking_notes" nolabel="1"
+                   placeholder="Payment, cancellation policy..."/>
+        </group>
+        <group string="Pricing" invisible="not x_is_tour" name="tour_pricing">
+            <field colspan="2" name="x_tour_pricing_notes" nolabel="1"
+                   placeholder="Price details, exceptions, group rates..."/>
+        </group>
+    </xpath>
+</data>'''
+
+# ── Ecommerce: Tour structured sections (website product page) ───────────
+# Renders structured tour data below #product_detail.
+# Replaces the old single x_extended_description blob with individual sections.
+# Each section only renders if the corresponding field has content.
+# Inherits from website_sale.product (product detail page).
+
+ECOM_TOUR_SECTIONS_ARCH = '''<data>
+    <xpath expr="//section[@id='product_detail']" position="after">
+        <t t-if="__IS_TOUR__">
+            <!-- Compute tab visibility -->
+            <t t-set="_has_details" t-value="product.x_tour_details or product.x_tour_departure_location or product.x_tour_return_location or product.x_tour_departure_time or product.x_tour_return_time or product.x_tour_includes_ids or product.x_tour_excludes_ids"/>
+            <t t-set="_has_itinerary" t-value="product.x_tour_itinerary or product.x_tour_schedule"/>
+            <t t-set="_has_conditions" t-value="product.x_tour_conditions or product.x_tour_booking_notes or product.x_tour_recommendations_ids"/>
+            <t t-set="_has_pricing" t-value="product.x_tour_pricing_notes"/>
+            <t t-set="_any_tab" t-value="_has_details or _has_itinerary or _has_conditions or _has_pricing"/>
+            <t t-set="_first" t-value="'details' if _has_details else ('itinerary' if _has_itinerary else ('conditions' if _has_conditions else 'pricing'))"/>
+
+            <section t-if="_any_tab" class="container py-4" id="tour_tabs_section">
+                <ul class="nav nav-tabs" id="tourTabs" role="tablist">
+                    <li t-if="_has_details" class="nav-item" role="presentation">
+                        <a t-att-class="'nav-link' + (' active' if _first == 'details' else '')"
+                           data-bs-toggle="tab" href="#tourDetails" role="tab">Details</a>
+                    </li>
+                    <li t-if="_has_itinerary" class="nav-item" role="presentation">
+                        <a t-att-class="'nav-link' + (' active' if _first == 'itinerary' else '')"
+                           data-bs-toggle="tab" href="#tourItinerary" role="tab">Itinerary</a>
+                    </li>
+                    <li t-if="_has_conditions" class="nav-item" role="presentation">
+                        <a t-att-class="'nav-link' + (' active' if _first == 'conditions' else '')"
+                           data-bs-toggle="tab" href="#tourConditions" role="tab">Conditions</a>
+                    </li>
+                    <li t-if="_has_pricing" class="nav-item" role="presentation">
+                        <a t-att-class="'nav-link' + (' active' if _first == 'pricing' else '')"
+                           data-bs-toggle="tab" href="#tourPricing" role="tab">Pricing</a>
+                    </li>
+                </ul>
+                <div class="tab-content pt-3" id="tourTabsContent">
+                    <!-- Tab 1: Details -->
+                    <div t-if="_has_details"
+                         t-att-class="'tab-pane fade' + (' show active' if _first == 'details' else '')"
+                         id="tourDetails" role="tabpanel">
+                        <div t-if="product.x_tour_details" t-field="product.x_tour_details" class="mb-3"/>
+                        <!-- Departure &amp; Return grid -->
+                        <t t-set="_has_departure" t-value="product.x_tour_departure_location or product.x_tour_return_location or product.x_tour_departure_time or product.x_tour_return_time"/>
+                        <div t-if="_has_departure" class="row mb-3">
+                            <div class="col-md-6">
+                                <t t-if="product.x_tour_departure_location">
+                                    <p><strong>Departure Location:</strong> <span t-field="product.x_tour_departure_location"/></p>
+                                </t>
+                                <t t-if="product.x_tour_departure_time">
+                                    <p><strong>Departure Time:</strong> <span t-field="product.x_tour_departure_time"/></p>
+                                </t>
+                            </div>
+                            <div class="col-md-6">
+                                <t t-if="product.x_tour_return_location">
+                                    <p><strong>Return Location:</strong> <span t-field="product.x_tour_return_location"/></p>
+                                </t>
+                                <t t-if="product.x_tour_return_time">
+                                    <p><strong>Return Time:</strong> <span t-field="product.x_tour_return_time"/></p>
+                                </t>
+                            </div>
+                        </div>
+                        <!-- Includes -->
+                        <div t-if="product.x_tour_includes_ids" class="mb-3">
+                            <h5 style="color: #1a5276;">What's Included</h5>
+                            <ul class="list-unstyled">
+                                <t t-foreach="product.x_tour_includes_ids" t-as="item">
+                                    <li class="mb-1"><i class="fa fa-check text-success me-2"/><span t-field="item.x_name"/></li>
+                                </t>
+                            </ul>
+                        </div>
+                        <!-- Excludes -->
+                        <div t-if="product.x_tour_excludes_ids" class="mb-3">
+                            <h5 style="color: #1a5276;">What's NOT Included</h5>
+                            <ul class="list-unstyled">
+                                <t t-foreach="product.x_tour_excludes_ids" t-as="item">
+                                    <li class="mb-1"><i class="fa fa-times text-danger me-2"/><span t-field="item.x_name"/></li>
+                                </t>
+                            </ul>
+                        </div>
+                    </div>
+                    <!-- Tab 2: Itinerary -->
+                    <div t-if="_has_itinerary"
+                         t-att-class="'tab-pane fade' + (' show active' if _first == 'itinerary' else '')"
+                         id="tourItinerary" role="tabpanel">
+                        <div t-if="product.x_tour_itinerary" t-field="product.x_tour_itinerary" class="mb-3"/>
+                        <div t-if="product.x_tour_schedule" class="mb-3">
+                            <h5 style="color: #1a5276;">Departures</h5>
+                            <div t-field="product.x_tour_schedule"/>
+                        </div>
+                    </div>
+                    <!-- Tab 3: Conditions -->
+                    <div t-if="_has_conditions"
+                         t-att-class="'tab-pane fade' + (' show active' if _first == 'conditions' else '')"
+                         id="tourConditions" role="tabpanel">
+                        <div t-if="product.x_tour_conditions" class="mb-3">
+                            <h5 style="color: #1a5276;">Conditions</h5>
+                            <div t-field="product.x_tour_conditions"/>
+                        </div>
+                        <div t-if="product.x_tour_booking_notes" class="mb-3">
+                            <h5 style="color: #1a5276;">Booking Considerations</h5>
+                            <div t-field="product.x_tour_booking_notes"/>
+                        </div>
+                        <div t-if="product.x_tour_recommendations_ids" class="mb-3">
+                            <h5 style="color: #1a5276;">Recommendations</h5>
+                            <ul class="list-unstyled">
+                                <t t-foreach="product.x_tour_recommendations_ids" t-as="item">
+                                    <li class="mb-1"><i class="fa fa-info-circle text-primary me-2"/><span t-field="item.x_name"/></li>
+                                </t>
+                            </ul>
+                        </div>
+                    </div>
+                    <!-- Tab 4: Pricing -->
+                    <div t-if="_has_pricing"
+                         t-att-class="'tab-pane fade' + (' show active' if _first == 'pricing' else '')"
+                         id="tourPricing" role="tabpanel">
+                        <div t-field="product.x_tour_pricing_notes"/>
+                    </div>
+                </div>
+            </section>
+        </t>
+    </xpath>
+</data>'''.replace('__IS_TOUR__', _IS_TOUR).replace('__NOT_TOUR__', _NOT_TOUR)
+
 
 # ── Ecommerce i18n: English → Spanish translation mapping ────────────────
 # Used by setup_ecommerce.py to write es_419 translations after the base arch.
 # Order: longest strings first to avoid partial matches during replacement.
 
 ECOM_TRANSLATIONS_ES = [
-    # Terms with inline HTML — Odoo extracts full element content as source
+    # ── Button/modal translations (CTA, modal, listing, wishlist, dynamic views) ──
     ('<i class="fa fa-envelope me-2"/>Request Quote',
      '<i class="fa fa-envelope me-2"/>Solicitar Cotización'),
     ('<i class="fa fa-paper-plane me-1"/>Send Request',
@@ -735,7 +983,27 @@ ECOM_TRANSLATIONS_ES = [
     ('Cancel', 'Cancelar'),
     ('Phone', 'Teléfono'),
     ('Close', 'Cerrar'),
-    ('estimated', 'aprox.'),
+    ('from', 'desde'),
+    # ── Tour tab labels ──
+    ('Details', 'Detalles'),
+    ('Itinerary', 'Itinerario'),
+    ('Conditions', 'Condiciones'),
+    ('Pricing', 'Precios'),
+    # ── Departure/return labels within Details tab ──
+    # Source terms include <strong> tags (QWeb inline extraction)
+    ('<strong>Departure Location:</strong>', '<strong>Lugar de Salida:</strong>'),
+    ('<strong>Departure Time:</strong>', '<strong>Hora de Salida:</strong>'),
+    ('<strong>Return Location:</strong>', '<strong>Lugar de Retorno:</strong>'),
+    ('<strong>Return Time:</strong>', '<strong>Hora de Retorno:</strong>'),
+    # ── Sub-headings and icons within tabs ──
+    ("<i class=\"fa fa-check text-success me-2\"/>", "<i class=\"fa fa-check text-success me-2\"/>"),
+    ("<i class=\"fa fa-times text-danger me-2\"/>", "<i class=\"fa fa-times text-danger me-2\"/>"),
+    ("<i class=\"fa fa-info-circle text-primary me-2\"/>", "<i class=\"fa fa-info-circle text-primary me-2\"/>"),
+    ("What's Included", '¿Qué incluye?'),
+    ("What's NOT Included", '¿Qué NO incluye?'),
+    ('Recommendations', 'Recomendaciones'),
+    ('Departures', 'Salidas'),
+    ('Booking Considerations', 'Consideraciones de Reserva'),
 ]
 
 

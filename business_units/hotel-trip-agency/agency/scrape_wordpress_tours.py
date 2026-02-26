@@ -87,12 +87,56 @@ SECTION_PATTERNS = [
 ]
 
 
-def fetch_page(slug: str) -> BeautifulSoup:
-    """Fetch a tour page and return parsed HTML."""
+def fetch_page(slug: str, max_retries: int = 4) -> BeautifulSoup:
+    """Fetch a tour page and return parsed HTML, with retry on 429."""
     url = f"{BASE_URL}/tour/{slug}/"
+    for attempt in range(max_retries):
+        resp = requests.get(url, headers=HEADERS, timeout=30)
+        if resp.status_code == 429:
+            wait = 2 ** (attempt + 1)  # 2, 4, 8, 16 seconds
+            print(f"429, retrying in {wait}s...", end=" ", flush=True)
+            time.sleep(wait)
+            continue
+        resp.raise_for_status()
+        return BeautifulSoup(resp.text, 'lxml')
+    # Final attempt
     resp = requests.get(url, headers=HEADERS, timeout=30)
     resp.raise_for_status()
     return BeautifulSoup(resp.text, 'lxml')
+
+
+def _clean_text(text: str) -> str:
+    """Fix common text extraction artefacts from WordPress Elementor."""
+    if not text:
+        return text
+    # Add space after sentence-ending punctuation before uppercase letter
+    text = re.sub(r'([.!?%])([A-ZÁÉÍÓÚÑ¿¡])', r'\1 \2', text)
+    # Fix schedule: "Domingo08:30" → "Domingo, 08:30"
+    text = re.sub(r'([a-záéíóúñ])(\d{1,2}[:.]\d{2})', r'\1, \2', text)
+    # Fix concatenated words from stripped inline tags: "famosaPlaza" → "famosa Plaza"
+    text = re.sub(r'([a-záéíóúñ])([A-ZÁÉÍÓÚÑ][a-záéíóúñ])', r'\1 \2', text)
+    # Fix "USDExtranjero" → "USD Extranjero"
+    text = re.sub(r'(USD)([A-ZÁÉÍÓÚÑ])', r'\1 \2', text)
+    # Fix "Peruanos$." → "Peruanos $."
+    text = re.sub(r'([a-záéíóúños])\s*(\$\.?\s*\d)', r'\1 \2', text)
+    # Normalize multiple spaces
+    text = re.sub(r'  +', ' ', text)
+    return text.strip()
+
+
+def _extract_text_with_spacing(tag: Tag) -> str:
+    """Extract text from a tag ensuring spaces around inline elements."""
+    parts = []
+    for child in tag.descendants:
+        if isinstance(child, str):
+            parts.append(child)
+        elif isinstance(child, Tag) and child.name in ('br',):
+            parts.append('\n')
+    text = ''.join(parts)
+    # Normalize whitespace within lines but preserve line breaks
+    lines = text.split('\n')
+    lines = [' '.join(l.split()) for l in lines]
+    return '\n'.join(l for l in lines if l.strip())
 
 
 def _classify_section(text: str) -> str | None:
@@ -125,11 +169,11 @@ def _extract_text_content(section: Tag) -> str:
     """Extract text content from text-editor widgets in a section."""
     texts = []
     for widget in section.select('.elementor-widget-text-editor .elementor-widget-container'):
-        # Get text preserving paragraph breaks
+        # Get text preserving paragraph breaks and inline spacing
         paragraphs = []
         for child in widget.children:
             if isinstance(child, Tag):
-                text = child.get_text(strip=True)
+                text = _extract_text_with_spacing(child)
                 if text:
                     paragraphs.append(text)
             elif isinstance(child, str) and child.strip():
@@ -195,7 +239,9 @@ def _get_section_all_text(section: Tag) -> str:
             continue
         if 'star-rating' in parent_classes or 'nav-menu' in parent_classes:
             continue
-        t = container.get_text(strip=True, separator='\n')
+        if 'form' in parent_classes or container.select('form, select'):
+            continue  # Skip form widgets (country dropdowns, etc.)
+        t = _extract_text_with_spacing(container)
         if t and len(t) > 3:
             texts.append(t)
 
@@ -444,6 +490,379 @@ def extract_tour_data(soup: BeautifulSoup, slug: str) -> dict:
     return data
 
 
+# ── Section boundary patterns for splitting bleeding descriptions ──────
+_SECTION_BOUNDARIES = [
+    # (pattern, target_field, is_prefix)
+    # Schedule patterns
+    (r'^Lunes a Domingo', 'schedule', True),
+    (r'^Diarias?\b', 'schedule', True),
+    (r'^De lunes a', 'schedule', True),
+    # Conditions patterns
+    (r'^Tours? son en servicio', 'conditions', True),
+    (r'^El tour es ', 'conditions', True),
+    (r'^El tour comienza', 'conditions', True),
+    (r'^Servicio compartido', 'conditions', True),
+    # Booking patterns
+    (r'^Pago al 100%', 'booking', True),
+    (r'^Reservar con ', 'booking', True),
+    # Prices patterns
+    (r'^PRECIO POR PERSONA', 'prices', True),
+    (r'^Peruanos \$', 'prices', True),
+    (r'^Extranjeros? \$', 'prices', True),
+    # Recommendations (sometimes at end of description)
+    (r'^\*Recomendamos\b', 'recommendations_text', True),
+]
+
+
+def _split_bleeding_description(tour: dict) -> dict:
+    """Split a description that contains schedule/conditions/booking/prices.
+
+    Many WordPress pages have all content in one big section, causing the
+    scraper to dump everything into the description field. This function
+    detects section boundaries within the description text and moves content
+    to the correct fields.
+    """
+    desc = tour.get('description', '')
+    if not desc or len(desc) < 300:
+        return tour
+
+    # Split on double newlines (paragraph boundaries)
+    paragraphs = [p.strip() for p in desc.split('\n') if p.strip()]
+
+    new_desc_parts = []
+    current_field = 'description'
+
+    for para in paragraphs:
+        # Check if this paragraph starts a new section
+        matched_field = None
+        for pattern, field, _ in _SECTION_BOUNDARIES:
+            if re.search(pattern, para, re.IGNORECASE):
+                matched_field = field
+                break
+
+        if matched_field:
+            current_field = matched_field
+
+        if current_field == 'description':
+            new_desc_parts.append(para)
+        else:
+            # Only write to field if it's currently empty (don't duplicate
+            # content that the section classifier already extracted)
+            existing = tour.get(current_field, '')
+            if isinstance(existing, list):
+                if current_field == 'recommendations_text':
+                    tour['recommendations_text'] = (
+                        (tour.get('recommendations_text', '') + '\n' + para).strip()
+                    )
+                continue
+            if not existing:
+                tour[current_field] = para
+            elif current_field in ('conditions', 'booking', 'prices'):
+                # These fields may have multiple paragraphs from the split
+                # but only append if the existing content is short
+                if len(existing) < 50:
+                    tour[current_field] = existing + '\n' + para
+
+    tour['description'] = '\n'.join(new_desc_parts)
+
+    # Parse recommendations from text if found in description
+    recs_text = tour.pop('recommendations_text', '')
+    if recs_text and not tour.get('recommendations'):
+        recs = [r.strip().lstrip('*•·-').strip()
+                for r in recs_text.split('\n') if r.strip()]
+        if recs:
+            tour['recommendations'] = recs
+
+    return tour
+
+
+def _handle_description_overlap(tour: dict) -> dict:
+    """Clear description when it substantially overlaps with itinerary."""
+    desc = tour.get('description', '').strip()
+    itin = tour.get('itinerary', '').strip()
+    if not desc or not itin:
+        return tour
+
+    # Check if itinerary starts with the description text
+    if itin.startswith(desc[:200]):
+        tour['description'] = ''
+        return tour
+
+    # Check if description starts with the itinerary text
+    if desc.startswith(itin[:200]):
+        tour['description'] = ''
+        return tour
+
+    # Check word overlap ratio
+    desc_words = set(desc.lower().split())
+    itin_words = set(itin.lower().split())
+    if desc_words and len(desc_words) > 10:
+        overlap = len(desc_words & itin_words) / len(desc_words)
+        if overlap > 0.7:
+            tour['description'] = ''
+
+    return tour
+
+
+def _extract_departure_return(tour: dict) -> dict:
+    """Extract departure/return info from schedule, conditions, itinerary."""
+    details = tour.get('details', {})
+    itin = tour.get('itinerary', '')
+    conditions = tour.get('conditions', '')
+    schedule = tour.get('schedule', '')
+
+    # ── Departure location ──
+    # Nearly all tours pick up from hotel
+    if not details.get('departure_location'):
+        all_text = (itin + ' ' + conditions).lower()
+        if any(kw in all_text for kw in [
+            'recojo en su hotel', 'recogeremos en su hotel',
+            'recogemos en su hotel', 'recojo del hotel',
+            'recojo en el hotel', 'pickup at your hotel',
+            'hotel pickup', 'recojo en los hoteles',
+        ]):
+            details['departure_location'] = 'Hotel'
+
+    # ── Departure time ──
+    if not details.get('departure_time'):
+        # Try from schedule field first (most reliable)
+        if schedule:
+            m = re.search(
+                r'(\d{1,2}[:.]\d{2})\s*(?:am|hrs|a\.?\s*m\.?|horas)',
+                schedule, re.IGNORECASE)
+            if m:
+                details['departure_time'] = m.group(0).strip()
+        # Fallback: first time mention in itinerary
+        if not details.get('departure_time') and itin:
+            m = re.search(
+                r'(?:las?\s+)?(\d{1,2}[:.]\d{2})\s*(?:am|hrs|a\.?\s*m\.?)',
+                itin[:300], re.IGNORECASE)
+            if m:
+                details['departure_time'] = m.group(0).strip()
+
+    # ── Return location ──
+    if not details.get('return_location'):
+        # Pattern: "el servicio culmina en X"
+        m = re.search(
+            r'(?:servicio\s+)?(?:culmina|termina|finaliza)\s+en\s+(.+?)(?:\.|$)',
+            conditions, re.IGNORECASE)
+        if m:
+            loc = m.group(1).strip()
+            # Clean up: remove parenthetical notes
+            loc = re.sub(r'\s*\(.*?\)\s*', ' ', loc).strip()
+            if 5 < len(loc) < 80:
+                details['return_location'] = loc
+
+    # ── Return time ──
+    if not details.get('return_time'):
+        if itin:
+            # Find the LAST pm time in the itinerary
+            matches = re.findall(
+                r'(?:a\s+(?:eso\s+de\s+)?las?\s+)?(\d{1,2}[:.]\d{2})\s*'
+                r'(?:p\.?\s*m\.?|pm)',
+                itin, re.IGNORECASE)
+            if matches:
+                details['return_time'] = matches[-1].replace('.', ':') + ' p.m.'
+
+    # ── Cleanup ──
+    # Strip "las " prefix from times
+    for key in ('departure_time', 'return_time'):
+        val = details.get(key, '')
+        if val:
+            val = re.sub(r'^(?:las?\s+)', '', val, flags=re.IGNORECASE).strip()
+            details[key] = val
+
+    # Remove invalid values (non-time text like "Consulta este Tour")
+    for key in ('departure_time', 'return_time'):
+        val = details.get(key, '')
+        if val and not re.search(r'\d{1,2}[:.]\d{2}', val):
+            del details[key]
+
+    # Normalize return_location: strip trailing punctuation
+    loc = details.get('return_location', '')
+    if loc:
+        details['return_location'] = loc.rstrip('.,;:')
+
+    tour['details'] = details
+    return tour
+
+
+def _fix_duration(tour: dict) -> dict:
+    """Fix unreliable duration values from the scraper.
+
+    The scraper matched any "N día" in short sections, often picking up
+    wrong values. Infer duration from the slug/title instead.
+    """
+    slug = tour.get('slug', '')
+    title = tour.get('title', '').lower()
+
+    # Multi-day: look for NdNn or N-dias patterns in slug
+    m = re.search(r'(\d+)\s*(?:d|dias|días)', slug)
+    if m:
+        days = int(m.group(1))
+        tour['duration'] = f"{days} día(s)"
+        return tour
+
+    # Check title for day count
+    m = re.search(r'(\d+)\s*(?:d[ií]as?|days?)', title)
+    if m:
+        days = int(m.group(1))
+        tour['duration'] = f"{days} día(s)"
+        return tour
+
+    # Single-day tours: no multi-day indicator → "1 día"
+    # But only set if there's itinerary content (avoid setting on empty tours)
+    if tour.get('itinerary') or tour.get('description'):
+        tour['duration'] = '1 día'
+
+    return tour
+
+
+def _post_process_tour(tour: dict) -> dict:
+    """Apply all post-processing steps to a scraped tour."""
+    if 'error' in tour:
+        return tour
+
+    # 1. Clean all text fields
+    for field in ('description', 'itinerary', 'schedule', 'conditions',
+                  'booking', 'prices'):
+        if tour.get(field):
+            tour[field] = _clean_text(tour[field])
+
+    # Clean list items too
+    for field in ('includes', 'excludes', 'recommendations'):
+        if tour.get(field):
+            tour[field] = [_clean_text(item) for item in tour[field]]
+
+    # Clean detail values
+    for key, val in tour.get('details', {}).items():
+        if isinstance(val, str):
+            tour['details'][key] = _clean_text(val)
+
+    # 2. Split bleeding description into proper sections
+    _split_bleeding_description(tour)
+
+    # Re-clean after split (new fields may have concatenation issues)
+    for field in ('schedule', 'conditions', 'booking', 'prices'):
+        if tour.get(field):
+            tour[field] = _clean_text(tour[field])
+
+    # 3. Handle description == itinerary overlap
+    _handle_description_overlap(tour)
+
+    # 4. Extract departure/return details from text
+    _extract_departure_return(tour)
+
+    # 5. Fix duration
+    _fix_duration(tour)
+
+    # 6. Strip form HTML / excessively long description fragments
+    desc = tour.get('description', '')
+    if len(desc) > 3000:
+        # Likely contains form HTML or garbage — truncate at first sane boundary
+        # Look for first paragraph break within the first 2000 chars
+        cut = desc[:2000].rfind('\n')
+        if cut > 200:
+            tour['description'] = desc[:cut].strip()
+        else:
+            tour['description'] = desc[:2000].strip()
+
+    return tour
+
+
+def _merge_existing_translations(new_tours: list, existing_json_path: str) -> list:
+    """Merge existing English translations from previous JSON into new data.
+
+    Keeps _en fields from the old JSON where the Spanish source text hasn't
+    changed significantly, so we don't lose good translations.
+    """
+    if not os.path.exists(existing_json_path):
+        return new_tours
+
+    with open(existing_json_path, 'r', encoding='utf-8') as f:
+        old_tours = json.load(f)
+
+    old_by_slug = {t['slug']: t for t in old_tours if 'error' not in t}
+
+    EN_FIELDS = [
+        ('description', 'description_en'),
+        ('itinerary', 'itinerary_en'),
+        ('schedule', 'schedule_en'),
+        ('conditions', 'conditions_en'),
+        ('booking', 'booking_en'),
+        ('prices', 'prices_en'),
+        ('difficulty', 'difficulty_en'),
+    ]
+    EN_LIST_FIELDS = [
+        ('includes', 'includes_en'),
+        ('excludes', 'excludes_en'),
+        ('recommendations', 'recommendations_en'),
+    ]
+
+    for tour in new_tours:
+        if 'error' in tour:
+            continue
+        old = old_by_slug.get(tour['slug'])
+        if not old:
+            continue
+
+        # Merge string fields
+        for es_key, en_key in EN_FIELDS:
+            old_es = old.get(es_key, '').strip()
+            new_es = tour.get(es_key, '').strip()
+            old_en = old.get(en_key, '')
+
+            if not old_en:
+                continue
+
+            # If Spanish text is similar enough, keep the English translation
+            if old_es and new_es:
+                # Simple similarity: check if they share >60% of words
+                old_words = set(old_es.lower().split())
+                new_words = set(new_es.lower().split())
+                if old_words:
+                    similarity = len(old_words & new_words) / max(len(old_words), 1)
+                    if similarity > 0.6:
+                        tour[en_key] = old_en
+                    else:
+                        # Text changed significantly — mark for re-translation
+                        tour[en_key] = old_en  # Keep old but flag
+                        tour[f'_{en_key}_needs_review'] = True
+                else:
+                    tour[en_key] = old_en
+            elif not new_es and old_en:
+                # Spanish was cleared (e.g. overlap removal) — drop EN too
+                pass
+            else:
+                tour[en_key] = old_en
+
+        # Merge list fields
+        for es_key, en_key in EN_LIST_FIELDS:
+            old_es = old.get(es_key, [])
+            new_es = tour.get(es_key, [])
+            old_en = old.get(en_key, [])
+
+            if not old_en:
+                continue
+
+            # If lists are same length and similar content, keep EN
+            if len(old_es) == len(new_es) == len(old_en):
+                tour[en_key] = old_en
+            elif len(new_es) == len(old_en):
+                tour[en_key] = old_en
+            else:
+                # Length mismatch — keep old but flag
+                tour[en_key] = old_en
+                tour[f'_{en_key}_needs_review'] = True
+
+        # Merge detail translations
+        old_details_en = old.get('details_en', {})
+        if old_details_en:
+            tour.setdefault('details_en', {}).update(old_details_en)
+
+    return new_tours
+
+
 def scrape_all_tours() -> list:
     """Scrape all WordPress tours and return structured data."""
     tours = []
@@ -455,15 +874,21 @@ def scrape_all_tours() -> list:
             soup = fetch_page(slug)
             tour_data = extract_tour_data(soup, slug)
 
+            # Apply post-processing
+            tour_data = _post_process_tour(tour_data)
+
             has_content = bool(
                 tour_data["description"] or tour_data["itinerary"]
                 or tour_data["includes"]
             )
             status = "OK" if has_content else "MINIMAL"
-            print(f"{status} - {tour_data['title']}")
+            details = tour_data.get('details', {})
+            detail_keys = [k for k in details if details[k]]
+            print(f"{status} - {tour_data['title']}"
+                  f" (details: {detail_keys or 'none'})")
 
             tours.append(tour_data)
-            time.sleep(0.8)
+            time.sleep(3.0)  # Be gentle with the server
 
         except requests.RequestException as e:
             print(f"ERROR: {e}")
@@ -484,10 +909,34 @@ def main():
 
     tours = scrape_all_tours()
 
-    # Save to JSON
+    # Merge existing English translations
     output_dir = Path(__file__).parent / "generated"
     output_dir.mkdir(exist_ok=True)
     output_file = output_dir / "wordpress_tours.json"
+
+    # Safety: don't overwrite if all tours failed
+    error_count = sum(1 for t in tours if 'error' in t)
+    if error_count == len(tours):
+        print(f"\n[ABORT] All {len(tours)} tours failed — NOT overwriting JSON")
+        return
+    if error_count > len(tours) * 0.5:
+        print(f"\n[WARN] {error_count}/{len(tours)} tours failed — NOT overwriting JSON")
+        return
+
+    print(f"\nMerging English translations from existing JSON...")
+    tours = _merge_existing_translations(tours, str(output_file))
+
+    # Count merged translations
+    n_en = sum(1 for t in tours if t.get('description_en'))
+    n_review = sum(1 for t in tours
+                   if any(t.get(f'_{k}_needs_review')
+                          for k in ('description_en', 'itinerary_en',
+                                    'conditions_en', 'booking_en',
+                                    'prices_en', 'includes_en',
+                                    'excludes_en', 'recommendations_en')))
+    print(f"  Merged EN translations: {n_en} tours")
+    if n_review:
+        print(f"  Flagged for review: {n_review} tours (text changed)")
 
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(tours, f, ensure_ascii=False, indent=2)
@@ -501,23 +950,103 @@ def main():
     )]
     error_tours = [t for t in tours if 'error' in t]
 
+    # Count details
+    n_details = sum(1 for t in ok_tours
+                    if any(t.get('details', {}).get(k)
+                           for k in ('departure_location', 'return_location',
+                                     'departure_time', 'return_time')))
+
     print(f"\n{'=' * 60}")
     print(f"RESULTS:")
-    print(f"  Total:        {len(tours)}")
-    print(f"  With content: {len(ok_tours)}")
-    print(f"  Minimal:      {len(minimal_tours)}")
-    print(f"  Errors:       {len(error_tours)}")
+    print(f"  Total:          {len(tours)}")
+    print(f"  With content:   {len(ok_tours)}")
+    print(f"  With details:   {n_details}")
+    print(f"  Minimal:        {len(minimal_tours)}")
+    print(f"  Errors:         {len(error_tours)}")
     print(f"\nSaved to: {output_file}")
 
     for t in ok_tours:
         inc = len(t.get('includes', []))
-        imgs = len(t.get('images', []))
-        print(f"  [OK] {t['title']}: includes={inc}, images={imgs}, "
-              f"price={t.get('price_pen', 'N/A')}")
+        details = t.get('details', {})
+        d_keys = ', '.join(k for k in ('departure_location', 'departure_time',
+                                        'return_location', 'return_time')
+                           if details.get(k))
+        desc_len = len(t.get('description', ''))
+        itin_len = len(t.get('itinerary', ''))
+        print(f"  [OK] {t['title']}: inc={inc}, desc={desc_len}ch, "
+              f"itin={itin_len}ch, details=[{d_keys}]")
 
     for t in minimal_tours:
         print(f"  [--] {t['slug']}: title={t.get('title', 'N/A')}")
 
 
+def reprocess():
+    """Re-apply post-processing to existing JSON without re-scraping."""
+    output_dir = Path(__file__).parent / "generated"
+    output_file = output_dir / "wordpress_tours.json"
+
+    if not output_file.exists():
+        print(f"[ERROR] {output_file} not found")
+        return
+
+    print("=" * 60)
+    print("Re-processing existing wordpress_tours.json")
+    print("=" * 60)
+
+    with open(output_file, 'r', encoding='utf-8') as f:
+        tours = json.load(f)
+
+    # Strip existing _en fields before re-processing (they'll be re-merged)
+    en_backup = {}
+    for t in tours:
+        if 'error' in t:
+            continue
+        slug = t['slug']
+        en_backup[slug] = {}
+        for key in list(t.keys()):
+            if key.endswith('_en') or key == 'details_en':
+                en_backup[slug][key] = t.pop(key)
+
+    print(f"\nPost-processing {len(tours)} tours...\n")
+    for tour in tours:
+        if 'error' in tour:
+            continue
+        _post_process_tour(tour)
+        slug = tour['slug']
+        details = tour.get('details', {})
+        d_keys = [k for k in details if details[k]]
+        desc_len = len(tour.get('description', ''))
+        itin_len = len(tour.get('itinerary', ''))
+        print(f"  {tour['title']}: desc={desc_len}ch, itin={itin_len}ch, "
+              f"details={d_keys}")
+
+    # Restore EN translations
+    for tour in tours:
+        if 'error' in tour:
+            continue
+        en = en_backup.get(tour['slug'], {})
+        for key, val in en.items():
+            tour[key] = val
+
+    with open(output_file, 'w', encoding='utf-8') as f:
+        json.dump(tours, f, ensure_ascii=False, indent=2)
+
+    # Summary
+    n_details = sum(1 for t in tours if 'error' not in t and
+                    any(t.get('details', {}).get(k)
+                        for k in ('departure_location', 'return_location',
+                                  'departure_time', 'return_time')))
+    n_empty_desc = sum(1 for t in tours if 'error' not in t
+                       and not t.get('description'))
+    print(f"\n{'=' * 60}")
+    print(f"  Tours with details: {n_details}/{len(tours)}")
+    print(f"  Tours with empty description (overlap cleared): {n_empty_desc}")
+    print(f"\nSaved to: {output_file}")
+
+
 if __name__ == "__main__":
-    main()
+    import sys
+    if '--reprocess' in sys.argv:
+        reprocess()
+    else:
+        main()

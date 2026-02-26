@@ -348,11 +348,19 @@ for record in records:
 
 # ── Server Action: Create POs from Biblia Operativa Operators ────────────
 # Model: sale.order | Triggered by button in Biblia Operativa tab
+# Updated: adds analytic_distribution from project, PO currency from operators,
+# and saves x_po_line_id on each operator for bidirectional PO↔Biblia sync.
 
 CREATE_POS_FROM_OPERATORS = '''\
 for record in records:
     if not record.x_is_tour:
         continue
+    # Look up analytic account from linked project
+    project = env["project.project"].search([("sale_order_id", "=", record.id)], limit=1)
+    analytic_dist = {}
+    if project and project.account_id:
+        analytic_dist = {str(project.account_id.id): 100}
+
     ops_by_partner = {}
     for op in record.x_operator_line_ids:
         if not op.x_partner_id or op.x_purchase_order_id:
@@ -376,11 +384,16 @@ for record in records:
     if record.x_operator_line_ids:
         stype_labels = dict(record.x_operator_line_ids[0]._fields["x_service_type"].selection)
 
+    # Get first SO line for sale_line_id link (needed for SO↔PO smart button)
+    first_sol = record.order_line[:1] if record.order_line else False
+
     for partner_id, ops in ops_by_partner.items():
-        po = env["purchase.order"].create({
-            "partner_id": partner_id,
-            "origin": record.name,
-        })
+        po_vals = {"partner_id": partner_id, "origin": record.name}
+        # Use currency from first operator of this group
+        op_currency = ops[0].x_cost_currency_id
+        if op_currency:
+            po_vals["currency_id"] = op_currency.id
+        po = env["purchase.order"].create(po_vals)
         for op in ops:
             stype_label = stype_labels.get(op.x_service_type, op.x_service_type or "")
             desc = stype_label + " - " + record.name
@@ -391,17 +404,249 @@ for record in records:
                 if op.x_description:
                     desc = desc + " " + op.x_description
                 desc = desc + " - " + record.name
-            env["purchase.order.line"].create({
+            pol_vals = {
                 "order_id": po.id,
                 "product_id": product.id,
                 "name": desc,
                 "product_qty": 1,
                 "price_unit": op.x_cost or 0,
-                "sale_order_id": record.id,
-            })
-            op.write({"x_purchase_order_id": po.id})
+                "analytic_distribution": analytic_dist,
+            }
+            if first_sol:
+                pol_vals["sale_line_id"] = first_sol.id
+            pol = env["purchase.order.line"].create(pol_vals)
+            op.write({"x_purchase_order_id": po.id, "x_po_line_id": pol.id})
         created_pos.append(po.name)
 
     msg = "Pedidos de compra generados: " + ", ".join(created_pos)
+    if analytic_dist:
+        msg = msg + " (con distribucion analitica del proyecto)"
     record.message_post(body=msg, message_type="comment", subtype_xmlid="mail.mt_note")
+'''
+
+# ── Automations 26-27: Recalc Tour Financials (on_create / on_write) ─────
+# Model: x_operator_line | Trigger: on_create (26), on_write (27)
+# Trigger fields for 27: x_cost, x_cost_currency_id
+# Calculates x_cost_pen for the record and recalculates SO financial summary.
+# Uses so.currency_rate for same-currency conversion, _convert() for rare cases.
+
+RECALC_TOUR_FINANCIALS = '''\
+for record in records:
+    so = record.x_sale_order_id
+    if not so:
+        continue
+    company_currency = so.company_id.currency_id
+    today = datetime.date.today()
+    # 1. Calculate x_cost_pen for this record
+    if record.x_cost:
+        op_cur = record.x_cost_currency_id or so.currency_id
+        if op_cur == company_currency:
+            pen_val = record.x_cost
+        elif op_cur == so.currency_id and so.currency_rate:
+            pen_val = record.x_cost / so.currency_rate
+        else:
+            pen_val = op_cur._convert(record.x_cost, company_currency, so.company_id, record.x_date or today)
+        record.write({"x_cost_pen": pen_val})
+    else:
+        record.write({"x_cost_pen": 0.0})
+    # 2. Recalculate SO totals
+    if not so.x_is_tour:
+        continue
+    total_cost = 0.0
+    for op in so.x_operator_line_ids:
+        if not op.x_cost:
+            continue
+        op_cur = op.x_cost_currency_id or so.currency_id
+        if op_cur == company_currency:
+            total_cost += op.x_cost
+        elif op_cur == so.currency_id and so.currency_rate:
+            total_cost += op.x_cost / so.currency_rate
+        else:
+            total_cost += op_cur._convert(op.x_cost, company_currency, so.company_id, op.x_date or today)
+    if so.currency_id == company_currency:
+        so_total_pen = so.amount_untaxed
+    elif so.currency_rate:
+        so_total_pen = so.amount_untaxed / so.currency_rate
+    else:
+        so_total_pen = 0.0
+    margin = so_total_pen - total_cost
+    margin_pct = (margin / so_total_pen) if so_total_pen else 0.0
+    # SO-currency equivalents (for display when SO is in USD)
+    if so.currency_id == company_currency:
+        cost_cur = total_cost
+        margin_cur = margin
+    elif so.currency_rate:
+        cost_cur = total_cost * so.currency_rate
+        margin_cur = so.amount_untaxed - cost_cur
+    else:
+        cost_cur = 0.0
+        margin_cur = 0.0
+    so.write({
+        "x_total_estimated_cost": total_cost,
+        "x_estimated_margin": margin,
+        "x_estimated_margin_percent": margin_pct,
+        "x_total_estimated_cost_cur": cost_cur,
+        "x_estimated_margin_cur": margin_cur,
+    })
+'''
+
+# ── Automation 28: Recalc Tour Financials (on_unlink) ────────────────────
+# Model: x_operator_line | Trigger: on_unlink
+# Same as 26-27 but excludes the deleted record from totals and skips x_cost_pen.
+
+RECALC_TOUR_FINANCIALS_UNLINK = '''\
+for record in records:
+    so = record.x_sale_order_id
+    if not so or not so.x_is_tour:
+        continue
+    company_currency = so.company_id.currency_id
+    today = datetime.date.today()
+    total_cost = 0.0
+    for op in so.x_operator_line_ids:
+        if op.id == record.id:
+            continue
+        if not op.x_cost:
+            continue
+        op_cur = op.x_cost_currency_id or so.currency_id
+        if op_cur == company_currency:
+            total_cost += op.x_cost
+        elif op_cur == so.currency_id and so.currency_rate:
+            total_cost += op.x_cost / so.currency_rate
+        else:
+            total_cost += op_cur._convert(op.x_cost, company_currency, so.company_id, op.x_date or today)
+    if so.currency_id == company_currency:
+        so_total_pen = so.amount_untaxed
+    elif so.currency_rate:
+        so_total_pen = so.amount_untaxed / so.currency_rate
+    else:
+        so_total_pen = 0.0
+    margin = so_total_pen - total_cost
+    margin_pct = (margin / so_total_pen) if so_total_pen else 0.0
+    if so.currency_id == company_currency:
+        cost_cur = total_cost
+        margin_cur = margin
+    elif so.currency_rate:
+        cost_cur = total_cost * so.currency_rate
+        margin_cur = so.amount_untaxed - cost_cur
+    else:
+        cost_cur = 0.0
+        margin_cur = 0.0
+    so.write({
+        "x_total_estimated_cost": total_cost,
+        "x_estimated_margin": margin,
+        "x_estimated_margin_percent": margin_pct,
+        "x_total_estimated_cost_cur": cost_cur,
+        "x_estimated_margin_cur": margin_cur,
+    })
+'''
+
+# ── Server Action: Create Budget from Biblia Operativa ───────────────────
+# Model: sale.order | Triggered by button in Biblia Operativa tab
+# Creates/updates a budget.analytic with expense lines from operator costs.
+# Idempotent: updates existing budget if one with matching name exists.
+
+CREATE_BUDGET_FROM_BIBLIA = '''\
+for record in records:
+    if not record.x_is_tour:
+        raise UserError("Esta accion solo aplica a cotizaciones de tour.")
+    project = env["project.project"].search([("sale_order_id", "=", record.id)], limit=1)
+    if not project or not project.account_id:
+        raise UserError("No se encontro proyecto con cuenta analitica para esta venta. Confirme la orden primero.")
+    company_currency = record.company_id.currency_id
+    today = datetime.date.today()
+    # Group costs by currency
+    costs_by_currency = {}
+    for op in record.x_operator_line_ids:
+        if not op.x_cost:
+            continue
+        op_cur = op.x_cost_currency_id or record.currency_id
+        cur_id = op_cur.id
+        if cur_id not in costs_by_currency:
+            costs_by_currency[cur_id] = {"currency": op_cur, "original": 0.0, "pen": 0.0}
+        costs_by_currency[cur_id]["original"] += op.x_cost
+        if op_cur == company_currency:
+            costs_by_currency[cur_id]["pen"] += op.x_cost
+        elif op_cur == record.currency_id and record.currency_rate:
+            costs_by_currency[cur_id]["pen"] += op.x_cost / record.currency_rate
+        else:
+            costs_by_currency[cur_id]["pen"] += op_cur._convert(op.x_cost, company_currency, record.company_id, op.x_date or today)
+    total_cost_pen = sum(g["pen"] for g in costs_by_currency.values())
+    budget_name = "Presupuesto Tour " + record.name
+    date_from = record.x_tour_start_date or today
+    date_to = record.x_tour_end_date or today
+    # Search existing budget
+    existing = env["budget.analytic"].search([("name", "=", budget_name)], limit=1)
+    if existing:
+        if existing.state != "draft":
+            existing.action_budget_draft()
+        existing.budget_line_ids.unlink()
+        for cur_id, grp in costs_by_currency.items():
+            env["budget.line"].create({
+                "budget_analytic_id": existing.id,
+                "account_id": project.account_id.id,
+                "budget_amount": grp["pen"],
+                "x_original_currency_id": cur_id,
+                "x_original_amount": grp["original"],
+                "date_from": date_from,
+                "date_to": date_to,
+            })
+        existing.write({"date_from": date_from, "date_to": date_to, "x_sale_order_id": record.id})
+        record.write({"x_budget_id": existing.id})
+        msg = "Presupuesto actualizado: " + budget_name + " por S/ " + str(round(total_cost_pen, 2))
+    else:
+        budget = env["budget.analytic"].create({
+            "name": budget_name,
+            "date_from": date_from,
+            "date_to": date_to,
+            "budget_type": "expense",
+            "x_sale_order_id": record.id,
+        })
+        for cur_id, grp in costs_by_currency.items():
+            env["budget.line"].create({
+                "budget_analytic_id": budget.id,
+                "account_id": project.account_id.id,
+                "budget_amount": grp["pen"],
+                "x_original_currency_id": cur_id,
+                "x_original_amount": grp["original"],
+                "date_from": date_from,
+                "date_to": date_to,
+            })
+        record.write({"x_budget_id": budget.id})
+        msg = "Presupuesto creado: " + budget_name + " por S/ " + str(round(total_cost_pen, 2))
+    record.message_post(body=msg, message_type="comment", subtype_xmlid="mail.mt_note")
+'''
+
+# ── Automation 29: Autofill from Product ─────────────────────────────────
+# Model: x_operator_line | Trigger: on_write | Fields: x_product_id
+# When a service product is selected, auto-fills x_cost and x_description
+# if they are empty (does not overwrite existing values).
+
+# ── Server Action: View Tour Budget ───────────────────────────────────────
+# Model: sale.order | Triggered by stat button
+# Returns an action to open the linked budget.analytic record in form view.
+
+VIEW_TOUR_BUDGET = '''\
+for record in records:
+    if record.x_budget_id:
+        action = {
+            "type": "ir.actions.act_window",
+            "res_model": "budget.analytic",
+            "res_id": record.x_budget_id.id,
+            "view_mode": "form",
+            "views": [[False, "form"]],
+        }
+'''
+
+AUTOFILL_FROM_PRODUCT = '''\
+for record in records:
+    if not record.x_product_id:
+        continue
+    prod = record.x_product_id
+    vals = {}
+    if prod.standard_price and not record.x_cost:
+        vals["x_cost"] = prod.standard_price
+    if prod.name and not record.x_description:
+        vals["x_description"] = prod.name
+    if vals:
+        record.write(vals)
 '''

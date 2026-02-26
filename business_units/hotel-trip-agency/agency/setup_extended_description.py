@@ -47,6 +47,7 @@ _DAY_RE = re.compile(
 _SPLIT_RE = re.compile(
     r'(?<=[.!])\s*(?='                      # after sentence end, before:
     r'(?:\d{1,2}[:.]\d{2})'                 #   time like 9:00, 08.30
+    # Spanish transition words
     r'|(?:[Ll]uego\b)'                      #   "luego"
     r'|(?:[Dd]espu[eé]s\b)'                 #   "después"
     r'|(?:[Pp]osteriormente\b)'             #   "posteriormente"
@@ -55,6 +56,13 @@ _SPLIT_RE = re.compile(
     r'|(?:[Tt]erminando\b)'                 #   "terminando"
     r'|(?:[Aa]l\s+(?:llegar|terminar)\b)'   #   "al llegar/terminar"
     r'|(?:[Nn]uestro\s+(?:primer|segundo|siguiente)\b)'  # "nuestro primer..."
+    # English transition words
+    r'|(?:[Tt]hen\b)'                       #   "Then"
+    r'|(?:[Aa]fter(?:wards?)?\b)'           #   "After/Afterwards"
+    r'|(?:[Nn]ext\b)'                       #   "Next"
+    r'|(?:[Ff]inally\b)'                    #   "Finally"
+    r'|(?:[Ww]e\s+(?:will|continue)\b)'     #   "We will/continue"
+    r'|(?:[Ff]rom\s+there\b)'              #   "From there"
     r')',
 )
 
