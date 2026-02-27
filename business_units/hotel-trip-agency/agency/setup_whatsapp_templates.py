@@ -18,10 +18,10 @@ Usage:
 import sys
 import os
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
 
 from dotenv import load_dotenv
-load_dotenv(os.path.join(os.path.dirname(__file__), '..', '..', '..', '.env'))
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', '.env'))
 
 from odoo_cli.target import get_target_client
 
@@ -68,6 +68,12 @@ CUSTOM_FIELDS = [
         'ttype': 'char',
         'model': 'whatsapp.template',
     },
+    {
+        'name': 'x_body_en',
+        'field_description': 'Body (English)',
+        'ttype': 'text',
+        'model': 'whatsapp.template',
+    },
 ]
 
 
@@ -77,6 +83,7 @@ FORM_VIEW_ARCH = """<data>
         <field name="x_is_auto_reply"/>
         <field name="x_trigger_condition" invisible="not x_is_auto_reply"/>
         <field name="x_trigger_keywords" invisible="not x_is_auto_reply or x_trigger_condition != 'keyword'" placeholder="1,hola,tours,info"/>
+        <field name="x_body_en" invisible="not x_is_auto_reply" placeholder="English version of the auto-reply body"/>
     </xpath>
     <xpath expr="//button[@name='button_submit_template']" position="attributes">
         <attribute name="invisible">not wa_account_id or status != 'draft' or x_is_auto_reply</attribute>
@@ -107,6 +114,14 @@ SERVER_ACTION_CODE = """if record.channel_type == "whatsapp" and record.whatsapp
         ("mail_message_id.model", "=", "discuss.channel"),
         ("message_type", "=", "inbound"),
     ])
+    # Detect language by phone country code
+    phone = record.whatsapp_number or ""
+    spanish_prefixes = ("51", "52", "53", "54", "55", "56", "57", "58", "34", "591", "593", "595", "598", "506", "507", "502", "503", "504", "505", "809", "829", "849")
+    is_spanish = False
+    for prefix in spanish_prefixes:
+        if phone.startswith(prefix):
+            is_spanish = True
+            break
     wa_state = record.x_wa_state or "menu"
     # --- Tour recommendation: awaiting preferences ---
     if wa_state == "awaiting_preferences" and msg_lower not in ("1", "2", "3", "4", "5"):
@@ -154,34 +169,38 @@ SERVER_ACTION_CODE = """if record.channel_type == "whatsapp" and record.whatsapp
         # If no matches, just show first 3 tours
         if not top_tours:
             top_tours = tours[:3]
-        # Build response
-        reply_lines = [
-            "Basado en tus preferencias, te recomendamos:",
-            "",
-        ]
+        # Build response based on language
+        if is_spanish:
+            reply_lines = ["Basado en tus preferencias, te recomendamos:", ""]
+        else:
+            reply_lines = ["Based on your preferences, we recommend:", ""]
         for t in top_tours:
-            cats = ", ".join(t.public_categ_ids.mapped("name"))
             line = "- " + t.name
             if t.list_price:
-                line += " (desde $" + str(int(t.list_price)) + " USD ref.)"
+                line += " (from $" + str(int(t.list_price)) + " USD ref.)" if not is_spanish else " (desde $" + str(int(t.list_price)) + " USD ref.)"
             reply_lines.append(line)
-            # Add description_sale snippet if available
             if t.description_sale:
                 desc = str(t.description_sale)[:100]
                 if len(str(t.description_sale)) > 100:
                     desc += "..."
                 reply_lines.append("  " + desc)
             reply_lines.append("")
-        reply_lines.append("Los precios son referenciales y varian segun temporada y tamanio de grupo.")
-        reply_lines.append("")
-        reply_lines.append("Te interesa alguno? Escribe su nombre para mas detalles, o escribe 2 para una cotizacion personalizada.")
+        if is_spanish:
+            reply_lines.append("Los precios son referenciales y varian segun temporada y tamanio de grupo.")
+            reply_lines.append("")
+            reply_lines.append("Te interesa alguno? Escribe su nombre para mas detalles, o escribe 2 para una cotizacion personalizada.")
+        else:
+            reply_lines.append("Prices are referential and vary by season and group size.")
+            reply_lines.append("")
+            reply_lines.append("Interested in any? Write its name for more details, or type 2 for a custom quote.")
         record.message_post(body=nl.join(reply_lines), message_type="whatsapp_message", subtype_xmlid="mail.mt_comment")
         # Internal note for advisor with full preferences
         note_lines = [
             "SOLICITUD DE RECOMENDACION DE TOUR",
             "",
-            "Cliente: " + (record.whatsapp_partner_id.name if record.whatsapp_partner_id else record.whatsapp_number or "Desconocido"),
-            "Telefono: " + (record.whatsapp_number or ""),
+            "Cliente: " + (record.whatsapp_partner_id.name if record.whatsapp_partner_id else phone or "Desconocido"),
+            "Telefono: " + phone,
+            "Idioma: " + ("ES" if is_spanish else "EN"),
             "",
             "Preferencias del cliente:",
             preferences,
@@ -201,15 +220,19 @@ SERVER_ACTION_CODE = """if record.channel_type == "whatsapp" and record.whatsapp
             if replied:
                 break
             condition = tpl.x_trigger_condition
+            # Choose body based on language
+            reply_body = tpl.body
+            if not is_spanish and tpl.x_body_en:
+                reply_body = tpl.x_body_en
             if condition == "first_message" and message_count <= 1:
-                record.message_post(body=tpl.body, message_type="whatsapp_message", subtype_xmlid="mail.mt_comment")
+                record.message_post(body=reply_body, message_type="whatsapp_message", subtype_xmlid="mail.mt_comment")
                 replied = True
             elif condition == "keyword" and tpl.x_trigger_keywords and message_count > 1:
                 keywords = [k.strip().lower() for k in tpl.x_trigger_keywords.split(",") if k.strip()]
                 if msg_lower in keywords:
                     if msg_lower == "5":
                         record.write({"x_wa_state": "awaiting_preferences"})
-                    record.message_post(body=tpl.body, message_type="whatsapp_message", subtype_xmlid="mail.mt_comment")
+                    record.message_post(body=reply_body, message_type="whatsapp_message", subtype_xmlid="mail.mt_comment")
                     replied = True
 """
 
@@ -240,6 +263,17 @@ SAMPLE_TEMPLATES = [
             "5. Recomendame un tour segun mis gustos\n\n"
             "Escribenos tu consulta y te atenderemos con gusto."
         ),
+        'x_body_en': (
+            "Hello! Welcome to A y F Destiny\n\n"
+            "We are a travel agency specialized in tours around Cusco and Peru.\n\n"
+            "How can we help you?\n"
+            "1. Tour information\n"
+            "2. Custom quote\n"
+            "3. Booking status\n"
+            "4. Talk to an advisor\n"
+            "5. Recommend a tour based on my preferences\n\n"
+            "Send us your question and we'll be happy to assist you."
+        ),
     },
     {
         'name': 'Auto: Info Tours',
@@ -264,6 +298,17 @@ SAMPLE_TEMPLATES = [
             "Tambien ofrecemos paquetes personalizados de varios dias.\n\n"
             "Quieres mas detalles de alguno? Escribenos el nombre del tour que te interesa."
         ),
+        'x_body_en': (
+            "These are our most popular tours:\n\n"
+            "- City Tour Cusco (half day)\n"
+            "- Sacred Valley (full day)\n"
+            "- Machu Picchu (full day)\n"
+            "- Rainbow Mountain (full day)\n"
+            "- Humantay Lagoon (full day)\n"
+            "- South Valley Tour (half day)\n\n"
+            "We also offer custom multi-day packages.\n\n"
+            "Want more details? Write the name of the tour you're interested in."
+        ),
     },
     {
         'name': 'Auto: Cotizacion',
@@ -286,6 +331,15 @@ SAMPLE_TEMPLATES = [
             "- Algun requerimiento especial\n\n"
             "Un asesor te respondera con una propuesta a medida."
         ),
+        'x_body_en': (
+            "We'd be happy to prepare a custom quote for you!\n\n"
+            "Please let us know:\n"
+            "- Travel dates\n"
+            "- Number of people\n"
+            "- Tours or destinations of interest\n"
+            "- Any special requirements\n\n"
+            "An advisor will get back to you with a tailored proposal."
+        ),
     },
     {
         'name': 'Auto: Estado Reserva',
@@ -305,6 +359,12 @@ SAMPLE_TEMPLATES = [
             "- Numero de reserva (si lo tienes)\n\n"
             "Un asesor verificara tu reserva y te respondera a la brevedad."
         ),
+        'x_body_en': (
+            "To check your booking status, please provide:\n\n"
+            "- Your full name\n"
+            "- Booking number (if available)\n\n"
+            "An advisor will verify your booking and respond shortly."
+        ),
     },
     {
         'name': 'Auto: Hablar con Asesor',
@@ -322,6 +382,11 @@ SAMPLE_TEMPLATES = [
             "Un asesor se comunicara contigo en breve.\n\n"
             "Nuestro horario de atencion es de lunes a sabado, 8:00 AM a 8:00 PM (hora Peru).\n\n"
             "Si es fuera de horario, te responderemos al inicio del siguiente dia laboral."
+        ),
+        'x_body_en': (
+            "An advisor will contact you shortly.\n\n"
+            "Our business hours are Monday to Saturday, 8:00 AM to 8:00 PM (Peru time, UTC-5).\n\n"
+            "If outside business hours, we'll respond at the start of the next business day."
         ),
     },
     {
@@ -345,6 +410,15 @@ SAMPLE_TEMPLATES = [
             "- Edades del grupo\n"
             "- Alguna preferencia o restriccion especial?\n\n"
             "Con esta informacion te daremos una recomendacion personalizada!"
+        ),
+        'x_body_en': (
+            "Great! To recommend the ideal tour, tell us in a single message:\n\n"
+            "- What kind of experience are you looking for? (adventure, culture, nature, relax)\n"
+            "- Approximate travel dates\n"
+            "- How many people are traveling?\n"
+            "- Ages of the group\n"
+            "- Any special preferences or restrictions?\n\n"
+            "With this info we'll give you a personalized recommendation!"
         ),
     },
 ]
@@ -488,8 +562,11 @@ def main():
 
         if existing:
             tpl_id = existing[0]['id']
-            # Update body and auto-reply fields
-            update_vals = {k: v for k, v in tpl_data.items() if k not in ('template_name',)}
+            # Only update auto-reply specific fields (avoid triggering Meta uniqueness check)
+            update_vals = {}
+            for key in ('body', 'x_is_auto_reply', 'x_trigger_condition', 'x_trigger_keywords', 'x_body_en'):
+                if key in tpl_data:
+                    update_vals[key] = tpl_data[key]
             client.execute('whatsapp.template', 'write', [tpl_id], update_vals)
             print(f"  [UPDATED] {tpl_data['name']} (ID={tpl_id})")
         else:
