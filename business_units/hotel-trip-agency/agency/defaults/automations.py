@@ -650,3 +650,101 @@ for record in records:
     if vals:
         record.write(vals)
 '''
+
+# ── Server Action: Append Template to SO ──────────────────────────────
+# Model: sale.order | Triggered by button in Biblia Operativa tab
+# Adds lines from a second template without removing existing ones.
+
+APPEND_TEMPLATE_TO_SO = '''\
+for record in records:
+    tmpl = record.x_append_template_id
+    if not tmpl:
+        raise UserError("Seleccione una plantilla de tour para agregar.")
+    if not tmpl.x_is_tour:
+        raise UserError("La plantilla seleccionada no es un tour.")
+
+    # 1. Section header + product lines
+    max_seq = 0
+    for l in record.order_line:
+        if (l.sequence or 0) > max_seq:
+            max_seq = l.sequence or 0
+    max_seq += 1
+    env["sale.order.line"].create({
+        "order_id": record.id,
+        "display_type": "line_section",
+        "name": tmpl.name or "Tour adicional",
+        "sequence": max_seq,
+    })
+    for tline in tmpl.sale_order_template_line_ids:
+        if not tline.product_id:
+            continue
+        max_seq += 1
+        env["sale.order.line"].create({
+            "order_id": record.id,
+            "product_id": tline.product_id.id,
+            "product_uom_qty": tline.product_uom_qty or 1,
+            "sequence": max_seq,
+        })
+
+    # 2. Itinerary lines (offset day_number + sequence)
+    max_day = 0
+    max_itin_seq = 0
+    for itin in record.x_itinerary_line_ids:
+        if (itin.x_day_number or 0) > max_day:
+            max_day = itin.x_day_number or 0
+        if (itin.x_sequence or 0) > max_itin_seq:
+            max_itin_seq = itin.x_sequence or 0
+    for line in tmpl.x_itinerary_line_ids:
+        env["x_itinerary_line"].create({
+            "x_sale_order_id": record.id,
+            "x_sequence": (line.x_sequence or 0) + max_itin_seq,
+            "x_day_number": (line.x_day_number or 0) + max_day,
+            "x_title": line.x_title or False,
+            "x_name": line.x_name or False,
+            "x_description": line.x_description or False,
+            "x_accommodation": line.x_accommodation or False,
+            "x_meals": line.x_meals or False,
+        })
+
+    # 3. Operator lines (offset sequence)
+    max_op_seq = 0
+    for op in record.x_operator_line_ids:
+        if (op.x_sequence or 0) > max_op_seq:
+            max_op_seq = op.x_sequence or 0
+    for op in tmpl.x_operator_line_ids:
+        env["x_operator_line"].create({
+            "x_sale_order_id": record.id,
+            "x_sequence": (op.x_sequence or 0) + max_op_seq,
+            "x_partner_id": op.x_partner_id.id if op.x_partner_id else False,
+            "x_service_type": op.x_service_type or False,
+            "x_name": op.x_name or False,
+            "x_description": op.x_description or False,
+            "x_date": op.x_date or False,
+            "x_product_id": op.x_product_id.id if op.x_product_id else False,
+            "x_cost_currency_id": op.x_cost_currency_id.id if op.x_cost_currency_id else False,
+            "x_cost": op.x_cost or 0,
+        })
+
+    # 4. Concatenate text fields
+    sep = chr(10) + "---" + chr(10)
+    if tmpl.x_inclusions:
+        current = record.x_inclusions or ""
+        new_val = current + sep + tmpl.x_inclusions if current else tmpl.x_inclusions
+        record.write({"x_inclusions": new_val})
+    if tmpl.x_key_times:
+        current = record.x_key_times or ""
+        new_val = current + sep + tmpl.x_key_times if current else tmpl.x_key_times
+        record.write({"x_key_times": new_val})
+    if tmpl.x_special_observations:
+        current = record.x_special_observations or ""
+        new_val = current + sep + tmpl.x_special_observations if current else tmpl.x_special_observations
+        record.write({"x_special_observations": new_val})
+
+    # 5. Clear field + notify
+    record.write({"x_append_template_id": False})
+    record.message_post(
+        body="Plantilla agregada: " + (tmpl.name or ""),
+        message_type="comment",
+        subtype_xmlid="mail.mt_note"
+    )
+'''

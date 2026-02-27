@@ -34,8 +34,16 @@ SALE_ORDER_BIBLIA_ARCH = '''<data>
     </xpath>
     <xpath expr="//notebook" position="inside">
         <page string="Biblia Operativa" name="biblia_operativa" invisible="not x_is_tour">
-            <div class="d-flex gap-2 mb-3" name="biblia_buttons">
+            <div class="d-flex gap-2 mb-3 align-items-center" name="biblia_buttons">
                 <button name="{biblia_report_action_id}" type="action" string="Descargar Biblia Operativa" class="btn btn-primary" icon="fa-file-pdf-o"/>
+                <field name="x_append_template_id" string="Agregar Tour"
+                       options="{'no_create': True}"
+                       domain="[('x_is_tour', '=', True)]"
+                       class="ms-3 d-inline-block" style="max-width: 250px;"/>
+                <button name="{append_template_action_id}" type="action"
+                        string="Agregar Plantilla" class="btn btn-secondary"
+                        icon="fa-plus" invisible="not x_append_template_id"
+                        confirm="Se agregaran las lineas de la plantilla seleccionada a esta cotizacion. Continuar?"/>
             </div>
             <group string="Informacion General" name="biblia_general">
                 <group>
@@ -1187,3 +1195,29 @@ VOUCHER_REPORT_TEMPLATE = '''<?xml version="1.0"?>
         </t>
     </t>
 </t>'''
+
+
+# ── Ecommerce: Pricelist ↔ Language auto-switch ──────────────────────────
+# Placeholders {pen_pricelist_id} and {usd_pricelist_id} are replaced at
+# runtime by setup_pricelist_currency.py with the real IDs.
+
+ECOM_PRICELIST_LANG_SWITCH_ARCH = '''<data>
+    <xpath expr="//head" position="inside">
+        <script>
+        (function() {{
+            'use strict';
+            var MAP = {{'en': {usd_pricelist_id}, 'es': {pen_pricelist_id}}};
+            var lang = (document.documentElement.lang || '').split('-')[0];
+            var pl = MAP[lang];
+            if (!pl) return;
+
+            // Track last synced language — re-sync only on language change
+            if (sessionStorage.getItem('pl_last_lang') === lang) return;
+            sessionStorage.setItem('pl_last_lang', lang);
+
+            // Full navigation: Odoo changes session pricelist + redirects back
+            window.location.href = '/shop/change_pricelist/' + pl;
+        }})();
+        </script>
+    </xpath>
+</data>'''

@@ -45,6 +45,7 @@ from agency.defaults.automations import (
     CREATE_BUDGET_FROM_BIBLIA,
     VIEW_TOUR_BUDGET,
     AUTOFILL_FROM_PRODUCT,
+    APPEND_TEMPLATE_TO_SO,
 )
 
 app = typer.Typer(help="Setup Biblia Operativa (itinerary, operators, passengers, views, automation)")
@@ -396,6 +397,9 @@ def _run_setup(client, label):
         # ── Budget link ──
         {'name': 'x_budget_id', 'field_description': 'Presupuesto',
          'ttype': 'many2one', 'relation': 'budget.analytic', 'model': 'sale.order'},
+        # ── Append template (temporary field for multi-template support) ──
+        {'name': 'x_append_template_id', 'field_description': 'Agregar Tour',
+         'ttype': 'many2one', 'relation': 'sale.order.template', 'model': 'sale.order'},
     ]
     for fdef in so_fields:
         fid, created = _create_field(client, fdef, so_model_id)
@@ -470,6 +474,17 @@ def _run_setup(client, label):
         import re
         so_arch = re.sub(r'<button[^>]*name="\{view_budget_action_id\}"[^>]*>.*?</button>', '', so_arch, flags=re.DOTALL)
         typer.secho("  StatButton: ViewBudget deferred to step 20b", fg=typer.colors.CYAN)
+    _append_tmpl_sa = client.search_read('ir.actions.server',
+        domain=[['name', '=', 'Append Template to SO']], fields=['id'], limit=1)
+    if _append_tmpl_sa:
+        so_arch = so_arch.replace('{append_template_action_id}', str(_append_tmpl_sa[0]['id']))
+        typer.secho(f"  Button: AppendTmpl→{_append_tmpl_sa[0]['id']}", fg=typer.colors.CYAN)
+    else:
+        import re
+        so_arch = re.sub(r'<button[^>]*name="\{append_template_action_id\}"[^/]*/>', '', so_arch, flags=re.DOTALL)
+        # Also remove the field since the button won't exist
+        so_arch = re.sub(r'<field[^>]*name="x_append_template_id"[^/]*/>', '', so_arch, flags=re.DOTALL)
+        typer.secho("  Button: AppendTmpl deferred to step 20c", fg=typer.colors.CYAN)
 
     SO_VIEW_NAME = 'sale.order.form.inherit.agency_biblia'
     existing_view = client.search_read('ir.ui.view',
@@ -755,6 +770,11 @@ def _run_setup(client, label):
         domain=[['name', '=', 'View Tour Budget']], fields=['id'], limit=1)
     view_budget_sa_id = view_budget_sa[0]['id'] if view_budget_sa else 0
 
+    # Append Template server action (created in step 20c, look up if exists from previous run)
+    append_tmpl_sa = client.search_read('ir.actions.server',
+        domain=[['name', '=', 'Append Template to SO']], fields=['id'], limit=1)
+    append_tmpl_sa_id = append_tmpl_sa[0]['id'] if append_tmpl_sa else 0
+
     so_view_final = client.search_read('ir.ui.view',
         domain=[['name', '=', 'sale.order.form.inherit.agency_biblia']],
         fields=['id'], limit=1)
@@ -775,8 +795,13 @@ def _run_setup(client, label):
             arch_final = arch_final.replace('{view_budget_action_id}', str(view_budget_sa_id))
         else:
             arch_final = re.sub(r'<button[^>]*name="\{view_budget_action_id\}"[^>]*>.*?</button>', '', arch_final, flags=re.DOTALL)
+        if append_tmpl_sa_id:
+            arch_final = arch_final.replace('{append_template_action_id}', str(append_tmpl_sa_id))
+        else:
+            arch_final = re.sub(r'<button[^>]*name="\{append_template_action_id\}"[^/]*/>', '', arch_final, flags=re.DOTALL)
+            arch_final = re.sub(r'<field[^>]*name="x_append_template_id"[^/]*/>', '', arch_final, flags=re.DOTALL)
         client.execute('ir.ui.view', 'write', [so_view_final[0]['id']], {'arch': arch_final})
-        typer.secho(f"  [OK] Biblia→{biblia_report_id}, Voucher→{voucher_report_id}, CreatePO→{sa_id}, Budget→{budget_sa_id or 'pending'}, ViewBudget→{view_budget_sa_id or 'pending'}", fg=typer.colors.GREEN)
+        typer.secho(f"  [OK] Biblia→{biblia_report_id}, Voucher→{voucher_report_id}, CreatePO→{sa_id}, Budget→{budget_sa_id or 'pending'}, ViewBudget→{view_budget_sa_id or 'pending'}, AppendTmpl→{append_tmpl_sa_id or 'pending'}", fg=typer.colors.GREEN)
     else:
         typer.secho("  [WARN] Could not inject all action IDs (missing view or actions)", fg=typer.colors.YELLOW)
 
@@ -824,6 +849,28 @@ def _run_setup(client, label):
         view_budget_sa_id = result[0] if isinstance(result, list) else result
         typer.secho(f"  [CREATED] Server action {view_budget_sa_id}", fg=typer.colors.GREEN)
 
+    # ── 20c. Server action: Append Template to SO ──────────────────
+    typer.secho("\n20c. Server action: Append Template to SO", bold=True)
+    APPEND_TMPL_ACTION_NAME = 'Append Template to SO'
+    existing_at_sa = client.search_read('ir.actions.server',
+        domain=[['name', '=', APPEND_TMPL_ACTION_NAME]],
+        fields=['id'])
+    if existing_at_sa:
+        append_tmpl_sa_id = existing_at_sa[0]['id']
+        client.execute('ir.actions.server', 'write', [append_tmpl_sa_id], {
+            'code': APPEND_TEMPLATE_TO_SO,
+        })
+        typer.secho(f"  [UPDATED] Server action {append_tmpl_sa_id}", fg=typer.colors.GREEN)
+    else:
+        result = client.execute('ir.actions.server', 'create', [{
+            'name': APPEND_TMPL_ACTION_NAME,
+            'model_id': so_model_id,
+            'state': 'code',
+            'code': APPEND_TEMPLATE_TO_SO,
+        }])
+        append_tmpl_sa_id = result[0] if isinstance(result, list) else result
+        typer.secho(f"  [CREATED] Server action {append_tmpl_sa_id}", fg=typer.colors.GREEN)
+
     # Re-inject all deferred buttons into SO view now that we have all action IDs
     if so_view_final:
         current_arch = client.search_read('ir.ui.view',
@@ -833,7 +880,7 @@ def _run_setup(client, label):
             import re
             needs_reinject = ('{create_budget_action_id}' in current_arch[0].get('arch', '')
                               or '{view_budget_action_id}' in current_arch[0].get('arch', ''))
-            if needs_reinject or 'view_budget_action_id' not in current_arch[0].get('arch', ''):
+            if needs_reinject or 'view_budget_action_id' not in current_arch[0].get('arch', '') or 'append_template_action_id' not in current_arch[0].get('arch', ''):
                 # Full re-inject with all action IDs
                 arch_full = SALE_ORDER_VIEW_ARCH.replace(
                     '{biblia_report_action_id}', str(biblia_report_id)
@@ -845,9 +892,11 @@ def _run_setup(client, label):
                     '{create_budget_action_id}', str(budget_sa_id)
                 ).replace(
                     '{view_budget_action_id}', str(view_budget_sa_id)
+                ).replace(
+                    '{append_template_action_id}', str(append_tmpl_sa_id)
                 )
                 client.execute('ir.ui.view', 'write', [current_arch[0]['id']], {'arch': arch_full})
-                typer.secho(f"  [OK] Full re-inject: Budget→{budget_sa_id}, ViewBudget→{view_budget_sa_id}", fg=typer.colors.GREEN)
+                typer.secho(f"  [OK] Full re-inject: Budget→{budget_sa_id}, ViewBudget→{view_budget_sa_id}, AppendTmpl→{append_tmpl_sa_id}", fg=typer.colors.GREEN)
 
     # ── 21. Automations: Recalc Tour Financials (26, 27, 28) ─────────
     typer.secho("\n21. Automations: Recalc Tour Financials", bold=True)
@@ -920,6 +969,7 @@ def _run_setup(client, label):
     typer.secho("  - Server action: Create Budget from Biblia (budget.analytic)", fg=typer.colors.CYAN)
     typer.secho("  - Automations 26-28: Recalc financials on operator create/write/delete", fg=typer.colors.CYAN)
     typer.secho("  - Automation 29: Autofill operator from product selection", fg=typer.colors.CYAN)
+    typer.secho("  - Server action: Append Template to SO (multi-tour support)", fg=typer.colors.CYAN)
     typer.secho("  - Exchange rate view: uses SO rate (not live rate)", fg=typer.colors.CYAN)
 
 
