@@ -139,8 +139,8 @@ SERVER_ACTION_CODE = """if record.channel_type == "whatsapp" and record.whatsapp
         # Keyword-category mapping for matching
         cat_keywords = {
             "aventura": ["aventura", "adventure", "trekking", "hiking", "caminata", "extremo", "adrenalina", "deporte"],
-            "cultura": ["cultura", "culture", "historia", "history", "museo", "ruinas", "arqueologia", "tradicion", "colonial"],
-            "naturaleza": ["naturaleza", "nature", "paisaje", "landscape", "lago", "laguna", "montana", "montania", "montaña"],
+            "cultura": ["cultura", "culture", "historia", "history", "museo", "ruinas", "arqueología", "tradición", "colonial"],
+            "naturaleza": ["naturaleza", "nature", "paisaje", "landscape", "lago", "laguna", "montana", "montaña"],
             "machupicchu": ["machu", "picchu", "machupicchu", "machu picchu", "inca", "ciudadela"],
             "relax": ["relax", "tranquilo", "descanso", "spa", "termal"],
         }
@@ -186,9 +186,9 @@ SERVER_ACTION_CODE = """if record.channel_type == "whatsapp" and record.whatsapp
                 reply_lines.append("  " + desc)
             reply_lines.append("")
         if is_spanish:
-            reply_lines.append("Los precios son referenciales y varian segun temporada y tamanio de grupo.")
+            reply_lines.append("Los precios son referenciales y varían según temporada y tamaño de grupo.")
             reply_lines.append("")
-            reply_lines.append("Te interesa alguno? Escribe su nombre para mas detalles, o escribe 2 para una cotizacion personalizada.")
+            reply_lines.append("¿Te interesa alguno? Escribe su nombre para más detalles, o escribe 2 para una cotización personalizada.")
         else:
             reply_lines.append("Prices are referential and vary by season and group size.")
             reply_lines.append("")
@@ -196,16 +196,16 @@ SERVER_ACTION_CODE = """if record.channel_type == "whatsapp" and record.whatsapp
         record.message_post(body=nl.join(reply_lines), message_type="whatsapp_message", subtype_xmlid="mail.mt_comment")
         # Internal note for advisor with full preferences
         note_lines = [
-            "SOLICITUD DE RECOMENDACION DE TOUR",
+            "SOLICITUD DE RECOMENDACIÓN DE TOUR",
             "",
             "Cliente: " + (record.whatsapp_partner_id.name if record.whatsapp_partner_id else phone or "Desconocido"),
-            "Telefono: " + phone,
+            "Teléfono: " + phone,
             "Idioma: " + ("ES" if is_spanish else "EN"),
             "",
             "Preferencias del cliente:",
             preferences,
             "",
-            "Tours recomendados automaticamente:",
+            "Tours recomendados automáticamente:",
         ]
         for t in top_tours:
             note_lines.append("- " + t.name + " ($" + str(int(t.list_price)) + ")")
@@ -253,15 +253,15 @@ SAMPLE_TEMPLATES = [
         'x_is_auto_reply': True,
         'x_trigger_condition': 'first_message',
         'body': (
-            "Hola! Bienvenido/a a A y F Destiny\n\n"
-            "Somos una agencia de viajes especializada en tours por Cusco y Peru.\n\n"
-            "En que podemos ayudarte?\n"
-            "1. Informacion sobre tours\n"
-            "2. Cotizacion personalizada\n"
+            "¡Hola! Bienvenido/a a A y F Destiny\n\n"
+            "Somos una agencia de viajes especializada en tours por Cusco y Perú.\n\n"
+            "¿En qué podemos ayudarte?\n"
+            "1. Información sobre tours\n"
+            "2. Cotización personalizada\n"
             "3. Estado de mi reserva\n"
             "4. Hablar con un asesor\n"
-            "5. Recomendame un tour segun mis gustos\n\n"
-            "Escribenos tu consulta y te atenderemos con gusto."
+            "5. Recomiéndame un tour según mis gustos\n\n"
+            "Escríbenos tu consulta y te atenderemos con gusto."
         ),
         'x_body_en': (
             "Hello! Welcome to A y F Destiny\n\n"
@@ -288,15 +288,15 @@ SAMPLE_TEMPLATES = [
         'x_trigger_condition': 'keyword',
         'x_trigger_keywords': '1',
         'body': (
-            "Estos son nuestros tours mas populares:\n\n"
-            "- City Tour Cusco (medio dia)\n"
-            "- Valle Sagrado (dia completo)\n"
-            "- Machu Picchu (dia completo)\n"
-            "- Montana de 7 Colores (dia completo)\n"
-            "- Laguna Humantay (dia completo)\n"
-            "- Tour al Valle Sur (medio dia)\n\n"
-            "Tambien ofrecemos paquetes personalizados de varios dias.\n\n"
-            "Quieres mas detalles de alguno? Escribenos el nombre del tour que te interesa."
+            "Estos son nuestros tours más populares:\n\n"
+            "- City Tour Cusco (medio día)\n"
+            "- Valle Sagrado (día completo)\n"
+            "- Machu Picchu (día completo)\n"
+            "- Montaña de 7 Colores (día completo)\n"
+            "- Laguna Humantay (día completo)\n"
+            "- Tour al Valle Sur (medio día)\n\n"
+            "También ofrecemos paquetes personalizados de varios días.\n\n"
+            "¿Quieres más detalles de alguno? Escríbenos el nombre del tour que te interesa."
         ),
         'x_body_en': (
             "These are our most popular tours:\n\n"
@@ -323,13 +323,13 @@ SAMPLE_TEMPLATES = [
         'x_trigger_condition': 'keyword',
         'x_trigger_keywords': '2',
         'body': (
-            "Con gusto te preparamos una cotizacion personalizada!\n\n"
-            "Por favor indicanos:\n"
+            "¡Con gusto te preparamos una cotización personalizada!\n\n"
+            "Por favor indícanos:\n"
             "- Fechas de viaje\n"
-            "- Numero de personas\n"
-            "- Tours o destinos de interes\n"
-            "- Algun requerimiento especial\n\n"
-            "Un asesor te respondera con una propuesta a medida."
+            "- Número de personas\n"
+            "- Tours o destinos de interés\n"
+            "- Algún requerimiento especial\n\n"
+            "Un asesor te responderá con una propuesta a medida."
         ),
         'x_body_en': (
             "We'd be happy to prepare a custom quote for you!\n\n"
@@ -354,10 +354,10 @@ SAMPLE_TEMPLATES = [
         'x_trigger_condition': 'keyword',
         'x_trigger_keywords': '3',
         'body': (
-            "Para consultar el estado de tu reserva, por favor indicanos:\n\n"
+            "Para consultar el estado de tu reserva, por favor indícanos:\n\n"
             "- Tu nombre completo\n"
-            "- Numero de reserva (si lo tienes)\n\n"
-            "Un asesor verificara tu reserva y te respondera a la brevedad."
+            "- Número de reserva (si lo tienes)\n\n"
+            "Un asesor verificará tu reserva y te responderá a la brevedad."
         ),
         'x_body_en': (
             "To check your booking status, please provide:\n\n"
@@ -379,9 +379,9 @@ SAMPLE_TEMPLATES = [
         'x_trigger_condition': 'keyword',
         'x_trigger_keywords': '4',
         'body': (
-            "Un asesor se comunicara contigo en breve.\n\n"
-            "Nuestro horario de atencion es de lunes a sabado, 8:00 AM a 8:00 PM (hora Peru).\n\n"
-            "Si es fuera de horario, te responderemos al inicio del siguiente dia laboral."
+            "Un asesor se comunicará contigo en breve.\n\n"
+            "Nuestro horario de atención es de lunes a sábado, 8:00 AM a 8:00 PM (hora Perú).\n\n"
+            "Si es fuera de horario, te responderemos al inicio del siguiente día laboral."
         ),
         'x_body_en': (
             "An advisor will contact you shortly.\n\n"
@@ -402,14 +402,14 @@ SAMPLE_TEMPLATES = [
         'x_trigger_condition': 'keyword',
         'x_trigger_keywords': '5',
         'body': (
-            "Excelente! Para recomendarte el tour ideal, cuentanos en un solo mensaje:\n\n"
-            "- Que tipo de experiencia buscas? (aventura, cultura, naturaleza, relax)\n"
+            "¡Excelente! Para recomendarte el tour ideal, cuéntanos en un solo mensaje:\n\n"
+            "- ¿Qué tipo de experiencia buscas? (aventura, cultura, naturaleza, relax)\n"
             "- Fechas aproximadas de viaje\n"
-            "- Cuantas personas viajan?\n"
+            "- ¿Cuántas personas viajan?\n"
             "- Nacionalidad e idioma preferido\n"
             "- Edades del grupo\n"
-            "- Alguna preferencia o restriccion especial?\n\n"
-            "Con esta informacion te daremos una recomendacion personalizada!"
+            "- ¿Alguna preferencia o restricción especial?\n\n"
+            "¡Con esta información te daremos una recomendación personalizada!"
         ),
         'x_body_en': (
             "Great! To recommend the ideal tour, tell us in a single message:\n\n"

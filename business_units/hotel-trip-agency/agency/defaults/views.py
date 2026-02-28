@@ -543,15 +543,11 @@ ECOM_CTA_TOUR_ARCH = '''<data>
 # Inherits from website_sale.product (product detail page)
 
 ECOM_PRODUCT_MODAL_ARCH = '''<data>
-    <!-- 1. Remove js_product class for tours — prevents JS configurator hooks -->
-    <xpath expr="//div[@id='o_wsale_product_details_content']" position="attributes">
-        <attribute name="t-attf-class">
-            {{ 'js_product' if __NOT_TOUR__ else '' }} o_wsale_content_contained container
-        </attribute>
-    </xpath>
-    <!-- 2. Hide variant selector section for tours — prevents ProductPage JS from
+    <!-- Hide variant selector section for tours — prevents ProductPage JS from
          finding UL elements and calling get_combination_info_website RPC.
-         Attributes still appear in specifications/accordion tab below. -->
+         Attributes still appear in specifications/accordion tab below.
+         NOTE: js_product class is kept so that the alternative products
+         dynamic snippet can resolve the current productTemplateId. -->
     <xpath expr="//t[@name='variant_info']" position="attributes">
         <attribute name="t-if">__NOT_TOUR__</attribute>
     </xpath>

@@ -3,23 +3,23 @@
 
 Configures:
 - PEN pricelist (id=1): selectable, assigned to LATAM country group
-- USD pricelist (id=2): selectable, global conversion rule (sequence=999)
-- Country groups: LATAM → PEN, rest → USD (GeoIP fallback)
+- USD pricelist (id=2): selectable, global conversion rule
+- Country groups: LATAM → PEN, International → USD (GeoIP fallback)
 - QWeb view: JavaScript auto-switch language ↔ pricelist
 
 When visiting in English → USD prices; in Spanish → PEN prices.
 Products with manual USD prices in the pricelist override the automatic conversion.
 
 Usage:
-    uv run python business_units/hotel-trip-agency/agency/setup_pricelist_currency.py
-    uv run python business_units/hotel-trip-agency/agency/setup_pricelist_currency.py --target prod
-    uv run python business_units/hotel-trip-agency/agency/setup_pricelist_currency.py --target both
+    uv run python business_units/hotel-trip-agency/e-commerce/pricelist/setup_pricelist_currency.py
+    uv run python business_units/hotel-trip-agency/e-commerce/pricelist/setup_pricelist_currency.py --target prod
+    uv run python business_units/hotel-trip-agency/e-commerce/pricelist/setup_pricelist_currency.py --target both
 """
 import sys
 import os
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
 import typer
 from odoo_cli import OdooClient
