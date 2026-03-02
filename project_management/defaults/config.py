@@ -23,14 +23,14 @@ IMPLEMENTING_COMPANY = "VISEPRO"
 # =========================================================================
 PROJECT_CODE = r"N\textdegree{} 471-PROINNOVATE-IMTEMD-2025"
 PROGRAM_NAME = r"PROGRAMA PROINNOVATE -- IMTEMD 2025"
-REPORT_DATE_START = "01/01/2026"
+REPORT_DATE_START = "01/12/2025"
 REPORT_DATE_END = "28/02/2026"
 
 # =========================================================================
 # PEOPLE
 # =========================================================================
 COORDINATOR_NAME = "Nohemi Milagros Cjumo Ovalle"
-CONSULTANT_NAME = "Marco Rosendo Mejia Miranda"
+CONSULTANT_NAME = "Enrique Mauro Villavicencio Luna"
 CO_CONSULTANT_NAME = r"Gonzalo Enrique Guti\'errez Castillo"
 
 # =========================================================================

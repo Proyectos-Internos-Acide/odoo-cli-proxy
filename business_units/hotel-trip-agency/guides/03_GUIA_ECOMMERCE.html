@@ -1,0 +1,758 @@
+<!DOCTYPE html><html><head><meta charset='utf-8'>
+<style>
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; line-height: 1.6; color: #333; }
+  h1 { color: #1B5E20; border-bottom: 2px solid #1B5E20; padding-bottom: 8px; }
+  h2 { color: #2E7D32; margin-top: 2em; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+  h3 { color: #388E3C; }
+  table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+  th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+  th { background-color: #E8F5E9; font-weight: bold; }
+  tr:nth-child(even) { background-color: #f9f9f9; }
+  code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; }
+  pre { background: #f4f4f4; padding: 16px; border-radius: 6px; overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { border-left: 4px solid #4CAF50; margin: 1em 0; padding: 0.5em 1em; background: #f1f8e9; }
+  img { max-width: 100%; border: 1px solid #ddd; border-radius: 4px; margin: 1em 0; }
+  a { color: #1B5E20; }
+</style>
+</head><body><h1 id="guia-de-gestion-y-personalizacion-del-e-commerce">Guía de Gestión y Personalización del E-commerce</h1>
+<h2 id="tabla-de-contenidos">Tabla de Contenidos</h2>
+<ol>
+<li><a href="#1-introducción-cómo-funciona-la-tienda-online">Introducción: Cómo Funciona la Tienda Online</a></li>
+<li><a href="#2-gestionar-productos-en-la-web">Gestionar Productos en la Web</a></li>
+<li><a href="#3-precios-y-monedas">Precios y Monedas</a></li>
+<li><a href="#4-comisiones-de-métodos-de-pago">Comisiones de Métodos de Pago</a></li>
+<li><a href="#5-livechat-con-ia">Livechat con IA</a></li>
+<li><a href="#6-whatsapp-plantillas-de-auto-respuesta">WhatsApp: Plantillas de Auto-respuesta</a></li>
+<li><a href="#7-personalización-básica-del-sitio-web">Personalización Básica del Sitio Web</a></li>
+<li><a href="#8-hoja-de-referencia-rápida">Hoja de Referencia Rápida</a></li>
+</ol>
+<hr />
+<h2 id="1-introduccion-como-funciona-la-tienda-online">1. Introducción: Cómo Funciona la Tienda Online</h2>
+<p>La tienda online de A y F Destiny tiene dos tipos de productos con comportamientos diferentes:</p>
+<h3 id="tours-y-paquetes-turisticos">Tours y paquetes turísticos</h3>
+<p>Los tours <strong>NO se venden directamente</strong> por la web. En lugar de un botón "Agregar al carrito", el visitante ve un botón <strong>"Solicitar Cotización"</strong> que abre un formulario:</p>
+<pre><code>Visitante ve el tour en la web
+    ↓
+Hace clic en &quot;Solicitar Cotización&quot;
+    ↓
+Llena formulario: nombre, email, teléfono, mensaje
+    ↓
+Se crea automáticamente un LEAD en el CRM
+    ↓
+Un asesor contacta al cliente y crea la cotización manualmente
+</code></pre>
+<p>Esto es así porque cada tour se personaliza según el cliente (fechas, número de personas, servicios adicionales, etc.).</p>
+<h3 id="habitaciones-de-hotel">Habitaciones de hotel</h3>
+<p>Las habitaciones se pueden reservar directamente desde el sitio web con selección de fechas y pago en línea.</p>
+<h3 id="precios-segun-el-idioma">Precios según el idioma</h3>
+<ul>
+<li>Visitantes en <strong>español</strong>: ven precios en <strong>Soles (S/)</strong></li>
+<li>Visitantes en <strong>inglés</strong>: ven precios en <strong>Dólares ($)</strong></li>
+</ul>
+<p>El cambio es automático cuando el visitante cambia el idioma del sitio.</p>
+<hr />
+<h2 id="2-gestionar-productos-en-la-web">2. Gestionar Productos en la Web</h2>
+<h3 id="21-publicar-o-despublicar-un-producto">2.1 Publicar o despublicar un producto</h3>
+<p>Para que un producto aparezca (o desaparezca) de la tienda online:</p>
+<ol>
+<li>Ir a <strong>Ventas &gt; Productos</strong></li>
+<li>Abrir el producto que quieres modificar</li>
+<li>En la esquina superior derecha, buscar el interruptor <strong>"Publicado"</strong></li>
+<li><strong>Activado (verde):</strong> El producto es visible en la web</li>
+<li><strong>Desactivado (gris):</strong> El producto NO aparece en la web</li>
+<li>Hacer clic para cambiar el estado</li>
+</ol>
+<blockquote>
+<p><strong>Importante:</strong> Despublicar un producto NO elimina las cotizaciones o pedidos existentes. Solo lo oculta de la tienda online.</p>
+</blockquote>
+<h3 id="22-editar-informacion-del-producto">2.2 Editar información del producto</h3>
+<p>Para cambiar la información que el cliente ve en la web:</p>
+<ol>
+<li>Abrir el producto en <strong>Ventas &gt; Productos</strong></li>
+<li>Editar los campos:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Dónde se ve</th>
+<th>Ejemplo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Nombre</strong></td>
+<td>Título del producto en la web</td>
+<td>"City Tour Cusco"</td>
+</tr>
+<tr>
+<td><strong>Precio de venta</strong></td>
+<td>Precio mostrado (en Soles)</td>
+<td>S/ 150.00</td>
+</tr>
+<tr>
+<td><strong>Descripción e-commerce</strong></td>
+<td>Texto corto debajo del título</td>
+<td>"Descubre la mágica ciudad imperial..."</td>
+</tr>
+<tr>
+<td><strong>Descripción extendida</strong></td>
+<td>Texto completo en la página del producto</td>
+<td>Itinerario detallado, incluye/no incluye</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>Para las fotos: ir a la sección de <strong>imágenes</strong> del producto y subir/reemplazar</li>
+</ol>
+<h3 id="23-categorias-del-sitio-web">2.3 Categorías del sitio web</h3>
+<p>Los productos se organizan en categorías que el visitante puede filtrar:</p>
+<ol>
+<li>Ir a <strong>Sitio Web &gt; E-commerce &gt; Categorías del e-commerce</strong></li>
+<li>Las categorías principales son:</li>
+<li><strong>Tours</strong> (todos los tours y paquetes)</li>
+<li><strong>Hospedaje</strong> (habitaciones de hotel)</li>
+<li>Para cambiar la categoría web de un producto:</li>
+<li>Abrir el producto</li>
+<li>En el campo <strong>"Categorías del sitio web"</strong>, agregar o quitar categorías</li>
+</ol>
+<h3 id="24-productos-relacionados-venta-cruzada">2.4 Productos relacionados (venta cruzada)</h3>
+<p>Los "productos relacionados" son las sugerencias que aparecen debajo de cada producto en la web ("También te puede interesar..."):</p>
+<ol>
+<li>Abrir el producto en <strong>Ventas &gt; Productos</strong></li>
+<li>Ir a la pestaña <strong>"Ventas"</strong></li>
+<li>En el campo <strong>"Productos opcionales"</strong>, agregar los productos que quieres sugerir</li>
+<li><strong>Guardar</strong></li>
+</ol>
+<p><strong>Ejemplo:</strong> En la página del "City Tour Cusco" se sugieren:
+- Valle Sagrado Tradicional
+- Rainbow Mountain
+- Chinchero, Moray y Maras</p>
+<p><img alt="Captura 1: Página de producto tour en el sitio web" src="screenshots/e01_producto_web.png" />
+<img alt="Captura 2: Modal de solicitud de cotización" src="screenshots/e02_modal_cotizacion.png" />
+<img alt="Captura 3: Listado de productos en tienda" src="screenshots/e03_listado_tienda.png" />
+<img alt="Captura 14: Productos relacionados en el backend" src="screenshots/e14_productos_relacionados.png" /></p>
+<hr />
+<h2 id="3-precios-y-monedas">3. Precios y Monedas</h2>
+<h3 id="31-como-funciona-el-sistema-de-precios">3.1 Cómo funciona el sistema de precios</h3>
+<p>El sistema usa <strong>listas de precios</strong> para mostrar precios en diferentes monedas:</p>
+<table>
+<thead>
+<tr>
+<th>Idioma del visitante</th>
+<th>Moneda</th>
+<th>Lista de precios</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Español</td>
+<td>Soles (S/)</td>
+<td>PEN (por defecto)</td>
+</tr>
+<tr>
+<td>Inglés</td>
+<td>Dólares ($)</td>
+<td>USD</td>
+</tr>
+</tbody>
+</table>
+<p>El cambio es <strong>automático</strong>: cuando un visitante cambia el idioma del sitio de español a inglés (o viceversa), los precios se convierten automáticamente.</p>
+<h3 id="32-donde-ver-las-listas-de-precios">3.2 Dónde ver las listas de precios</h3>
+<ol>
+<li>Ir a <strong>Ventas &gt; Configuración &gt; Listas de precios</strong></li>
+<li>Verás dos listas principales:</li>
+<li><strong>PEN</strong> (lista por defecto): Precios base en Soles peruanos</li>
+<li><strong>USD</strong>: Precios convertidos a Dólares americanos</li>
+</ol>
+<h3 id="33-como-funciona-la-conversion-automatica">3.3 Cómo funciona la conversión automática</h3>
+<p>La lista USD tiene una <strong>regla global de conversión</strong>:
+- Toma el precio base en PEN
+- Lo convierte a USD usando el <strong>tipo de cambio</strong> configurado en el sistema
+- El tipo de cambio se actualiza en: <strong>Contabilidad &gt; Configuración &gt; Monedas</strong></p>
+<p><strong>Ejemplo:</strong>
+- Precio base del City Tour: S/ 500.00 PEN
+- Tipo de cambio: 1 USD = 3.75 PEN
+- Precio en USD: $133.33 (500 ÷ 3.75)</p>
+<h3 id="34-poner-un-precio-manual-en-usd">3.4 Poner un precio manual en USD</h3>
+<p>Si quieres que un producto tenga un precio específico en USD (en lugar de la conversión automática):</p>
+<ol>
+<li>Ir a <strong>Ventas &gt; Configuración &gt; Listas de precios</strong></li>
+<li>Abrir la lista <strong>"USD"</strong></li>
+<li>En la sección de reglas, hacer clic en <strong>"Agregar línea"</strong></li>
+<li>Configurar:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Aplicar en</strong></td>
+<td>1 Producto</td>
+</tr>
+<tr>
+<td><strong>Producto</strong></td>
+<td>(seleccionar el producto)</td>
+</tr>
+<tr>
+<td><strong>Calcular precio</strong></td>
+<td>Precio fijo</td>
+</tr>
+<tr>
+<td><strong>Precio fijo</strong></td>
+<td>(escribir el precio en USD)</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li><strong>Guardar</strong></li>
+</ol>
+<p><strong>Ejemplo:</strong> Si quieres que el "Machu Picchu 2D/1N" cueste exactamente $450 USD (en lugar del precio convertido):
+- Aplicar en: 1 Producto → "Machu Picchu 2D/1N"
+- Calcular precio: Precio fijo
+- Precio fijo: 450.00</p>
+<blockquote>
+<p><strong>Nota:</strong> Las reglas de precio fijo para un producto específico siempre tienen prioridad sobre la regla de conversión general.</p>
+</blockquote>
+<h3 id="35-actualizar-el-tipo-de-cambio">3.5 Actualizar el tipo de cambio</h3>
+<ol>
+<li>Ir a <strong>Contabilidad &gt; Configuración &gt; Monedas</strong></li>
+<li>Buscar <strong>USD (Dólar americano)</strong></li>
+<li>Hacer clic en la moneda</li>
+<li>En la pestaña de tasas, puedes:</li>
+<li>Ver el tipo de cambio actual</li>
+<li>Agregar un nuevo tipo de cambio con la fecha de hoy</li>
+</ol>
+<p><img alt="Captura 4: Lista de precios en backend" src="screenshots/e04_listas_precios.png" />
+<img alt="Captura 5: Regla de conversión USD" src="screenshots/e05_regla_conversion.png" />
+<img alt="Captura 6: Tipo de cambio" src="screenshots/e06_tipo_cambio.png" />
+<img alt="Captura 7: Precio manual para un producto" src="screenshots/e07_precio_manual.png" /></p>
+<hr />
+<h2 id="4-comisiones-de-metodos-de-pago">4. Comisiones de Métodos de Pago</h2>
+<h3 id="41-que-es-una-comision-de-pasarela-de-pago">4.1 Qué es una comisión de pasarela de pago</h3>
+<p>Cuando un cliente paga por internet (Mercado Pago, PayPal, tarjeta de crédito), la empresa que procesa el pago <strong>cobra una comisión</strong> por el servicio. Esta comisión se descuenta del monto que recibes en tu cuenta bancaria.</p>
+<p><strong>Punto clave:</strong> La comisión NO la paga el cliente. El cliente siempre paga el precio completo. Es la pasarela de pago la que retiene un porcentaje antes de depositarte el dinero.</p>
+<h3 id="42-ejemplo-con-mercado-pago-comision-349">4.2 Ejemplo con Mercado Pago (comisión 3.49%)</h3>
+<p>Supongamos que vendes un tour de <strong>$500.00 USD</strong>:</p>
+<pre><code>┌─────────────────────────────────────────────────┐
+│  LO QUE PAGA EL CLIENTE                        │
+│  ─────────────────────                          │
+│  Precio del tour:              $500.00          │
+│  El cliente paga:              $500.00          │
+│                                                 │
+│  LO QUE RECIBES EN TU CUENTA BANCARIA          │
+│  ────────────────────────────────                │
+│  Monto pagado:                 $500.00          │
+│  Comisión Mercado Pago (3.49%): -$17.45         │
+│  ─────────────────────────────                  │
+│  Deposito en tu cuenta:        $482.55          │
+│                                                 │
+│  EN ODOO                                        │
+│  ───────                                        │
+│  Factura al cliente:           $500.00          │
+│  Pago registrado:              $500.00          │
+│  Depósito real en banco:       $482.55          │
+│  Diferencia (comisión):         $17.45          │
+│                                                 │
+│  → La diferencia de $17.45 aparece como         │
+│    &quot;gasto bancario&quot; o &quot;comisión financiera&quot;     │
+│    al CONCILIAR el extracto bancario            │
+└─────────────────────────────────────────────────┘
+</code></pre>
+<h3 id="43-ejemplo-con-paypal-comision-44-030">4.3 Ejemplo con PayPal (comisión 4.4% + $0.30)</h3>
+<p>Supongamos el mismo tour de <strong>$500.00 USD</strong>:</p>
+<pre><code>┌─────────────────────────────────────────────────┐
+│  LO QUE PAGA EL CLIENTE                        │
+│  ─────────────────────                          │
+│  Precio del tour:              $500.00          │
+│  El cliente paga:              $500.00          │
+│                                                 │
+│  LO QUE RECIBES EN TU CUENTA BANCARIA          │
+│  ────────────────────────────────                │
+│  Monto pagado:                 $500.00          │
+│  Comisión PayPal (4.4%):        -$22.00         │
+│  Tarifa fija PayPal:             -$0.30         │
+│  ─────────────────────────────                  │
+│  Deposito en tu cuenta:        $477.70          │
+│                                                 │
+│  EN ODOO                                        │
+│  ───────                                        │
+│  Factura al cliente:           $500.00          │
+│  Pago registrado:              $500.00          │
+│  Depósito real en banco:       $477.70          │
+│  Diferencia (comisión):         $22.30          │
+│                                                 │
+│  → La diferencia de $22.30 aparece como         │
+│    &quot;gasto bancario&quot; al conciliar                │
+└─────────────────────────────────────────────────┘
+</code></pre>
+<h3 id="44-tabla-comparativa-de-comisiones">4.4 Tabla comparativa de comisiones</h3>
+<table>
+<thead>
+<tr>
+<th>Método de pago</th>
+<th>Comisión</th>
+<th>Tour de $500</th>
+<th>Tour de $1,000</th>
+<th>Tour de $200</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Mercado Pago</strong></td>
+<td>3.49%</td>
+<td>$17.45</td>
+<td>$34.90</td>
+<td>$6.98</td>
+</tr>
+<tr>
+<td><strong>PayPal</strong></td>
+<td>4.4% + $0.30</td>
+<td>$22.30</td>
+<td>$44.30</td>
+<td>$9.10</td>
+</tr>
+<tr>
+<td><strong>Transferencia bancaria</strong></td>
+<td>~$0</td>
+<td>$0</td>
+<td>$0</td>
+<td>$0</td>
+</tr>
+<tr>
+<td><strong>Efectivo</strong></td>
+<td>$0</td>
+<td>$0</td>
+<td>$0</td>
+<td>$0</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Tip:</strong> Las transferencias bancarias y pagos en efectivo no tienen comisión. Para ventas grandes, puedes sugerir al cliente pagar por transferencia.</p>
+</blockquote>
+<h3 id="45-donde-se-registra-la-comision-en-odoo">4.5 Dónde se registra la comisión en Odoo</h3>
+<p>La comisión NO se registra manualmente. Aparece automáticamente durante la <strong>conciliación bancaria</strong>:</p>
+<ol>
+<li>Ir a <strong>Contabilidad &gt; Banco &gt; Conciliación</strong></li>
+<li>Cuando importas o sincronizas el extracto bancario:</li>
+<li>Odoo muestra el pago registrado ($500.00)</li>
+<li>El extracto bancario muestra el depósito real ($482.55)</li>
+<li>La diferencia ($17.45) se propone como <strong>"Gasto bancario"</strong> o <strong>"Comisión financiera"</strong></li>
+<li>Aceptar la conciliación → la comisión queda registrada como gasto</li>
+</ol>
+<h3 id="46-importante-sobre-las-comisiones">4.6 Importante sobre las comisiones</h3>
+<ul>
+<li><strong>NO modificar el precio de la factura</strong> por la comisión. La factura siempre es por el monto total ($500)</li>
+<li><strong>NO registrar el pago por el monto neto</strong> ($482.55). El pago siempre se registra por $500</li>
+<li>La comisión se maneja <strong>exclusivamente en la conciliación bancaria</strong></li>
+<li>Las comisiones son un <strong>gasto deducible</strong> del negocio</li>
+</ul>
+<p><img alt="Captura 8: Conciliación bancaria mostrando comisión" src="screenshots/e08_conciliacion_comision.png" /></p>
+<hr />
+<h2 id="5-livechat-con-ia">5. Livechat con IA</h2>
+<h3 id="51-que-es-el-livechat-con-ia">5.1 Qué es el Livechat con IA</h3>
+<p>Es un chatbot inteligente que aparece en la esquina inferior derecha del sitio web. Utiliza inteligencia artificial para:</p>
+<ul>
+<li>Responder preguntas sobre los tours disponibles</li>
+<li>Recomendar tours según las preferencias del visitante</li>
+<li>Crear automáticamente leads en el CRM cuando el visitante quiere cotizar</li>
+</ul>
+<h3 id="52-como-funciona-para-el-visitante">5.2 Cómo funciona para el visitante</h3>
+<ol>
+<li>El visitante entra al sitio web</li>
+<li>Después de 15 segundos, aparece una burbuja de chat: <strong>"Chatea con nosotros"</strong></li>
+<li>El visitante escribe su consulta</li>
+<li>El chatbot responde con información de los tours, precios y detalles</li>
+<li>Si el visitante quiere cotizar, el chatbot le pide nombre, email y teléfono</li>
+<li>Se crea automáticamente un lead en el CRM</li>
+</ol>
+<h3 id="53-configurar-el-livechat">5.3 Configurar el Livechat</h3>
+<ol>
+<li>Ir a <strong>Sitio Web &gt; Livechat &gt; Canales</strong></li>
+<li>Abrir el canal <strong>"A y F Destiny - Asistente de Tours"</strong></li>
+</ol>
+<p>Desde aquí puedes:</p>
+<table>
+<thead>
+<tr>
+<th>Configuración</th>
+<th>Dónde</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Nombre del canal</td>
+<td>Pestaña principal</td>
+<td>Nombre interno del chat</td>
+</tr>
+<tr>
+<td>Texto del botón</td>
+<td>Sección "Apariencia"</td>
+<td>Texto que ve el visitante (ej: "Chatea con nosotros")</td>
+</tr>
+<tr>
+<td>Color del botón</td>
+<td>Sección "Apariencia"</td>
+<td>Color de la burbuja de chat</td>
+</tr>
+<tr>
+<td>Mensaje de bienvenida</td>
+<td>Sección "Apariencia"</td>
+<td>Primer mensaje que ve el visitante</td>
+</tr>
+<tr>
+<td>Tiempo de aparición</td>
+<td>Regla del canal</td>
+<td>Segundos antes de que aparezca el chat (default: 15)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="54-ver-las-conversaciones">5.4 Ver las conversaciones</h3>
+<p>Para ver las conversaciones que ha tenido el chatbot con los visitantes:</p>
+<ol>
+<li>Ir a <strong>Conversaciones</strong> (menú principal)</li>
+<li>Buscar los canales de livechat</li>
+<li>Cada conversación muestra:</li>
+<li>Mensajes del visitante y respuestas del chatbot</li>
+<li>Si se creó un lead (aparece como nota interna)</li>
+</ol>
+<p><img alt="Captura 9: Canal de Livechat" src="screenshots/e09_canal_livechat.png" />
+<img alt="Captura 10: Conversación de Livechat con IA" src="screenshots/e10_conversacion_livechat.png" /></p>
+<hr />
+<h2 id="6-whatsapp-plantillas-de-auto-respuesta">6. WhatsApp: Plantillas de Auto-respuesta</h2>
+<h3 id="61-como-funciona">6.1 Cómo funciona</h3>
+<p>Cuando un cliente envía un mensaje por WhatsApp al número de la agencia (+51 987 318 885), el sistema responde automáticamente con un menú de opciones:</p>
+<pre><code>¡Hola! Bienvenido a A y F Destiny. ¿En qué podemos ayudarte?
+
+Escribe el número de la opción que desees:
+1 - Información sobre nuestros tours
+2 - Solicitar una cotización
+3 - Estado de mi reserva
+4 - Hablar con un asesor
+5 - Recomendar un tour según mis preferencias
+</code></pre>
+<p>El cliente responde con un número y recibe la respuesta correspondiente.</p>
+<h3 id="62-ver-las-plantillas-de-auto-respuesta">6.2 Ver las plantillas de auto-respuesta</h3>
+<ol>
+<li>Ir a <strong>Marketing &gt; WhatsApp &gt; Plantillas</strong></li>
+<li>En la barra de búsqueda, escribir <strong>"Auto:"</strong> para filtrar solo las plantillas de auto-respuesta</li>
+<li>Las plantillas disponibles son:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Plantilla</th>
+<th>Keyword</th>
+<th>Qué hace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Auto: Bienvenida</td>
+<td>(primer mensaje)</td>
+<td>Saludo inicial con menú de opciones</td>
+</tr>
+<tr>
+<td>Auto: Info Tours</td>
+<td>1</td>
+<td>Información general sobre los tours</td>
+</tr>
+<tr>
+<td>Auto: Cotización</td>
+<td>2</td>
+<td>Instrucciones para solicitar cotización</td>
+</tr>
+<tr>
+<td>Auto: Estado Reserva</td>
+<td>3</td>
+<td>Cómo consultar estado de reserva</td>
+</tr>
+<tr>
+<td>Auto: Hablar con Asesor</td>
+<td>4</td>
+<td>Mensaje que un asesor se comunicará pronto</td>
+</tr>
+<tr>
+<td>Auto: Recomendar Tour</td>
+<td>5</td>
+<td>Inicia el flujo de recomendación inteligente</td>
+</tr>
+</tbody>
+</table>
+<h3 id="63-editar-una-plantilla">6.3 Editar una plantilla</h3>
+<ol>
+<li>Abrir la plantilla desde la lista</li>
+<li>Editar el campo <strong>"Cuerpo"</strong> (texto en español)</li>
+<li>Si existe el campo <strong>"Cuerpo en inglés"</strong>, editar también la versión en inglés</li>
+<li><strong>Guardar</strong></li>
+</ol>
+<blockquote>
+<p><strong>Nota:</strong> El sistema detecta automáticamente el idioma del cliente según su número de teléfono (prefijo del país) y envía la versión correspondiente.</p>
+</blockquote>
+<h3 id="64-agregar-o-cambiar-keywords">6.4 Agregar o cambiar keywords</h3>
+<p>Para cambiar qué número activa cada respuesta:</p>
+<ol>
+<li>Abrir la plantilla</li>
+<li>En el campo <strong>"Keywords"</strong>, escribir el nuevo número o palabra</li>
+<li>Se pueden poner múltiples keywords separadas por comas (ej: "1, tours, info")</li>
+<li><strong>Guardar</strong></li>
+</ol>
+<h3 id="65-flujo-de-recomendacion-inteligente-keyword-5">6.5 Flujo de recomendación inteligente (keyword "5")</h3>
+<p>Cuando el cliente escribe "5":</p>
+<ol>
+<li>El sistema le pide que describa sus preferencias (duración, intereses, presupuesto)</li>
+<li>El cliente responde con texto libre</li>
+<li>El sistema busca en el catálogo de tours publicados</li>
+<li>Recomienda los 3 tours más relevantes con nombre, precio y descripción</li>
+<li>Se publica una nota interna en la conversación con los detalles completos</li>
+</ol>
+<p><img alt="Captura 11: Plantillas WhatsApp (lista filtrada &quot;Auto:&quot;)" src="screenshots/e11_plantillas_whatsapp.png" />
+<img alt="Captura 12: Formulario de plantilla WhatsApp" src="screenshots/e12_plantilla_whatsapp_form.png" /></p>
+<hr />
+<h2 id="7-personalizacion-basica-del-sitio-web">7. Personalización Básica del Sitio Web</h2>
+<h3 id="71-acceder-al-editor-web">7.1 Acceder al editor web</h3>
+<ol>
+<li>Ir a <strong>Sitio Web</strong> (menú principal)</li>
+<li>Navegar a la página que quieres editar</li>
+<li>Hacer clic en <strong>"Editar"</strong> (botón en la esquina superior derecha)</li>
+<li>Se activa el modo de edición</li>
+</ol>
+<h3 id="72-editar-textos">7.2 Editar textos</h3>
+<ol>
+<li>En modo de edición, hacer clic directamente sobre cualquier texto</li>
+<li>Escribir o modificar el contenido</li>
+<li>Usar la barra de herramientas flotante para:</li>
+<li>Cambiar el estilo (título, subtítulo, párrafo)</li>
+<li>Aplicar negrita, cursiva, subrayado</li>
+<li>Crear listas</li>
+<li>Agregar enlaces</li>
+</ol>
+<h3 id="73-cambiar-imagenes">7.3 Cambiar imágenes</h3>
+<ol>
+<li>En modo de edición, hacer clic sobre la imagen que quieres cambiar</li>
+<li>Aparece un menú con opciones:</li>
+<li><strong>Reemplazar:</strong> Subir una nueva imagen o elegir del media library</li>
+<li><strong>Recortar:</strong> Ajustar el encuadre</li>
+<li><strong>Eliminar:</strong> Quitar la imagen</li>
+</ol>
+<h3 id="74-agregar-bloques-de-contenido-snippets">7.4 Agregar bloques de contenido (Snippets)</h3>
+<ol>
+<li>En modo de edición, buscar el panel de <strong>snippets</strong> (generalmente a la derecha o abajo)</li>
+<li>Arrastrar un bloque al lugar deseado en la página</li>
+<li>Los bloques disponibles incluyen:</li>
+<li>Texto con imagen</li>
+<li>Galería de fotos</li>
+<li>Testimonios</li>
+<li>Llamada a la acción (CTA)</li>
+<li>Mapa</li>
+<li>Formulario de contacto</li>
+</ol>
+<h3 id="75-guardar-los-cambios">7.5 Guardar los cambios</h3>
+<ol>
+<li>Después de editar, hacer clic en <strong>"Guardar"</strong> (botón verde, esquina superior derecha)</li>
+<li>Los cambios se publican inmediatamente en el sitio</li>
+</ol>
+<blockquote>
+<p><strong>Importante:</strong> Los cambios en el editor web son inmediatos y públicos. Asegúrate de revisar bien antes de guardar.</p>
+</blockquote>
+<p><img alt="Captura 13: Editor web frontend" src="screenshots/e13_editor_web.png" /></p>
+<hr />
+<h2 id="8-hoja-de-referencia-rapida">8. Hoja de Referencia Rápida</h2>
+<h3 id="gestion-de-productos-web">Gestión de productos web</h3>
+<table>
+<thead>
+<tr>
+<th>Acción</th>
+<th>Ruta de menú</th>
+<th>Qué hacer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Publicar/despublicar producto</td>
+<td>Ventas &gt; Productos &gt; [producto]</td>
+<td>Toggle "Publicado"</td>
+</tr>
+<tr>
+<td>Editar descripción web</td>
+<td>Ventas &gt; Productos &gt; [producto]</td>
+<td>Editar "Descripción e-commerce"</td>
+</tr>
+<tr>
+<td>Cambiar precio base (PEN)</td>
+<td>Ventas &gt; Productos &gt; [producto]</td>
+<td>Editar "Precio de venta"</td>
+</tr>
+<tr>
+<td>Poner precio fijo USD</td>
+<td>Ventas &gt; Configuración &gt; Listas de precios &gt; USD</td>
+<td>Agregar regla con precio fijo</td>
+</tr>
+<tr>
+<td>Productos sugeridos</td>
+<td>Ventas &gt; Productos &gt; [producto] &gt; tab Ventas</td>
+<td>Editar "Productos opcionales"</td>
+</tr>
+<tr>
+<td>Cambiar fotos</td>
+<td>Ventas &gt; Productos &gt; [producto]</td>
+<td>Sección de imágenes</td>
+</tr>
+</tbody>
+</table>
+<h3 id="precios-y-monedas">Precios y monedas</h3>
+<table>
+<thead>
+<tr>
+<th>Acción</th>
+<th>Ruta de menú</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ver listas de precios</td>
+<td>Ventas &gt; Configuración &gt; Listas de precios</td>
+</tr>
+<tr>
+<td>Actualizar tipo de cambio</td>
+<td>Contabilidad &gt; Configuración &gt; Monedas &gt; USD</td>
+</tr>
+<tr>
+<td>Agregar precio manual USD</td>
+<td>Listas de precios &gt; USD &gt; Agregar regla</td>
+</tr>
+</tbody>
+</table>
+<h3 id="comisiones-resumen">Comisiones - Resumen</h3>
+<table>
+<thead>
+<tr>
+<th>Pasarela</th>
+<th>Comisión</th>
+<th>Tour $500</th>
+<th>Recibes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mercado Pago</td>
+<td>3.49%</td>
+<td>$17.45</td>
+<td>$482.55</td>
+</tr>
+<tr>
+<td>PayPal</td>
+<td>4.4% + $0.30</td>
+<td>$22.30</td>
+<td>$477.70</td>
+</tr>
+<tr>
+<td>Transferencia</td>
+<td>~$0</td>
+<td>$0</td>
+<td>$500.00</td>
+</tr>
+<tr>
+<td>Efectivo</td>
+<td>$0</td>
+<td>$0</td>
+<td>$500.00</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Regla de oro:</strong> La factura siempre es por el monto total. La comisión se registra en la conciliación bancaria.</p>
+<h3 id="comunicacion-con-clientes">Comunicación con clientes</h3>
+<table>
+<thead>
+<tr>
+<th>Canal</th>
+<th>Configuración</th>
+<th>Ver conversaciones</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Livechat (IA)</td>
+<td>Sitio Web &gt; Livechat &gt; Canales</td>
+<td>Conversaciones &gt; Canales livechat</td>
+</tr>
+<tr>
+<td>WhatsApp</td>
+<td>Marketing &gt; WhatsApp &gt; Plantillas</td>
+<td>Conversaciones &gt; WhatsApp</td>
+</tr>
+</tbody>
+</table>
+<h3 id="whatsapp-keywords-de-auto-respuesta">WhatsApp - Keywords de auto-respuesta</h3>
+<table>
+<thead>
+<tr>
+<th>Keyword</th>
+<th>Respuesta</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>(primer mensaje)</td>
+<td>Bienvenida + menú</td>
+</tr>
+<tr>
+<td>1</td>
+<td>Info de tours</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Solicitar cotización</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Estado de reserva</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Contactar asesor</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Recomendación inteligente</td>
+</tr>
+</tbody>
+</table>
+<h3 id="editor-web">Editor web</h3>
+<table>
+<thead>
+<tr>
+<th>Acción</th>
+<th>Cómo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Abrir editor</td>
+<td>Sitio Web &gt; navegar a la página &gt; "Editar"</td>
+</tr>
+<tr>
+<td>Editar texto</td>
+<td>Clic sobre el texto &gt; escribir</td>
+</tr>
+<tr>
+<td>Cambiar imagen</td>
+<td>Clic sobre la imagen &gt; "Reemplazar"</td>
+</tr>
+<tr>
+<td>Agregar bloque</td>
+<td>Arrastrar snippet al lugar deseado</td>
+</tr>
+<tr>
+<td>Guardar</td>
+<td>Botón "Guardar" (verde, esquina superior)</td>
+</tr>
+</tbody>
+</table></body></html>

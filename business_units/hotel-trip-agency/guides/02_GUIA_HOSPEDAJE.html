@@ -1,0 +1,561 @@
+<!DOCTYPE html><html><head><meta charset='utf-8'>
+<style>
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; line-height: 1.6; color: #333; }
+  h1 { color: #1B5E20; border-bottom: 2px solid #1B5E20; padding-bottom: 8px; }
+  h2 { color: #2E7D32; margin-top: 2em; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+  h3 { color: #388E3C; }
+  table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+  th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+  th { background-color: #E8F5E9; font-weight: bold; }
+  tr:nth-child(even) { background-color: #f9f9f9; }
+  code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; }
+  pre { background: #f4f4f4; padding: 16px; border-radius: 6px; overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { border-left: 4px solid #4CAF50; margin: 1em 0; padding: 0.5em 1em; background: #f1f8e9; }
+  img { max-width: 100%; border: 1px solid #ddd; border-radius: 4px; margin: 1em 0; }
+  a { color: #1B5E20; }
+</style>
+</head><body><h1 id="guia-de-gestion-de-reservas-y-ventas-de-hospedaje">Guía de Gestión de Reservas y Ventas de Hospedaje</h1>
+<h2 id="tabla-de-contenidos">Tabla de Contenidos</h2>
+<ol>
+<li><a href="#1-introducción-flujo-de-reservas">Introducción: Flujo de Reservas</a></li>
+<li><a href="#2-productos-de-habitación">Productos de Habitación</a></li>
+<li><a href="#3-crear-una-reserva">Crear una Reserva</a></li>
+<li><a href="#4-confirmar-la-reserva">Confirmar la Reserva</a></li>
+<li><a href="#5-ver-ocupación-planificación">Ver Ocupación (Planificación)</a></li>
+<li><a href="#6-gestión-operativa-diaria">Gestión Operativa Diaria</a></li>
+<li><a href="#7-configurar-nuevas-habitaciones">Configurar Nuevas Habitaciones</a></li>
+<li><a href="#8-hoja-de-referencia-rápida">Hoja de Referencia Rápida</a></li>
+</ol>
+<hr />
+<h2 id="1-introduccion-flujo-de-reservas">1. Introducción: Flujo de Reservas</h2>
+<p>El sistema de hospedaje funciona con un flujo de <strong>alquiler</strong> (rental) integrado con planificación:</p>
+<pre><code>PASO 1: Se crea una COTIZACIÓN con la habitación y las fechas
+    ↓
+PASO 2: Se ajustan los detalles (noches, servicios adicionales)
+    ↓
+PASO 3: Se envía la cotización al huésped (opcional)
+    ↓
+PASO 4: Se CONFIRMA la reserva
+    ↓
+PASO 5: El sistema crea automáticamente SLOTS DE PLANIFICACIÓN
+         (calendario de ocupación de la habitación)
+    ↓
+PASO 6: El personal del hotel ve la ocupación en PLANIFICACIÓN
+    ↓
+PASO 7: Check-in → Estadía → Check-out
+</code></pre>
+<p><strong>Conceptos clave:</strong>
+- <strong>Producto de habitación:</strong> Cada habitación o tipo de habitación es un producto en el sistema
+- <strong>Slot de planificación:</strong> Un bloque en el calendario que muestra cuándo una habitación está ocupada
+- <strong>Fechas de alquiler:</strong> La fecha de check-in y check-out del huésped</p>
+<hr />
+<h2 id="2-productos-de-habitacion">2. Productos de Habitación</h2>
+<h3 id="21-ver-las-habitaciones-disponibles">2.1 Ver las habitaciones disponibles</h3>
+<ol>
+<li>Ir a <strong>Ventas &gt; Productos</strong></li>
+<li>Filtrar por categoría <strong>"Apart./Hotel"</strong> (usar la barra de búsqueda o filtros)</li>
+<li>Se muestra la lista de todas las habitaciones/apartamentos</li>
+</ol>
+<h3 id="22-informacion-de-cada-habitacion">2.2 Información de cada habitación</h3>
+<p>Cada producto de habitación tiene:</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Descripción</th>
+<th>Ejemplo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Nombre</strong></td>
+<td>Nombre de la habitación</td>
+<td>"Suite Deluxe 301"</td>
+</tr>
+<tr>
+<td><strong>Categoría</strong></td>
+<td>Siempre "Apart./Hotel"</td>
+<td>Apart./Hotel</td>
+</tr>
+<tr>
+<td><strong>Precio</strong></td>
+<td>Precio por noche</td>
+<td>S/ 650.00</td>
+</tr>
+<tr>
+<td><strong>Hora de check-in</strong></td>
+<td>Hora de recogida/ingreso</td>
+<td>12:00 (mediodía)</td>
+</tr>
+<tr>
+<td><strong>Hora de check-out</strong></td>
+<td>Hora de devolución/salida</td>
+<td>11:00</td>
+</tr>
+</tbody>
+</table>
+<h3 id="23-atributos-de-la-habitacion">2.3 Atributos de la habitación</h3>
+<p>Cada habitación puede tener especificaciones que se muestran en la ficha del producto y en el sitio web:</p>
+<table>
+<thead>
+<tr>
+<th>Atributo</th>
+<th>Valores posibles</th>
+<th>Ejemplo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Camas</td>
+<td>Individual, Doble, King, Queen</td>
+<td>1 King + 1 Individual</td>
+</tr>
+<tr>
+<td>Baños</td>
+<td>1, 2, 3</td>
+<td>2</td>
+</tr>
+<tr>
+<td>WiFi / Internet</td>
+<td>Sí, No</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td>TV Cable</td>
+<td>Sí, No</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td>Agua caliente</td>
+<td>Sí, No</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td>Estacionamiento</td>
+<td>Privado, Compartido, No</td>
+<td>Privado</td>
+</tr>
+<tr>
+<td>Servicio a la habitación</td>
+<td>Sí, No</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td>Lavandería</td>
+<td>Sí, No</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td>Área</td>
+<td>m²</td>
+<td>45 m²</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Nota:</strong> Estos atributos son informativos (no crean variantes de producto). Se muestran en la página web de la habitación para que el cliente conozca las comodidades.</p>
+</blockquote>
+<p><img alt="Captura 1: Lista de productos de habitación" src="screenshots/h01_productos_habitacion.png" />
+<img alt="Captura 2: Formulario de producto habitación con atributos" src="screenshots/h02_producto_atributos.png" /></p>
+<hr />
+<h2 id="3-crear-una-reserva">3. Crear una Reserva</h2>
+<h3 id="31-nueva-cotizacion-de-hospedaje">3.1 Nueva cotización de hospedaje</h3>
+<ol>
+<li>Ir a <strong>Ventas &gt; Pedidos &gt; Cotizaciones</strong></li>
+<li>Hacer clic en <strong>"Nuevo"</strong></li>
+<li>Seleccionar o crear el <strong>Cliente</strong> (el huésped)</li>
+</ol>
+<h3 id="32-agregar-la-habitacion">3.2 Agregar la habitación</h3>
+<ol>
+<li>En la pestaña <strong>"Líneas de pedido"</strong>, hacer clic en <strong>"Agregar un producto"</strong></li>
+<li>Buscar el nombre de la habitación (ej: "Suite Deluxe 301")</li>
+<li>Seleccionarla de la lista</li>
+</ol>
+<h3 id="33-configurar-las-fechas">3.3 Configurar las fechas</h3>
+<p>Al agregar un producto de alquiler (habitación), aparecen campos adicionales:</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Descripción</th>
+<th>Ejemplo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Fecha de alquiler (inicio)</strong></td>
+<td>Fecha de check-in</td>
+<td>15/03/2026</td>
+</tr>
+<tr>
+<td><strong>Fecha de devolución</strong></td>
+<td>Fecha de check-out</td>
+<td>18/03/2026</td>
+</tr>
+<tr>
+<td><strong>Duración</strong></td>
+<td>Se calcula automáticamente</td>
+<td>3 noches</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>Seleccionar la <strong>fecha de inicio</strong> (check-in)</li>
+<li>Seleccionar la <strong>fecha de devolución</strong> (check-out)</li>
+<li>El sistema calcula automáticamente:</li>
+<li>El número de <strong>noches</strong></li>
+<li>El <strong>precio total</strong> (precio por noche × noches)</li>
+</ol>
+<h3 id="34-agregar-servicios-adicionales-opcional">3.4 Agregar servicios adicionales (opcional)</h3>
+<p>Puedes agregar servicios extras como líneas adicionales:
+- Desayuno adicional
+- Transfer aeropuerto
+- Late check-out
+- Servicio de lavandería</p>
+<p><img alt="Captura 3: Nueva cotización con habitación y fechas" src="screenshots/h03_cotizacion_habitacion.png" />
+<img alt="Captura 4: Campos de fecha de alquiler en línea de pedido" src="screenshots/h04_fechas_alquiler.png" /></p>
+<blockquote>
+<p><strong>Tip:</strong> Para reservas de múltiples habitaciones, simplemente agrega más líneas de producto con sus respectivas fechas.</p>
+</blockquote>
+<hr />
+<h2 id="4-confirmar-la-reserva">4. Confirmar la Reserva</h2>
+<h3 id="41-como-confirmar">4.1 Cómo confirmar</h3>
+<ol>
+<li>Revisar que todos los datos estén correctos (habitación, fechas, precio)</li>
+<li>Hacer clic en el botón <strong>"Confirmar"</strong></li>
+</ol>
+<h3 id="42-que-sucede-al-confirmar">4.2 Qué sucede al confirmar</h3>
+<p>Al confirmar la reserva, el sistema automáticamente:</p>
+<ol>
+<li><strong>Crea slots de planificación</strong> — Bloques en el calendario que marcan la habitación como ocupada</li>
+<li><strong>Ajusta los horarios</strong> — Las horas de check-in y check-out se configuran según el producto:</li>
+<li>Check-in: 12:00 PM (mediodía) por defecto</li>
+<li>Check-out: 11:00 AM por defecto</li>
+<li><strong>Sincroniza las fechas</strong> — Las fechas del pedido y la planificación quedan alineadas</li>
+</ol>
+<h3 id="43-verificar-la-confirmacion">4.3 Verificar la confirmación</h3>
+<p>Después de confirmar:
+- El estado cambia a <strong>"Pedido de venta"</strong>
+- Aparece un botón inteligente <strong>"Planificación"</strong> en la barra superior
+- Hacer clic en "Planificación" para ver los slots creados</p>
+<p><img alt="Captura 5: Pedido confirmado con smart button planificación" src="screenshots/h05_pedido_confirmado.png" /></p>
+<hr />
+<h2 id="5-ver-ocupacion-planificacion">5. Ver Ocupación (Planificación)</h2>
+<h3 id="51-acceder-a-la-vista-de-planificacion">5.1 Acceder a la vista de planificación</h3>
+<ol>
+<li>Ir a <strong>Planificación</strong> (menú principal)</li>
+<li>Seleccionar la vista <strong>"Por Recurso"</strong></li>
+<li>Se muestra un <strong>diagrama de Gantt</strong> con todas las habitaciones y sus ocupaciones</li>
+</ol>
+<h3 id="52-interpretar-la-vista">5.2 Interpretar la vista</h3>
+<ul>
+<li><strong>Eje vertical (izquierda):</strong> Lista de habitaciones/recursos</li>
+<li><strong>Eje horizontal (arriba):</strong> Línea de tiempo (días, semanas, meses)</li>
+<li><strong>Bloques de color:</strong> Cada bloque es una reserva confirmada</li>
+<li>El bloque muestra: nombre del huésped, fechas</li>
+<li>Hacer clic en un bloque para ver detalles</li>
+</ul>
+<h3 id="53-filtrar-y-navegar">5.3 Filtrar y navegar</h3>
+<table>
+<thead>
+<tr>
+<th>Acción</th>
+<th>Cómo hacerlo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cambiar período</td>
+<td>Usar los botones "Día", "Semana", "Mes" en la barra superior</td>
+</tr>
+<tr>
+<td>Avanzar/retroceder</td>
+<td>Flechas ← → junto a la fecha</td>
+</tr>
+<tr>
+<td>Ir a hoy</td>
+<td>Botón "Hoy"</td>
+</tr>
+<tr>
+<td>Filtrar habitación</td>
+<td>Usar la barra de búsqueda o filtros</td>
+</tr>
+<tr>
+<td>Ver detalle de reserva</td>
+<td>Hacer clic en el bloque de color</td>
+</tr>
+</tbody>
+</table>
+<h3 id="54-detalle-de-un-slot-de-planificacion">5.4 Detalle de un slot de planificación</h3>
+<p>Al hacer clic en un bloque, se abre un popup con:
+- Habitación asignada
+- Fecha y hora de inicio (check-in)
+- Fecha y hora de fin (check-out)
+- Horas asignadas
+- Pedido de venta vinculado</p>
+<p><img alt="Captura 6: Vista Gantt de planificación" src="screenshots/h06_gantt_planificacion.png" />
+<img alt="Captura 7: Detalle de slot de planificación" src="screenshots/h07_detalle_slot.png" /></p>
+<blockquote>
+<p><strong>Tip:</strong> La vista de planificación es la forma más rápida de ver qué habitaciones están disponibles para una fecha específica. Busca los espacios vacíos en el diagrama.</p>
+</blockquote>
+<hr />
+<h2 id="6-gestion-operativa-diaria">6. Gestión Operativa Diaria</h2>
+<h3 id="61-check-ins-del-dia">6.1 Check-ins del día</h3>
+<p>Para ver qué huéspedes llegan hoy:</p>
+<ol>
+<li>Ir a <strong>Planificación &gt; Por Recurso</strong></li>
+<li>Seleccionar vista <strong>"Día"</strong> y navegar a la fecha de hoy</li>
+<li>Los bloques que <strong>empiezan hoy</strong> son los check-ins del día</li>
+<li>Verificar:</li>
+<li>Habitación lista y limpia</li>
+<li>Documentos del huésped verificados</li>
+<li>Servicios especiales preparados (si aplica)</li>
+</ol>
+<h3 id="62-check-outs-del-dia">6.2 Check-outs del día</h3>
+<p>Para ver qué huéspedes se van hoy:</p>
+<ol>
+<li>En la misma vista de planificación</li>
+<li>Los bloques que <strong>terminan hoy</strong> son los check-outs del día</li>
+<li>Coordinar:</li>
+<li>Hora de salida</li>
+<li>Inspección de habitación</li>
+<li>Cobros pendientes</li>
+<li>Programar limpieza</li>
+</ol>
+<h3 id="63-coordinacion-de-limpieza">6.3 Coordinación de limpieza</h3>
+<p>Después de cada check-out:</p>
+<ol>
+<li>Verificar en la planificación si hay un nuevo check-in para la misma habitación</li>
+<li>Si hay check-in el mismo día: priorizar la limpieza de esa habitación</li>
+<li>Si no hay check-in inmediato: programar limpieza en horario normal</li>
+</ol>
+<blockquote>
+<p><strong>Nota:</strong> El sistema muestra las horas de check-in (12:00) y check-out (11:00), lo que da 1 hora de margen para preparar la habitación entre huéspedes.</p>
+</blockquote>
+<hr />
+<h2 id="7-configurar-nuevas-habitaciones">7. Configurar Nuevas Habitaciones</h2>
+<h3 id="71-crear-un-nuevo-producto-de-habitacion">7.1 Crear un nuevo producto de habitación</h3>
+<ol>
+<li>Ir a <strong>Ventas &gt; Productos</strong></li>
+<li>Hacer clic en <strong>"Nuevo"</strong></li>
+<li>Llenar los campos básicos:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+<th>Notas</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Nombre</strong></td>
+<td>Nombre de la habitación</td>
+<td>Ej: "Habitación Estándar 102"</td>
+</tr>
+<tr>
+<td><strong>Tipo</strong></td>
+<td>Servicio</td>
+<td>Siempre "Servicio" para habitaciones</td>
+</tr>
+<tr>
+<td><strong>Categoría</strong></td>
+<td>Apart./Hotel</td>
+<td>Seleccionar de la lista</td>
+</tr>
+<tr>
+<td><strong>Precio de venta</strong></td>
+<td>Precio por noche</td>
+<td>Ej: S/ 350.00</td>
+</tr>
+<tr>
+<td><strong>Es una oferta de habitación</strong></td>
+<td>✓ Marcar</td>
+<td>Activa la integración con planificación</td>
+</tr>
+</tbody>
+</table>
+<h3 id="72-configurar-horarios-de-alquiler">7.2 Configurar horarios de alquiler</h3>
+<p>En la sección de alquiler del producto:</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor recomendado</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Hora de recogida</strong></td>
+<td>12.0</td>
+<td>Check-in a las 12:00 PM</td>
+</tr>
+<tr>
+<td><strong>Hora de devolución</strong></td>
+<td>11.0</td>
+<td>Check-out a las 11:00 AM</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Nota:</strong> Los horarios se expresan en formato decimal. 12.0 = 12:00 PM, 11.5 = 11:30 AM, 14.0 = 2:00 PM.</p>
+</blockquote>
+<h3 id="73-agregar-atributos-especificaciones">7.3 Agregar atributos (especificaciones)</h3>
+<ol>
+<li>Ir a la pestaña <strong>"Atributos y Variantes"</strong></li>
+<li>Hacer clic en <strong>"Agregar línea"</strong></li>
+<li>Seleccionar un atributo existente (ej: "Camas", "Baños", "WiFi")</li>
+<li>Seleccionar el valor correspondiente</li>
+<li>Repetir para cada atributo que aplique</li>
+</ol>
+<h3 id="74-publicar-en-la-web-opcional">7.4 Publicar en la web (opcional)</h3>
+<ol>
+<li>En la parte superior del formulario, activar el toggle <strong>"Publicado"</strong></li>
+<li>O ir a la pestaña <strong>"Ventas"</strong> y marcar <strong>"Publicado en el sitio web"</strong></li>
+<li>Agregar fotos en la pestaña correspondiente</li>
+</ol>
+<p><img alt="Captura 8: Formulario crear nuevo producto habitación" src="screenshots/h08_nuevo_producto_habitacion.png" /></p>
+<hr />
+<h2 id="8-hoja-de-referencia-rapida">8. Hoja de Referencia Rápida</h2>
+<h3 id="acciones-principales">Acciones principales</h3>
+<table>
+<thead>
+<tr>
+<th>Acción</th>
+<th>Ruta de menú</th>
+<th>Campos clave</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ver habitaciones</td>
+<td>Ventas &gt; Productos (filtro Apart./Hotel)</td>
+<td>Nombre, Precio, Atributos</td>
+</tr>
+<tr>
+<td>Crear reserva</td>
+<td>Ventas &gt; Cotizaciones &gt; Nuevo</td>
+<td>Cliente, Habitación, Fechas alquiler</td>
+</tr>
+<tr>
+<td>Confirmar reserva</td>
+<td>Cotización &gt; botón "Confirmar"</td>
+<td>— (crea slots automáticamente)</td>
+</tr>
+<tr>
+<td>Ver ocupación</td>
+<td>Planificación &gt; Por Recurso</td>
+<td>Vista Gantt de habitaciones</td>
+</tr>
+<tr>
+<td>Ver check-ins del día</td>
+<td>Planificación &gt; vista "Día" &gt; fecha hoy</td>
+<td>Bloques que empiezan hoy</td>
+</tr>
+<tr>
+<td>Ver check-outs del día</td>
+<td>Planificación &gt; vista "Día" &gt; fecha hoy</td>
+<td>Bloques que terminan hoy</td>
+</tr>
+<tr>
+<td>Crear habitación nueva</td>
+<td>Ventas &gt; Productos &gt; Nuevo</td>
+<td>Nombre, Categoría, Precio, Horarios</td>
+</tr>
+</tbody>
+</table>
+<h3 id="horarios-estandar">Horarios estándar</h3>
+<table>
+<thead>
+<tr>
+<th>Concepto</th>
+<th>Hora</th>
+<th>Formato decimal</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Check-in</td>
+<td>12:00 PM</td>
+<td>12.0</td>
+</tr>
+<tr>
+<td>Check-out</td>
+<td>11:00 AM</td>
+<td>11.0</td>
+</tr>
+<tr>
+<td>Margen limpieza</td>
+<td>1 hora</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h3 id="estados-de-la-reserva">Estados de la reserva</h3>
+<pre><code>Borrador → Cotización enviada → Pedido de venta (confirmado) → Bloqueado / Cancelado
+</code></pre>
+<h3 id="vista-de-planificacion">Vista de planificación</h3>
+<table>
+<thead>
+<tr>
+<th>Elemento</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bloque de color</td>
+<td>Habitación ocupada (reserva confirmada)</td>
+</tr>
+<tr>
+<td>Espacio vacío</td>
+<td>Habitación disponible</td>
+</tr>
+<tr>
+<td>Inicio del bloque</td>
+<td>Fecha y hora de check-in</td>
+</tr>
+<tr>
+<td>Fin del bloque</td>
+<td>Fecha y hora de check-out</td>
+</tr>
+</tbody>
+</table>
+<h3 id="formato-de-horarios-decimales">Formato de horarios decimales</h3>
+<table>
+<thead>
+<tr>
+<th>Decimal</th>
+<th>Hora</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>8.0</td>
+<td>8:00 AM</td>
+</tr>
+<tr>
+<td>8.5</td>
+<td>8:30 AM</td>
+</tr>
+<tr>
+<td>11.0</td>
+<td>11:00 AM</td>
+</tr>
+<tr>
+<td>12.0</td>
+<td>12:00 PM</td>
+</tr>
+<tr>
+<td>14.0</td>
+<td>2:00 PM</td>
+</tr>
+<tr>
+<td>18.0</td>
+<td>6:00 PM</td>
+</tr>
+</tbody>
+</table></body></html>

@@ -1,0 +1,965 @@
+<!DOCTYPE html><html><head><meta charset='utf-8'>
+<style>
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; line-height: 1.6; color: #333; }
+  h1 { color: #1B5E20; border-bottom: 2px solid #1B5E20; padding-bottom: 8px; }
+  h2 { color: #2E7D32; margin-top: 2em; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+  h3 { color: #388E3C; }
+  table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+  th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+  th { background-color: #E8F5E9; font-weight: bold; }
+  tr:nth-child(even) { background-color: #f9f9f9; }
+  code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; }
+  pre { background: #f4f4f4; padding: 16px; border-radius: 6px; overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { border-left: 4px solid #4CAF50; margin: 1em 0; padding: 0.5em 1em; background: #f1f8e9; }
+  img { max-width: 100%; border: 1px solid #ddd; border-radius: 4px; margin: 1em 0; }
+  a { color: #1B5E20; }
+</style>
+</head><body><h1 id="guia-de-venta-de-paquetes-turisticos-con-biblia-operativa">Guía de Venta de Paquetes Turísticos con Biblia Operativa</h1>
+<h2 id="tabla-de-contenidos">Tabla de Contenidos</h2>
+<ol>
+<li><a href="#1-introducción-flujo-general">Introducción: Flujo General</a></li>
+<li><a href="#2-crear-una-cotización-de-tour">Crear una Cotización de Tour</a></li>
+<li><a href="#3-biblia-operativa-itinerario">Biblia Operativa: Itinerario</a></li>
+<li><a href="#4-biblia-operativa-operadores">Biblia Operativa: Operadores</a></li>
+<li><a href="#5-biblia-operativa-inclusiones-y-observaciones">Biblia Operativa: Inclusiones y Observaciones</a></li>
+<li><a href="#6-gestión-de-pasajeros">Gestión de Pasajeros</a></li>
+<li><a href="#7-costos-y-margen">Costos y Margen</a></li>
+<li><a href="#8-enviar-cotización-al-cliente">Enviar Cotización al Cliente</a></li>
+<li><a href="#9-confirmar-el-pedido">Confirmar el Pedido</a></li>
+<li><a href="#10-crear-órdenes-de-compra-desde-operadores">Crear Órdenes de Compra desde Operadores</a></li>
+<li><a href="#11-gestión-de-flota-vehículos">Gestión de Flota (Vehículos)</a></li>
+<li><a href="#12-grupos-de-tour">Grupos de Tour</a></li>
+<li><a href="#13-registro-de-trabajo-en-tareas">Registro de Trabajo en Tareas</a></li>
+<li><a href="#14-reportes-pdf">Reportes PDF</a></li>
+<li><a href="#15-plantillas-de-cotización">Plantillas de Cotización</a></li>
+<li><a href="#16-hoja-de-referencia-rápida">Hoja de Referencia Rápida</a></li>
+</ol>
+<hr />
+<h2 id="1-introduccion-flujo-general">1. Introducción: Flujo General</h2>
+<p>La venta de un paquete turístico en A y F Destiny sigue este flujo de trabajo:</p>
+<pre><code>PASO 1: Llega una consulta (web, WhatsApp, teléfono, email)
+    ↓
+PASO 2: Se crea una COTIZACIÓN usando una plantilla de tour
+    ↓
+PASO 3: Se llena la BIBLIA OPERATIVA (itinerario, operadores, inclusiones)
+    ↓
+PASO 4: Se registran los PASAJEROS con sus documentos
+    ↓
+PASO 5: Se ENVÍA la cotización al cliente por email
+    ↓
+PASO 6: El cliente APRUEBA → se CONFIRMA el pedido
+    ↓
+PASO 7: Se crean automáticamente el PROYECTO y las TAREAS
+    ↓
+PASO 8: Se generan las ÓRDENES DE COMPRA a los proveedores
+    ↓
+PASO 9: Se asignan VEHÍCULOS y GUÍAS en las tareas
+    ↓
+PASO 10: Se ejecuta el tour y se registra el TRABAJO realizado
+</code></pre>
+<p><strong>La Biblia Operativa</strong> es el documento central que consolida toda la información del tour en un solo lugar: el itinerario día por día, los operadores/proveedores asignados, qué servicios están incluidos, los horarios clave y las observaciones especiales. Es una pestaña dentro de cada cotización/pedido de venta.</p>
+<p><img alt="Captura 1: Lista de cotizaciones" src="screenshots/01_lista_cotizaciones.png" /></p>
+<hr />
+<h2 id="2-crear-una-cotizacion-de-tour">2. Crear una Cotización de Tour</h2>
+<h3 id="21-abrir-el-formulario-de-nueva-cotizacion">2.1 Abrir el formulario de nueva cotización</h3>
+<ol>
+<li>En el menú principal, ir a <strong>Ventas &gt; Pedidos &gt; Cotizaciones</strong></li>
+<li>Hacer clic en el botón <strong>"Nuevo"</strong> (esquina superior izquierda)</li>
+<li>Se abre un formulario en blanco</li>
+</ol>
+<h3 id="22-llenar-los-datos-del-cliente">2.2 Llenar los datos del cliente</h3>
+<ol>
+<li>En el campo <strong>"Cliente"</strong>, escribir el nombre del cliente</li>
+<li>Si el cliente ya existe, seleccionarlo de la lista desplegable</li>
+<li>Si es un cliente nuevo, hacer clic en <strong>"Nuevo y editar"</strong> para crear su ficha de contacto</li>
+</ol>
+<h3 id="23-seleccionar-la-plantilla-de-tour">2.3 Seleccionar la plantilla de tour</h3>
+<ol>
+<li>En el campo <strong>"Plantilla de cotización"</strong>, buscar el nombre del tour</li>
+<li>Ejemplo: "City Tour Cusco", "Valle Sagrado Completo", "Machu Picchu 2D/1N"</li>
+<li>Al seleccionar la plantilla:</li>
+<li>Las <strong>líneas de pedido</strong> se llenan automáticamente con los productos del tour</li>
+<li>La <strong>Biblia Operativa</strong> se pre-carga con el itinerario, operadores e inclusiones por defecto</li>
+</ol>
+<blockquote>
+<p><strong>Nota importante:</strong> Después de seleccionar la plantilla, la Biblia Operativa se llena en el servidor. Si no ves los datos inmediatamente, presiona <strong>F5</strong> para recargar la página.</p>
+</blockquote>
+<p><img alt="Captura 2: Formulario nueva cotización con plantilla seleccionada" src="screenshots/02_nueva_cotizacion_plantilla.png" /></p>
+<h3 id="24-llenar-los-campos-del-tour">2.4 Llenar los campos del tour</h3>
+<p>En la sección superior del formulario, completar los siguientes campos:</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Descripción</th>
+<th>Ejemplo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Es un tour</strong></td>
+<td>Marcar esta casilla para activar los campos de tour</td>
+<td>✓</td>
+</tr>
+<tr>
+<td><strong>Fecha de inicio</strong></td>
+<td>Primer día del tour</td>
+<td>15/03/2026</td>
+</tr>
+<tr>
+<td><strong>Fecha de fin</strong></td>
+<td>Último día del tour</td>
+<td>18/03/2026</td>
+</tr>
+<tr>
+<td><strong>Nro. de pasajeros</strong></td>
+<td>Cantidad total de viajeros</td>
+<td>4</td>
+</tr>
+<tr>
+<td><strong>Tipo de servicio</strong></td>
+<td>"Compartido" o "Privado"</td>
+<td>Privado</td>
+</tr>
+<tr>
+<td><strong>Ciudad de salida</strong></td>
+<td>Desde dónde parten los clientes</td>
+<td>Cusco</td>
+</tr>
+</tbody>
+</table>
+<p><img alt="Captura 3: Campos de tour (es_tour, fechas, pasajeros, servicio)" src="screenshots/03_campos_tour.png" /></p>
+<blockquote>
+<p><strong>Tip:</strong> Si el tour es "Compartido", los pasajeros pueden agruparse con otros pedidos en un Grupo de Tour (ver sección 12).</p>
+</blockquote>
+<hr />
+<h2 id="3-biblia-operativa-itinerario">3. Biblia Operativa: Itinerario</h2>
+<p>El itinerario es la tabla día por día que describe las actividades del tour.</p>
+<h3 id="31-acceder-al-itinerario">3.1 Acceder al itinerario</h3>
+<ol>
+<li>En el formulario de la cotización, hacer clic en la pestaña <strong>"Biblia Operativa"</strong></li>
+<li>La primera sección es la tabla de <strong>Itinerario</strong></li>
+</ol>
+<h3 id="32-editar-el-itinerario">3.2 Editar el itinerario</h3>
+<p>Si seleccionaste una plantilla, el itinerario ya viene pre-llenado. Puedes editarlo:</p>
+<ol>
+<li>Hacer clic en cualquier celda para modificarla</li>
+<li>Cada fila representa un día del tour con estos campos:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Descripción</th>
+<th>Ejemplo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Día</strong></td>
+<td>Número del día</td>
+<td>1</td>
+</tr>
+<tr>
+<td><strong>Título</strong></td>
+<td>Nombre de la actividad del día</td>
+<td>"Llegada a Cusco - City Tour"</td>
+</tr>
+<tr>
+<td><strong>Descripción</strong></td>
+<td>Detalle de actividades</td>
+<td>"Recojo del aeropuerto, aclimatación, visita a la Plaza de Armas..."</td>
+</tr>
+<tr>
+<td><strong>Alojamiento</strong></td>
+<td>Dónde duerme el pasajero</td>
+<td>"Hotel Sonesta Cusco"</td>
+</tr>
+<tr>
+<td><strong>Comidas</strong></td>
+<td>Qué comidas están incluidas</td>
+<td>"Desayuno, Almuerzo"</td>
+</tr>
+</tbody>
+</table>
+<h3 id="33-agregar-un-nuevo-dia">3.3 Agregar un nuevo día</h3>
+<ol>
+<li>Hacer clic en <strong>"Agregar línea"</strong> al final de la tabla</li>
+<li>Llenar los campos del nuevo día</li>
+<li>El número de día se asigna automáticamente</li>
+</ol>
+<h3 id="34-eliminar-un-dia">3.4 Eliminar un día</h3>
+<ol>
+<li>Seleccionar la fila haciendo clic en la casilla de la izquierda</li>
+<li>Hacer clic en el ícono de <strong>eliminar</strong> (papelera) o presionar la tecla <strong>Suprimir</strong></li>
+</ol>
+<p><img alt="Captura 4: Pestaña Biblia Operativa - Itinerario" src="screenshots/04_biblia_itinerario.png" /></p>
+<blockquote>
+<p><strong>Tip:</strong> El itinerario se traduce automáticamente al inglés para clientes extranjeros. Si necesitas ajustar la traducción, contacta al administrador del sistema.</p>
+</blockquote>
+<hr />
+<h2 id="4-biblia-operativa-operadores">4. Biblia Operativa: Operadores</h2>
+<p>Los operadores son los proveedores/prestadores de servicio que participan en el tour (transportistas, guías, hoteles, restaurantes, etc.).</p>
+<h3 id="41-acceder-a-la-tabla-de-operadores">4.1 Acceder a la tabla de operadores</h3>
+<ol>
+<li>En la pestaña <strong>"Biblia Operativa"</strong>, desplazarse hacia abajo después del itinerario</li>
+<li>La tabla de <strong>Operadores</strong> muestra todos los proveedores asignados</li>
+</ol>
+<h3 id="42-agregar-un-operador">4.2 Agregar un operador</h3>
+<ol>
+<li>Hacer clic en <strong>"Agregar línea"</strong></li>
+<li>Llenar los campos:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Descripción</th>
+<th>Ejemplo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Proveedor</strong></td>
+<td>Nombre del contacto/empresa proveedora</td>
+<td>"Transportes Cusco SAC"</td>
+</tr>
+<tr>
+<td><strong>Tipo de servicio</strong></td>
+<td>Categoría del servicio</td>
+<td>Transporte / Guía / Hotel / Restaurante / Tren / Coordinación / Otro</td>
+</tr>
+<tr>
+<td><strong>Producto</strong></td>
+<td>Servicio específico del catálogo (opcional)</td>
+<td>"Transfer Aeropuerto - Hotel"</td>
+</tr>
+<tr>
+<td><strong>Costo</strong></td>
+<td>Costo estimado del servicio</td>
+<td>150.00</td>
+</tr>
+<tr>
+<td><strong>Moneda</strong></td>
+<td>Moneda del costo</td>
+<td>USD / PEN / EUR</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>Los siguientes campos se llenan <strong>automáticamente</strong>:</li>
+<li><strong>Teléfono</strong> y <strong>Email</strong>: se cargan del contacto del proveedor</li>
+<li><strong>Costo en PEN</strong>: se convierte automáticamente usando el tipo de cambio del pedido</li>
+<li><strong>OC</strong> y <strong>Estado OC</strong>: se llenan cuando se generan las órdenes de compra (ver sección 10)</li>
+</ol>
+<h3 id="43-auto-llenado-del-costo-desde-producto">4.3 Auto-llenado del costo desde producto</h3>
+<p>Si seleccionas un <strong>Producto</strong> que tiene un costo estándar configurado, y el campo <strong>Costo</strong> está vacío, el sistema lo llena automáticamente con el precio de costo del producto.</p>
+<h3 id="44-editar-o-eliminar-un-operador">4.4 Editar o eliminar un operador</h3>
+<ul>
+<li><strong>Editar</strong>: hacer clic en cualquier celda de la fila</li>
+<li><strong>Eliminar</strong>: seleccionar la casilla de la izquierda y presionar Suprimir</li>
+</ul>
+<p><img alt="Captura 5: Pestaña Biblia Operativa - Operadores" src="screenshots/05_biblia_operadores.png" /></p>
+<blockquote>
+<p><strong>Importante:</strong> Una vez que se genera una Orden de Compra para un operador, el campo "OC" se llena automáticamente y ese operador no se volverá a incluir en futuras generaciones de OC.</p>
+</blockquote>
+<hr />
+<h2 id="5-biblia-operativa-inclusiones-y-observaciones">5. Biblia Operativa: Inclusiones y Observaciones</h2>
+<h3 id="51-inclusiones">5.1 Inclusiones</h3>
+<p>El campo <strong>"Inclusiones"</strong> es un editor de texto enriquecido (HTML) donde se detalla todo lo que incluye el paquete turístico:</p>
+<ul>
+<li>Transporte (tipo de vehículo, rutas)</li>
+<li>Alojamiento (hoteles, noches)</li>
+<li>Comidas (cuáles y dónde)</li>
+<li>Entradas a sitios turísticos</li>
+<li>Guía profesional</li>
+<li>Seguro de viaje</li>
+</ul>
+<p><strong>Cómo editar:</strong>
+1. Hacer clic en el campo "Inclusiones"
+2. Usar la barra de herramientas para dar formato (negrita, listas, etc.)
+3. El texto viene pre-llenado desde la plantilla, ajustar según el tour personalizado</p>
+<h3 id="52-tiempos-clave">5.2 Tiempos Clave</h3>
+<p>El campo <strong>"Tiempos Clave"</strong> es un texto libre para anotar los horarios críticos:</p>
+<p>Ejemplo:</p>
+<pre><code>- Pickup hotel: 05:30 AM
+- Tren a Machu Picchu: 07:15 AM (Expedition)
+- Retorno tren: 16:22 PM
+- Llegada Cusco: ~20:00 PM
+</code></pre>
+<h3 id="53-observaciones-especiales">5.3 Observaciones Especiales</h3>
+<p>El campo <strong>"Observaciones Especiales"</strong> sirve para notas operativas internas:</p>
+<p>Ejemplo:</p>
+<pre><code>- Cliente con alergia al gluten - coordinar menú especial
+- Necesitan silla de ruedas en estación de tren
+- Celebración de aniversario - coordinar sorpresa en hotel
+</code></pre>
+<p><img alt="Captura 6: Campo Inclusiones (HTML)" src="screenshots/06_biblia_inclusiones.png" /></p>
+<hr />
+<h2 id="6-gestion-de-pasajeros">6. Gestión de Pasajeros</h2>
+<h3 id="61-ver-la-lista-de-pasajeros">6.1 Ver la lista de pasajeros</h3>
+<ol>
+<li>En el formulario de la cotización, hacer clic en la pestaña <strong>"Pasajeros"</strong></li>
+<li>Se muestra la lista de pasajeros asociados al pedido</li>
+</ol>
+<h3 id="62-datos-de-cada-pasajero">6.2 Datos de cada pasajero</h3>
+<p>Los datos de los pasajeros se muestran en la tabla pero son <strong>de solo lectura</strong> (no se pueden editar directamente aquí). Los datos visibles son:</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Nombre</strong></td>
+<td>Nombre completo del pasajero</td>
+</tr>
+<tr>
+<td><strong>Nacionalidad</strong></td>
+<td>País de origen</td>
+</tr>
+<tr>
+<td><strong>Tipo de documento</strong></td>
+<td>Pasaporte, DNI, Carnet de Extranjería</td>
+</tr>
+<tr>
+<td><strong>Nro. de documento</strong></td>
+<td>Número del documento de identidad</td>
+</tr>
+<tr>
+<td><strong>Fecha de nacimiento</strong></td>
+<td>Para calcular edad y tarifas especiales</td>
+</tr>
+<tr>
+<td><strong>Teléfono</strong></td>
+<td>Número de contacto</td>
+</tr>
+<tr>
+<td><strong>Email</strong></td>
+<td>Correo electrónico</td>
+</tr>
+<tr>
+<td><strong>Idioma</strong></td>
+<td>Idioma preferido del pasajero</td>
+</tr>
+<tr>
+<td><strong>Restricciones médicas</strong></td>
+<td>Alergias, condiciones de salud, dietas especiales</td>
+</tr>
+<tr>
+<td><strong>Contacto de emergencia</strong></td>
+<td>Nombre y teléfono de la persona de emergencia</td>
+</tr>
+<tr>
+<td><strong>Grupo</strong></td>
+<td>Grupo de tour asignado (ver sección 12)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="63-semaforo-de-verificacion-de-identidad">6.3 Semáforo de verificación de identidad</h3>
+<p>Cada pasajero tiene un indicador de color que muestra si sus documentos están completos:</p>
+<ul>
+<li><strong>OK (verde):</strong> Nacionalidad + tipo de documento + número de documento están completos</li>
+<li><strong>Incompleto (rojo):</strong> Falta al menos uno de los tres datos obligatorios</li>
+<li><strong>Sin datos (amarillo):</strong> No se ha ingresado ningún dato de identidad</li>
+</ul>
+<h3 id="64-editar-datos-de-un-pasajero">6.4 Editar datos de un pasajero</h3>
+<p>Para editar los datos de un pasajero:</p>
+<ol>
+<li>Hacer clic en el nombre del pasajero en la tabla</li>
+<li>Se abre el formulario del <strong>contacto</strong> (res.partner)</li>
+<li>Editar los campos necesarios (nacionalidad, documento, restricciones médicas, etc.)</li>
+<li><strong>Guardar</strong> el contacto</li>
+<li>Los cambios se reflejan automáticamente en la cotización</li>
+</ol>
+<p><img alt="Captura 7: Pestaña Pasajeros con semáforo" src="screenshots/07_pasajeros_semaforo.png" /></p>
+<blockquote>
+<p><strong>Importante:</strong> Los datos de pasajeros se gestionan centralmente en el formulario de contacto. Si el mismo pasajero viaja en varios tours, sus datos se comparten automáticamente en todos los pedidos.</p>
+</blockquote>
+<hr />
+<h2 id="7-costos-y-margen">7. Costos y Margen</h2>
+<p>El sistema calcula automáticamente los indicadores financieros del tour:</p>
+<h3 id="71-campos-calculados">7.1 Campos calculados</h3>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Fórmula</th>
+<th>Ejemplo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Costo total estimado</strong></td>
+<td>Suma de todos los costos de operadores (en PEN)</td>
+<td>S/ 3,500.00</td>
+</tr>
+<tr>
+<td><strong>Margen estimado</strong></td>
+<td>Precio de venta total - Costo total estimado</td>
+<td>S/ 1,500.00</td>
+</tr>
+<tr>
+<td><strong>% de margen</strong></td>
+<td>(Margen / Precio de venta) × 100</td>
+<td>30%</td>
+</tr>
+</tbody>
+</table>
+<h3 id="72-como-interpretar-los-margenes">7.2 Cómo interpretar los márgenes</h3>
+<ul>
+<li><strong>Margen positivo (verde):</strong> El tour genera ganancia</li>
+<li><strong>Margen negativo (rojo):</strong> El tour genera pérdida — revisar costos o ajustar precio</li>
+<li><strong>Margen cercano a 0:</strong> Evaluar si vale la pena operativamente</li>
+</ul>
+<h3 id="73-ajustar-precios">7.3 Ajustar precios</h3>
+<p>Para cambiar el precio de venta:
+1. Ir a la pestaña <strong>"Líneas de pedido"</strong>
+2. Editar el <strong>Precio unitario</strong> de cada línea
+3. El margen se recalcula automáticamente</p>
+<p>Para cambiar costos de operadores:
+1. Ir a la pestaña <strong>"Biblia Operativa"</strong>
+2. Editar el campo <strong>Costo</strong> de cada operador
+3. El costo total y margen se recalculan automáticamente</p>
+<p><img alt="Captura 8: Costos y margen (campos calculados)" src="screenshots/08_costos_margen.png" /></p>
+<hr />
+<h2 id="8-enviar-cotizacion-al-cliente">8. Enviar Cotización al Cliente</h2>
+<h3 id="81-enviar-por-email">8.1 Enviar por email</h3>
+<ol>
+<li>Con la cotización abierta, hacer clic en <strong>"Enviar por correo"</strong> (botón en la barra de acciones)</li>
+<li>Se abre un compositor de email con:</li>
+<li><strong>Destinatario:</strong> email del cliente (pre-llenado)</li>
+<li><strong>Asunto:</strong> "Cotización [número]" (pre-llenado)</li>
+<li><strong>Cuerpo:</strong> mensaje personalizable</li>
+<li><strong>Adjunto:</strong> PDF de la cotización (adjuntado automáticamente)</li>
+<li>Editar el mensaje si es necesario</li>
+<li>Hacer clic en <strong>"Enviar"</strong></li>
+</ol>
+<h3 id="82-que-recibe-el-cliente">8.2 Qué recibe el cliente</h3>
+<p>El cliente recibe un email con:
+- El PDF de la cotización adjunto
+- Un <strong>enlace al portal</strong> donde puede:
+  - Ver la cotización en línea
+  - <strong>Aprobar</strong> directamente (firma electrónica)
+  - Dejar comentarios o preguntas</p>
+<h3 id="83-estado-de-la-cotizacion">8.3 Estado de la cotización</h3>
+<p>Después de enviar, la cotización cambia a estado <strong>"Cotización enviada"</strong>. Puedes ver si el cliente:
+- Abrió el email
+- Visitó el portal
+- Firmó/aprobó la cotización</p>
+<p><img alt="Captura 9: Botón Enviar por correo" src="screenshots/09_enviar_correo.png" /></p>
+<hr />
+<h2 id="9-confirmar-el-pedido">9. Confirmar el Pedido</h2>
+<h3 id="91-cuando-confirmar">9.1 Cuándo confirmar</h3>
+<p>Confirmar el pedido cuando:
+- El cliente ha aprobado la cotización (desde el portal o verbalmente)
+- Se ha recibido el pago (total o anticipo según la política)</p>
+<h3 id="92-como-confirmar">9.2 Cómo confirmar</h3>
+<ol>
+<li>Abrir la cotización</li>
+<li>Hacer clic en el botón <strong>"Confirmar"</strong></li>
+<li>La cotización pasa a ser un <strong>Pedido de Venta</strong> (estado: "Pedido de venta")</li>
+</ol>
+<h3 id="93-que-pasa-automaticamente-al-confirmar">9.3 Qué pasa automáticamente al confirmar</h3>
+<p>Al confirmar, el sistema crea automáticamente:</p>
+<ol>
+<li><strong>Un Proyecto</strong> llamado "[Nombre del tour] - [Cliente]"</li>
+<li>Basado en la plantilla "Tour Estándar"</li>
+<li>
+<p>Visible en: <strong>Proyecto</strong> (menú principal)</p>
+</li>
+<li>
+<p><strong>Tareas predefinidas</strong> dentro del proyecto:</p>
+</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Tarea</th>
+<th>Propósito</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Confirmar Reservas</td>
+<td>Verificar y confirmar reservas de hoteles, tickets, restaurantes</td>
+</tr>
+<tr>
+<td>Coordinar Transporte</td>
+<td>Organizar traslados, transfers, buses</td>
+</tr>
+<tr>
+<td>Asignar Guía</td>
+<td>Designar guía turístico para el grupo</td>
+</tr>
+<tr>
+<td>Verificar Documentación</td>
+<td>Revisar pasaportes, seguros, permisos</td>
+</tr>
+<tr>
+<td>Seguimiento Post-Tour</td>
+<td>Encuesta de satisfacción, feedback</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>Las <strong>fechas del tour</strong> se copian automáticamente a las tareas</li>
+</ol>
+<p><img alt="Captura 10: Botón Confirmar pedido" src="screenshots/10_confirmar_pedido.png" />
+<img alt="Captura 11: Proyecto auto-creado con tareas" src="screenshots/11_proyecto_tareas.png" /></p>
+<blockquote>
+<p><strong>Importante:</strong> NO se puede desconfirmar un pedido fácilmente. Asegúrate de que todo esté correcto antes de confirmar.</p>
+</blockquote>
+<hr />
+<h2 id="10-crear-ordenes-de-compra-desde-operadores">10. Crear Órdenes de Compra desde Operadores</h2>
+<p>Una vez confirmado el pedido, puedes generar automáticamente las Órdenes de Compra (OC) para los proveedores listados en la Biblia Operativa.</p>
+<h3 id="101-generar-las-oc">10.1 Generar las OC</h3>
+<ol>
+<li>Abrir el pedido de venta confirmado</li>
+<li>Ir a la pestaña <strong>"Biblia Operativa"</strong></li>
+<li>Desplazarse hasta el final de la sección de operadores</li>
+<li>Hacer clic en el botón <strong>"Crear OC desde Operadores"</strong></li>
+<li>Confirmar en el diálogo que aparece</li>
+</ol>
+<h3 id="102-que-pasa-al-generar-las-oc">10.2 Qué pasa al generar las OC</h3>
+<ul>
+<li>Se crea <strong>una OC por cada proveedor</strong> (si un proveedor tiene múltiples servicios, se agrupan en la misma OC)</li>
+<li>Cada línea de la OC contiene:</li>
+<li>El producto "Servicio de Tour"</li>
+<li>El costo del operador en PEN</li>
+<li>Una descripción con el tipo de servicio y código del pedido</li>
+<li>Se publica un mensaje en el historial del pedido con los números de OC creadas</li>
+</ul>
+<h3 id="103-ver-el-estado-de-las-oc">10.3 Ver el estado de las OC</h3>
+<p>Después de generar las OC:</p>
+<ul>
+<li>En la tabla de operadores, las columnas <strong>"OC"</strong> y <strong>"Estado OC"</strong> se llenan automáticamente</li>
+<li>Los estados posibles son:</li>
+<li><strong>Borrador</strong>: OC creada pero no enviada al proveedor</li>
+<li><strong>Enviado</strong>: OC enviada al proveedor</li>
+<li><strong>Pedido de compra</strong>: OC confirmada/aprobada</li>
+</ul>
+<h3 id="104-acceder-a-las-oc-desde-el-pedido">10.4 Acceder a las OC desde el pedido</h3>
+<ul>
+<li>Hacer clic en el botón inteligente <strong>"Compras"</strong> (en la barra superior del pedido)</li>
+<li>Se abre la lista de todas las OC vinculadas a este pedido</li>
+</ul>
+<p><img alt="Captura 12: Botón &quot;Crear OC desde Operadores&quot;" src="screenshots/12_boton_crear_oc.png" />
+<img alt="Captura 13: Tabla operadores con estado OC" src="screenshots/13_operadores_estado_oc.png" />
+<img alt="Captura 14: Botón inteligente &quot;Compras&quot;" src="screenshots/14_boton_compras.png" /></p>
+<blockquote>
+<p><strong>Nota:</strong> Si agregas nuevos operadores después de haber generado las OC, puedes volver a hacer clic en "Crear OC desde Operadores". Solo se crearán OC para los operadores que aún no tengan una asignada.</p>
+</blockquote>
+<hr />
+<h2 id="11-gestion-de-flota-vehiculos">11. Gestión de Flota (Vehículos)</h2>
+<h3 id="111-asignar-un-vehiculo-a-una-tarea">11.1 Asignar un vehículo a una tarea</h3>
+<ol>
+<li>Ir a <strong>Proyecto</strong> y abrir el proyecto del tour</li>
+<li>Abrir la tarea correspondiente (ej: "Coordinar Transporte")</li>
+<li>Marcar la casilla <strong>"Requiere vehículo propio"</strong></li>
+<li>Se despliegan los campos de flota:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Vehículo</strong></td>
+<td>Seleccionar el vehículo de la flota</td>
+</tr>
+<tr>
+<td><strong>Conductor</strong></td>
+<td>Seleccionar el conductor asignado</td>
+</tr>
+<tr>
+<td><strong>Asientos necesarios</strong></td>
+<td>Número de asientos que requiere este tour</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li><strong>Guardar</strong> la tarea</li>
+</ol>
+<h3 id="112-validaciones-automaticas">11.2 Validaciones automáticas</h3>
+<p>Al asignar un vehículo, el sistema valida automáticamente:</p>
+<ul>
+<li><strong>Vehículo en mantenimiento:</strong> Si el vehículo está en taller (servicio en estado "En proceso"), se muestra una <strong>alerta</strong> en el historial de la tarea</li>
+<li><strong>Conflicto de fechas:</strong> Si el vehículo ya está asignado a otro tour en las mismas fechas, se muestra una advertencia</li>
+<li><strong>Tour privado:</strong> Un tour privado no puede compartir vehículo con otros tours</li>
+<li><strong>Capacidad:</strong> Si los asientos necesarios superan la capacidad disponible, se notifica</li>
+</ul>
+<h3 id="113-asientos-disponibles">11.3 Asientos disponibles</h3>
+<p>El campo <strong>"Asientos disponibles"</strong> se calcula automáticamente:</p>
+<pre><code>Asientos disponibles = Capacidad del vehículo - Asientos de otros tours (mismas fechas) - Asientos de esta tarea
+</code></pre>
+<p>Si el resultado es negativo o cero, hay un problema de capacidad.</p>
+<p><img alt="Captura 15: Tarea con campos de flota" src="screenshots/15_tarea_flota.png" />
+<img alt="Captura 16: Alerta de conflicto de vehículo" src="screenshots/16_alerta_vehiculo.png" /></p>
+<blockquote>
+<p><strong>Tip:</strong> Solo los pedidos en estado "Pedido de venta" (confirmados) bloquean vehículos. Las cotizaciones en borrador y los pedidos cancelados no generan conflictos.</p>
+</blockquote>
+<hr />
+<h2 id="12-grupos-de-tour">12. Grupos de Tour</h2>
+<p>Los Grupos de Tour sirven para organizar pasajeros de <strong>tours compartidos</strong> donde viajeros de diferentes pedidos comparten el mismo servicio.</p>
+<h3 id="121-crear-un-grupo-de-tour">12.1 Crear un grupo de tour</h3>
+<ol>
+<li>Ir a <strong>Ventas &gt; Pedidos &gt; Grupos de Tour</strong></li>
+<li>Hacer clic en <strong>"Nuevo"</strong></li>
+<li>Llenar los campos:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Descripción</th>
+<th>Ejemplo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Nombre</strong></td>
+<td>Nombre descriptivo del grupo</td>
+<td>"Cusco Cultural Feb 15-20"</td>
+</tr>
+<tr>
+<td><strong>Fecha inicio</strong></td>
+<td>Primer día del grupo</td>
+<td>15/02/2026</td>
+</tr>
+<tr>
+<td><strong>Fecha fin</strong></td>
+<td>Último día del grupo</td>
+<td>20/02/2026</td>
+</tr>
+<tr>
+<td><strong>Capacidad máxima</strong></td>
+<td>Máximo de pasajeros en el grupo</td>
+<td>16</td>
+</tr>
+<tr>
+<td><strong>Pasajeros</strong></td>
+<td>Contactos asignados al grupo</td>
+<td>(seleccionar de la lista)</td>
+</tr>
+<tr>
+<td><strong>Notas</strong></td>
+<td>Observaciones operativas</td>
+<td>"Grupo bilingüe ES/EN"</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li><strong>Guardar</strong></li>
+</ol>
+<h3 id="122-asignar-un-pedido-a-un-grupo">12.2 Asignar un pedido a un grupo</h3>
+<ol>
+<li>Abrir el pedido de venta</li>
+<li>En el campo <strong>"Grupos de Tour"</strong> (sección superior), seleccionar el grupo</li>
+<li>Un pedido puede pertenecer a <strong>múltiples grupos</strong> si es necesario</li>
+</ol>
+<h3 id="123-asignar-pasajeros-individuales-a-un-grupo">12.3 Asignar pasajeros individuales a un grupo</h3>
+<ol>
+<li>En la pestaña <strong>"Pasajeros"</strong> del pedido</li>
+<li>Cada pasajero tiene un campo <strong>"Grupo"</strong> donde puedes asignar el grupo específico</li>
+</ol>
+<h3 id="124-casos-de-uso">12.4 Casos de uso</h3>
+<ul>
+<li><strong>Tour compartido:</strong> Los pedidos S00050 y S00051 tienen pasajeros que comparten el mismo bus y guía → se asignan al mismo grupo</li>
+<li><strong>Tour privado:</strong> Un grupo exclusivo para una familia → un solo pedido en el grupo</li>
+<li><strong>Grupo grande con división:</strong> Un pedido con 40 personas → se dividen en Grupo A (20) y Grupo B (20) con vehículos separados</li>
+</ul>
+<p><img alt="Captura 17: Lista de Grupos de Tour" src="screenshots/17_grupos_tour_lista.png" />
+<img alt="Captura 18: Formulario Grupo de Tour" src="screenshots/18_grupo_tour_form.png" /></p>
+<hr />
+<h2 id="13-registro-de-trabajo-en-tareas">13. Registro de Trabajo en Tareas</h2>
+<p>Cada tarea del proyecto tiene un sistema para registrar las horas trabajadas por los operadores.</p>
+<h3 id="131-registrar-trabajo">13.1 Registrar trabajo</h3>
+<ol>
+<li>Abrir una tarea del proyecto</li>
+<li>Ir a la pestaña <strong>"Registro de Trabajo"</strong></li>
+<li>Hacer clic en <strong>"Agregar línea"</strong></li>
+<li>Llenar los campos:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Descripción</th>
+<th>Ejemplo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Operador</strong></td>
+<td>Contacto que realizó el trabajo</td>
+<td>"Juan Pérez (Guía)"</td>
+</tr>
+<tr>
+<td><strong>Tipo de servicio</strong></td>
+<td>Categoría del servicio</td>
+<td>Guía</td>
+</tr>
+<tr>
+<td><strong>Descripción</strong></td>
+<td>Qué se realizó</td>
+<td>"City Tour completo con grupo"</td>
+</tr>
+<tr>
+<td><strong>Fecha</strong></td>
+<td>Cuándo se realizó</td>
+<td>15/03/2026</td>
+</tr>
+<tr>
+<td><strong>Horas</strong></td>
+<td>Duración en horas</td>
+<td>8.0</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li><strong>Guardar</strong></li>
+</ol>
+<h3 id="132-totales-automaticos">13.2 Totales automáticos</h3>
+<p>En la parte superior del registro de trabajo se muestran tres indicadores:</p>
+<table>
+<thead>
+<tr>
+<th>Indicador</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Asignadas</strong></td>
+<td>Horas planificadas para la tarea (configuradas en el campo "Horas asignadas")</td>
+</tr>
+<tr>
+<td><strong>Registradas</strong></td>
+<td>Total de horas registradas en el trabajo</td>
+</tr>
+<tr>
+<td><strong>Restantes</strong></td>
+<td>Asignadas - Registradas</td>
+</tr>
+</tbody>
+</table>
+<h3 id="133-notificaciones-automaticas">13.3 Notificaciones automáticas</h3>
+<p>Cada vez que se registra, edita o elimina una entrada de trabajo:
+- Se publica un mensaje automático en el <strong>historial</strong> de la tarea
+- El mensaje incluye el total actualizado de horas</p>
+<p><img alt="Captura 19: Registro de Trabajo en tarea" src="screenshots/19_registro_trabajo.png" /></p>
+<hr />
+<h2 id="14-reportes-pdf">14. Reportes PDF</h2>
+<p>El sistema incluye dos reportes PDF imprimibles directamente desde el pedido de venta.</p>
+<h3 id="141-biblia-operativa-pdf">14.1 Biblia Operativa (PDF)</h3>
+<p>Contiene un resumen operativo completo del tour:
+- Datos del tour (fechas, pasajeros, tipo de servicio)
+- Itinerario completo
+- Lista de operadores con contactos
+- Inclusiones
+- Tiempos clave
+- Observaciones especiales</p>
+<p><strong>Cómo imprimir:</strong>
+1. Abrir el pedido de venta
+2. Hacer clic en <strong>Imprimir &gt; Biblia Operativa</strong>
+3. Se descarga el PDF</p>
+<h3 id="142-voucher-de-pasajero">14.2 Voucher de Pasajero</h3>
+<p>Genera una página por cada pasajero con la información del tour para entregar al viajero:
+- Nombre del pasajero y datos de contacto
+- Itinerario resumido
+- Información del hotel
+- Contactos de emergencia de la agencia</p>
+<p><strong>Cómo imprimir:</strong>
+1. Abrir el pedido de venta
+2. Hacer clic en <strong>Imprimir &gt; Voucher Pasajero</strong>
+3. Se descarga el PDF con todas las páginas</p>
+<p><img alt="Captura 20: PDF Biblia Operativa (preview)" src="screenshots/20_pdf_biblia.png" />
+<img alt="Captura 21: PDF Voucher Pasajero (preview)" src="screenshots/21_pdf_voucher.png" /></p>
+<hr />
+<h2 id="15-plantillas-de-cotizacion">15. Plantillas de Cotización</h2>
+<p>Las plantillas de cotización permiten pre-configurar tours estándar para no tener que llenar todo desde cero cada vez.</p>
+<h3 id="151-ver-las-plantillas-existentes">15.1 Ver las plantillas existentes</h3>
+<ol>
+<li>Ir a <strong>Ventas &gt; Configuración &gt; Plantillas de cotización</strong></li>
+<li>Se muestra la lista de todas las plantillas disponibles</li>
+</ol>
+<h3 id="152-que-contiene-una-plantilla">15.2 Qué contiene una plantilla</h3>
+<p>Cada plantilla incluye:
+- <strong>Líneas de productos</strong>: Los productos/servicios que se incluyen en el tour
+- <strong>Biblia Operativa pre-configurada</strong>:
+  - Itinerario por defecto (día por día)
+  - Operadores por defecto (proveedores habituales)
+  - Inclusiones estándar
+  - Tiempos clave típicos
+  - Observaciones generales</p>
+<h3 id="153-crear-una-nueva-plantilla">15.3 Crear una nueva plantilla</h3>
+<ol>
+<li>Hacer clic en <strong>"Nuevo"</strong></li>
+<li>Dar un nombre descriptivo (ej: "Machu Picchu 2D/1N Tren Expedition")</li>
+<li>En la pestaña <strong>"Líneas"</strong>, agregar los productos del tour</li>
+<li>En la pestaña <strong>"Biblia Operativa"</strong>, llenar:</li>
+<li>Itinerario estándar</li>
+<li>Operadores habituales</li>
+<li>Inclusiones típicas</li>
+<li><strong>Guardar</strong></li>
+</ol>
+<h3 id="154-modificar-una-plantilla-existente">15.4 Modificar una plantilla existente</h3>
+<ol>
+<li>Abrir la plantilla desde la lista</li>
+<li>Editar los campos necesarios</li>
+<li><strong>Guardar</strong></li>
+</ol>
+<blockquote>
+<p><strong>Nota:</strong> Modificar una plantilla NO afecta las cotizaciones que ya fueron creadas con esa plantilla. Solo afecta las cotizaciones nuevas.</p>
+</blockquote>
+<p><img alt="Captura 22: Lista de plantillas de cotización" src="screenshots/22_plantillas_lista.png" />
+<img alt="Captura 23: Formulario plantilla con Biblia" src="screenshots/23_plantilla_biblia.png" /></p>
+<hr />
+<h2 id="16-hoja-de-referencia-rapida">16. Hoja de Referencia Rápida</h2>
+<h3 id="acciones-principales">Acciones principales</h3>
+<table>
+<thead>
+<tr>
+<th>Acción</th>
+<th>Ruta de menú</th>
+<th>Campos clave</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Crear cotización de tour</td>
+<td>Ventas &gt; Cotizaciones &gt; Nuevo</td>
+<td>Cliente, Plantilla, Es un tour, Fechas, Pasajeros</td>
+</tr>
+<tr>
+<td>Ver/editar itinerario</td>
+<td>Cotización &gt; tab Biblia Operativa</td>
+<td>Día, Título, Descripción, Alojamiento, Comidas</td>
+</tr>
+<tr>
+<td>Agregar operador</td>
+<td>Cotización &gt; tab Biblia &gt; Operadores &gt; Agregar línea</td>
+<td>Proveedor, Tipo servicio, Costo, Moneda</td>
+</tr>
+<tr>
+<td>Ver pasajeros</td>
+<td>Cotización &gt; tab Pasajeros</td>
+<td>Nombre, Documento, Nacionalidad, Semáforo</td>
+</tr>
+<tr>
+<td>Editar datos de pasajero</td>
+<td>Click en nombre del pasajero → Formulario contacto</td>
+<td>Nacionalidad, Documento, Restricciones médicas</td>
+</tr>
+<tr>
+<td>Enviar cotización</td>
+<td>Cotización &gt; botón "Enviar por correo"</td>
+<td>Destinatario, Mensaje, PDF adjunto</td>
+</tr>
+<tr>
+<td>Confirmar pedido</td>
+<td>Cotización &gt; botón "Confirmar"</td>
+<td>— (crea proyecto + tareas automáticamente)</td>
+</tr>
+<tr>
+<td>Generar OC de operadores</td>
+<td>Pedido &gt; tab Biblia &gt; "Crear OC desde Operadores"</td>
+<td>— (crea 1 OC por proveedor)</td>
+</tr>
+<tr>
+<td>Ver OC vinculadas</td>
+<td>Pedido &gt; botón inteligente "Compras"</td>
+<td>Proveedor, Estado, Monto</td>
+</tr>
+<tr>
+<td>Asignar vehículo</td>
+<td>Proyecto &gt; Tarea &gt; "Requiere vehículo propio"</td>
+<td>Vehículo, Conductor, Asientos</td>
+</tr>
+<tr>
+<td>Crear grupo de tour</td>
+<td>Ventas &gt; Grupos de Tour &gt; Nuevo</td>
+<td>Nombre, Fechas, Capacidad, Pasajeros</td>
+</tr>
+<tr>
+<td>Registrar trabajo</td>
+<td>Proyecto &gt; Tarea &gt; tab "Registro de Trabajo"</td>
+<td>Operador, Servicio, Fecha, Horas</td>
+</tr>
+<tr>
+<td>Imprimir Biblia Operativa</td>
+<td>Pedido &gt; Imprimir &gt; Biblia Operativa</td>
+<td>— (descarga PDF)</td>
+</tr>
+<tr>
+<td>Imprimir Voucher Pasajero</td>
+<td>Pedido &gt; Imprimir &gt; Voucher Pasajero</td>
+<td>— (descarga PDF)</td>
+</tr>
+<tr>
+<td>Gestionar plantillas</td>
+<td>Ventas &gt; Configuración &gt; Plantillas de cotización</td>
+<td>Nombre, Líneas, Biblia Operativa</td>
+</tr>
+</tbody>
+</table>
+<h3 id="atajos-utiles">Atajos útiles</h3>
+<table>
+<thead>
+<tr>
+<th>Atajo</th>
+<th>Acción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>F5</strong></td>
+<td>Recargar página (útil después de seleccionar plantilla)</td>
+</tr>
+<tr>
+<td><strong>Ctrl + S</strong></td>
+<td>Guardar el formulario actual</td>
+</tr>
+<tr>
+<td><strong>/</strong></td>
+<td>Buscar en cualquier lista</td>
+</tr>
+</tbody>
+</table>
+<h3 id="estados-del-pedido">Estados del pedido</h3>
+<pre><code>Borrador → Cotización enviada → Pedido de venta → Bloqueado / Cancelado
+</code></pre>
+<h3 id="semaforo-de-documentos-del-pasajero">Semáforo de documentos del pasajero</h3>
+<table>
+<thead>
+<tr>
+<th>Color</th>
+<th>Significado</th>
+<th>Acción necesaria</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Verde (OK)</td>
+<td>Documentos completos</td>
+<td>Ninguna</td>
+</tr>
+<tr>
+<td>Rojo (Incompleto)</td>
+<td>Falta documento o nacionalidad</td>
+<td>Completar en ficha del contacto</td>
+</tr>
+<tr>
+<td>Amarillo (Sin datos)</td>
+<td>No se ha ingresado nada</td>
+<td>Solicitar datos al pasajero</td>
+</tr>
+</tbody>
+</table></body></html>

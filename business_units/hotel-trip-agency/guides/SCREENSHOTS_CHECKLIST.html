@@ -1,0 +1,423 @@
+<!DOCTYPE html><html><head><meta charset='utf-8'>
+<style>
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; line-height: 1.6; color: #333; }
+  h1 { color: #1B5E20; border-bottom: 2px solid #1B5E20; padding-bottom: 8px; }
+  h2 { color: #2E7D32; margin-top: 2em; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+  h3 { color: #388E3C; }
+  table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+  th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+  th { background-color: #E8F5E9; font-weight: bold; }
+  tr:nth-child(even) { background-color: #f9f9f9; }
+  code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; }
+  pre { background: #f4f4f4; padding: 16px; border-radius: 6px; overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { border-left: 4px solid #4CAF50; margin: 1em 0; padding: 0.5em 1em; background: #f1f8e9; }
+  img { max-width: 100%; border: 1px solid #ddd; border-radius: 4px; margin: 1em 0; }
+  a { color: #1B5E20; }
+</style>
+</head><body><h1 id="lista-de-capturas-de-pantalla-para-las-guias-de-usuario">Lista de Capturas de Pantalla para las Guías de Usuario</h1>
+<p>Instrucciones: Tomar cada captura de pantalla en la instancia de producción de Odoo, guardarla con el nombre de archivo indicado en la carpeta <code>screenshots/</code> junto a las guías.</p>
+<p><strong>Resolución recomendada:</strong> 1920x1080, navegador en modo normal (no incógnito), zoom al 100%.</p>
+<hr />
+<h2 id="guia-1-ventas-de-tours-con-biblia-operativa">Guía 1: Ventas de Tours con Biblia Operativa</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Archivo</th>
+<th>Descripción</th>
+<th>Navegación paso a paso</th>
+<th>Qué debe ser visible</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>01_lista_cotizaciones.png</code></td>
+<td>Lista de cotizaciones</td>
+<td>Menú &gt; Ventas &gt; Pedidos &gt; Cotizaciones</td>
+<td>Lista con al menos 3-4 cotizaciones visibles, columnas: Número, Cliente, Fecha, Total, Estado</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>02_nueva_cotizacion_plantilla.png</code></td>
+<td>Formulario de nueva cotización con plantilla seleccionada</td>
+<td>Cotizaciones &gt; botón "Nuevo" &gt; seleccionar plantilla en campo "Plantilla de cotización"</td>
+<td>Formulario con cliente, plantilla seleccionada, y líneas de pedido auto-rellenadas</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>03_campos_tour.png</code></td>
+<td>Campos específicos del tour</td>
+<td>Misma cotización del paso 2, sección superior</td>
+<td>Campos visibles: "Es un tour" (marcado), Fecha inicio, Fecha fin, Nro. pasajeros, Tipo de servicio, Ciudad de salida</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>04_biblia_itinerario.png</code></td>
+<td>Tabla de itinerario en Biblia Operativa</td>
+<td>Misma cotización &gt; clic en pestaña "Biblia Operativa"</td>
+<td>Tabla con al menos 3 filas de itinerario: Día, Título, Descripción, Alojamiento, Comidas</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>05_biblia_operadores.png</code></td>
+<td>Tabla de operadores en Biblia Operativa</td>
+<td>Misma pestaña "Biblia Operativa" &gt; scroll abajo</td>
+<td>Tabla de operadores con: Proveedor, Tipo servicio, Costo, Moneda, Costo PEN. Al menos 2-3 operadores</td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>06_biblia_inclusiones.png</code></td>
+<td>Campo de inclusiones HTML</td>
+<td>Misma pestaña "Biblia Operativa" &gt; sección Inclusiones</td>
+<td>Editor HTML con lista de servicios incluidos (transporte, alojamiento, guía, etc.)</td>
+</tr>
+<tr>
+<td>7</td>
+<td><code>07_pasajeros_semaforo.png</code></td>
+<td>Pestaña de pasajeros con semáforo de identidad</td>
+<td>Misma cotización &gt; clic en pestaña "Pasajeros"</td>
+<td>Lista de pasajeros con columnas: Nombre, Nacionalidad, Documento, Semáforo (al menos un verde, un rojo y un amarillo idealmente)</td>
+</tr>
+<tr>
+<td>8</td>
+<td><code>08_costos_margen.png</code></td>
+<td>Campos de costos y margen calculados</td>
+<td>Misma cotización &gt; buscar sección de costos (puede estar en la parte superior o lateral)</td>
+<td>Campos: Costo total estimado, Margen estimado, % de margen, todos con valores numéricos</td>
+</tr>
+<tr>
+<td>9</td>
+<td><code>09_enviar_correo.png</code></td>
+<td>Botón y diálogo de enviar por correo</td>
+<td>Misma cotización &gt; clic en "Enviar por correo"</td>
+<td>Diálogo de composición de email con: destinatario, asunto, cuerpo del mensaje, PDF adjunto</td>
+</tr>
+<tr>
+<td>10</td>
+<td><code>10_confirmar_pedido.png</code></td>
+<td>Botón de confirmar pedido</td>
+<td>Abrir una cotización en estado "Cotización enviada"</td>
+<td>Barra de acciones con botón "Confirmar" visible y resaltado</td>
+</tr>
+<tr>
+<td>11</td>
+<td><code>11_proyecto_tareas.png</code></td>
+<td>Proyecto auto-creado con tareas en kanban</td>
+<td>Menú &gt; Proyecto &gt; abrir el proyecto del tour recién confirmado</td>
+<td>Vista kanban con columnas de etapas y tareas: Confirmar Reservas, Coordinar Transporte, etc.</td>
+</tr>
+<tr>
+<td>12</td>
+<td><code>12_boton_crear_oc.png</code></td>
+<td>Botón "Crear OC desde Operadores"</td>
+<td>Pedido confirmado &gt; pestaña "Biblia Operativa" &gt; scroll al final de operadores</td>
+<td>Botón claramente visible al final de la tabla de operadores</td>
+</tr>
+<tr>
+<td>13</td>
+<td><code>13_operadores_estado_oc.png</code></td>
+<td>Tabla de operadores con columnas de OC y Estado</td>
+<td>Después de haber generado OCs &gt; pestaña "Biblia Operativa" &gt; operadores</td>
+<td>Columnas OC y Estado OC visibles con datos (ej: "PO00001", "Borrador")</td>
+</tr>
+<tr>
+<td>14</td>
+<td><code>14_boton_compras.png</code></td>
+<td>Botón inteligente "Compras"</td>
+<td>Pedido con OCs generadas &gt; barra superior de smart buttons</td>
+<td>Botón "Compras" con número de OCs (ej: "2 Compras")</td>
+</tr>
+<tr>
+<td>15</td>
+<td><code>15_tarea_flota.png</code></td>
+<td>Tarea con campos de flota</td>
+<td>Proyecto &gt; abrir tarea "Coordinar Transporte" &gt; marcar "Requiere vehículo propio"</td>
+<td>Campos: casilla "Requiere vehículo propio" marcada, Vehículo, Conductor, Asientos necesarios, Asientos disponibles</td>
+</tr>
+<tr>
+<td>16</td>
+<td><code>16_alerta_vehiculo.png</code></td>
+<td>Alerta de conflicto de vehículo</td>
+<td>Tarea &gt; asignar un vehículo que ya esté asignado en las mismas fechas</td>
+<td>Mensaje de advertencia/alerta en el chatter de la tarea indicando el conflicto</td>
+</tr>
+<tr>
+<td>17</td>
+<td><code>17_grupos_tour_lista.png</code></td>
+<td>Lista de Grupos de Tour</td>
+<td>Menú &gt; Ventas &gt; Pedidos &gt; Grupos de Tour</td>
+<td>Lista con al menos 1-2 grupos con: Nombre, Fecha inicio, Fecha fin, Capacidad</td>
+</tr>
+<tr>
+<td>18</td>
+<td><code>18_grupo_tour_form.png</code></td>
+<td>Formulario de un Grupo de Tour</td>
+<td>Grupos de Tour &gt; abrir un grupo existente</td>
+<td>Formulario completo: Nombre, Fechas, Capacidad, lista de Pasajeros, Notas</td>
+</tr>
+<tr>
+<td>19</td>
+<td><code>19_registro_trabajo.png</code></td>
+<td>Registro de trabajo en una tarea</td>
+<td>Proyecto &gt; Tarea &gt; pestaña "Registro de Trabajo"</td>
+<td>Tabla con al menos 2 entradas: Operador, Tipo servicio, Fecha, Horas. Totales visibles arriba</td>
+</tr>
+<tr>
+<td>20</td>
+<td><code>20_pdf_biblia.png</code></td>
+<td>Preview del PDF Biblia Operativa</td>
+<td>Pedido &gt; Imprimir &gt; Biblia Operativa &gt; captura del PDF</td>
+<td>Primera página del PDF mostrando el itinerario y datos del tour</td>
+</tr>
+<tr>
+<td>21</td>
+<td><code>21_pdf_voucher.png</code></td>
+<td>Preview del PDF Voucher Pasajero</td>
+<td>Pedido &gt; Imprimir &gt; Voucher Pasajero &gt; captura del PDF</td>
+<td>Una página del voucher con datos del pasajero e itinerario</td>
+</tr>
+<tr>
+<td>22</td>
+<td><code>22_plantillas_lista.png</code></td>
+<td>Lista de plantillas de cotización</td>
+<td>Menú &gt; Ventas &gt; Configuración &gt; Plantillas de cotización</td>
+<td>Lista con al menos 3-4 plantillas con nombre y estado</td>
+</tr>
+<tr>
+<td>23</td>
+<td><code>23_plantilla_biblia.png</code></td>
+<td>Formulario de plantilla con Biblia</td>
+<td>Plantillas &gt; abrir una plantilla &gt; pestaña "Biblia Operativa"</td>
+<td>Itinerario pre-configurado y operadores por defecto</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="guia-2-gestion-de-hospedaje">Guía 2: Gestión de Hospedaje</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Archivo</th>
+<th>Descripción</th>
+<th>Navegación paso a paso</th>
+<th>Qué debe ser visible</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>h01_productos_habitacion.png</code></td>
+<td>Lista de productos de habitación</td>
+<td>Menú &gt; Ventas &gt; Productos &gt; filtrar por categoría "Apart./Hotel"</td>
+<td>Lista de habitaciones con: Nombre, Precio, Categoría</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>h02_producto_atributos.png</code></td>
+<td>Formulario de producto habitación con atributos</td>
+<td>Abrir una habitación &gt; pestaña "Atributos y Variantes"</td>
+<td>Atributos visibles: Camas, Baños, WiFi, TV, etc. con sus valores</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>h03_cotizacion_habitacion.png</code></td>
+<td>Cotización con habitación y fechas de alquiler</td>
+<td>Cotizaciones &gt; Nuevo &gt; agregar una habitación como línea</td>
+<td>Formulario con cliente, línea de habitación, fechas de alquiler visibles</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>h04_fechas_alquiler.png</code></td>
+<td>Detalle de fechas de alquiler en la línea de pedido</td>
+<td>Misma cotización &gt; expandir la línea de la habitación</td>
+<td>Campos: Fecha de alquiler (inicio), Fecha de devolución, Duración (noches), Precio calculado</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>h05_pedido_confirmado.png</code></td>
+<td>Pedido confirmado con botón de planificación</td>
+<td>Confirmar la cotización anterior</td>
+<td>Estado "Pedido de venta", botón inteligente "Planificación" visible en la barra superior</td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>h06_gantt_planificacion.png</code></td>
+<td>Vista Gantt de planificación de habitaciones</td>
+<td>Menú &gt; Planificación &gt; vista "Por Recurso"</td>
+<td>Diagrama Gantt con habitaciones en el eje Y, tiempo en el eje X, bloques de color para reservas</td>
+</tr>
+<tr>
+<td>7</td>
+<td><code>h07_detalle_slot.png</code></td>
+<td>Detalle de un slot de planificación</td>
+<td>Clic en un bloque de color en el Gantt</td>
+<td>Popup con: Habitación, Fecha/hora inicio (check-in), Fecha/hora fin (check-out), Pedido vinculado</td>
+</tr>
+<tr>
+<td>8</td>
+<td><code>h08_nuevo_producto_habitacion.png</code></td>
+<td>Formulario de crear nueva habitación</td>
+<td>Ventas &gt; Productos &gt; Nuevo &gt; llenar datos básicos</td>
+<td>Formulario con: Nombre, Tipo "Servicio", Categoría "Apart./Hotel", Precio, "Es oferta de habitación" marcado</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="guia-3-e-commerce">Guía 3: E-commerce</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Archivo</th>
+<th>Descripción</th>
+<th>Navegación paso a paso</th>
+<th>Qué debe ser visible</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>e01_producto_web.png</code></td>
+<td>Página de producto tour en el sitio web</td>
+<td>Abrir el sitio web &gt; navegar a /shop &gt; clic en un tour</td>
+<td>Página del producto con: foto, nombre, precio con prefijo "desde"/"aprox.", botón "Solicitar Cotización" (NO "Agregar al carrito")</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>e02_modal_cotizacion.png</code></td>
+<td>Modal de solicitud de cotización</td>
+<td>Misma página &gt; clic en "Solicitar Cotización"</td>
+<td>Formulario modal con campos: Nombre completo, Email, Teléfono, Descripción del viaje</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>e03_listado_tienda.png</code></td>
+<td>Listado de productos en la tienda</td>
+<td>Sitio web &gt; /shop</td>
+<td>Grid de productos con: fotos, nombres, precios, botones "Cotizar" en los tours</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>e04_listas_precios.png</code></td>
+<td>Lista de precios en el backend</td>
+<td>Menú &gt; Ventas &gt; Configuración &gt; Listas de precios</td>
+<td>Lista mostrando al menos: PEN (por defecto) y USD, con columnas Nombre, Moneda, Sitio web</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>e05_regla_conversion.png</code></td>
+<td>Regla de conversión en la lista USD</td>
+<td>Listas de precios &gt; abrir "USD" &gt; sección de reglas</td>
+<td>Regla global visible: Aplicar en "Todos los productos", Calcular precio "Fórmula", Base "Precio de venta"</td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>e06_tipo_cambio.png</code></td>
+<td>Tipo de cambio USD</td>
+<td>Menú &gt; Contabilidad &gt; Configuración &gt; Monedas &gt; clic en USD</td>
+<td>Detalle de la moneda USD con: tasa actual, fecha de la última tasa</td>
+</tr>
+<tr>
+<td>7</td>
+<td><code>e07_precio_manual.png</code></td>
+<td>Regla de precio manual para un producto</td>
+<td>Listas de precios &gt; USD &gt; agregar línea con precio fijo</td>
+<td>Nueva regla visible: Aplicar en "1 Producto", Producto seleccionado, Calcular precio "Precio fijo", valor ingresado</td>
+</tr>
+<tr>
+<td>8</td>
+<td><code>e08_conciliacion_comision.png</code></td>
+<td>Conciliación bancaria mostrando comisión</td>
+<td>Menú &gt; Contabilidad &gt; Banco &gt; Conciliación</td>
+<td>Vista de conciliación con: línea del extracto bancario (monto depositado), pago registrado (monto completo), diferencia marcada como "Gasto bancario/Comisión"</td>
+</tr>
+<tr>
+<td>9</td>
+<td><code>e09_canal_livechat.png</code></td>
+<td>Configuración del canal de Livechat</td>
+<td>Menú &gt; Sitio Web &gt; Livechat &gt; Canales &gt; abrir canal</td>
+<td>Formulario del canal: nombre, texto del botón, colores, regla de aparición</td>
+</tr>
+<tr>
+<td>10</td>
+<td><code>e10_conversacion_livechat.png</code></td>
+<td>Conversación del Livechat con IA</td>
+<td>Menú &gt; Conversaciones &gt; buscar un canal de livechat con conversación</td>
+<td>Historial de chat mostrando: mensajes del visitante y respuestas del bot con recomendaciones de tours</td>
+</tr>
+<tr>
+<td>11</td>
+<td><code>e11_plantillas_whatsapp.png</code></td>
+<td>Lista de plantillas WhatsApp filtrada</td>
+<td>Menú &gt; Marketing &gt; WhatsApp &gt; Plantillas &gt; buscar "Auto:"</td>
+<td>Lista filtrada mostrando: Auto: Bienvenida, Auto: Info Tours, Auto: Cotización, etc.</td>
+</tr>
+<tr>
+<td>12</td>
+<td><code>e12_plantilla_whatsapp_form.png</code></td>
+<td>Formulario de una plantilla WhatsApp</td>
+<td>Abrir una plantilla (ej: "Auto: Info Tours")</td>
+<td>Formulario con: Nombre, Cuerpo (texto), Cuerpo en inglés, Condición de disparo, Keywords</td>
+</tr>
+<tr>
+<td>13</td>
+<td><code>e13_editor_web.png</code></td>
+<td>Editor web en modo edición</td>
+<td>Menú &gt; Sitio Web &gt; navegar a página principal &gt; clic "Editar"</td>
+<td>Sitio web en modo edición con: barra de herramientas visible, panel de snippets, contenido editable</td>
+</tr>
+<tr>
+<td>14</td>
+<td><code>e14_productos_relacionados.png</code></td>
+<td>Productos opcionales/relacionados en el backend</td>
+<td>Ventas &gt; Productos &gt; abrir un tour &gt; pestaña "Ventas"</td>
+<td>Campo "Productos opcionales" con 3-4 productos seleccionados</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="resumen-de-capturas">Resumen de capturas</h2>
+<table>
+<thead>
+<tr>
+<th>Guía</th>
+<th>Cantidad</th>
+<th>Archivos</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Guía 1: Tours y Biblia Operativa</td>
+<td>23</td>
+<td><code>01_*.png</code> a <code>23_*.png</code></td>
+</tr>
+<tr>
+<td>Guía 2: Hospedaje</td>
+<td>8</td>
+<td><code>h01_*.png</code> a <code>h08_*.png</code></td>
+</tr>
+<tr>
+<td>Guía 3: E-commerce</td>
+<td>14</td>
+<td><code>e01_*.png</code> a <code>e14_*.png</code></td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td><strong>45</strong></td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="tips-para-tomar-las-capturas">Tips para tomar las capturas</h2>
+<ol>
+<li><strong>Usar datos de ejemplo reales o realistas</strong> — No dejes formularios vacíos. Usa datos de prueba como "Juan García", "City Tour Cusco", etc.</li>
+<li><strong>Resaltar lo importante</strong> — Si es posible, usa una herramienta de anotación para poner flechas o recuadros en los elementos clave</li>
+<li><strong>Consistencia</strong> — Usa el mismo tour/cotización para las capturas 2-14 de la Guía 1 (así el usuario ve el mismo ejemplo de principio a fin)</li>
+<li><strong>Idioma</strong> — Tomar las capturas con el sistema en español (es_419)</li>
+<li><strong>Limpieza</strong> — Cerrar menús y paneles que no son relevantes. No dejar notificaciones/banners visibles</li>
+<li><strong>Formato</strong> — PNG, resolución mínima 1920x1080, no comprimir excesivamente</li>
+</ol></body></html>
