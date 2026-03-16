@@ -1,0 +1,831 @@
+\documentclass[conference]{IEEEtran}
+
+% --- Encoding & Language ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+
+% --- Tables & Figures ---
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{float}
+
+% --- Typography ---
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{cite}
+
+% --- Page numbers ---
+\pagestyle{plain}
+
+% --- Compact lists ---
+\setlist{nosep, leftmargin=1.5em}
+
+% ==========================================
+% DOCUMENT
+% ==========================================
+
+\title{Respuesta a la contrapropuesta: Defensa y refinamiento del Modelo de Plataforma para la reutilizaci\'on de software}
+
+\author{
+  \IEEEauthorblockN{Gonzalo Enrique Guti\'errez Castillo}
+  \IEEEauthorblockA{\'Area de Digitales -- ACIDE\\
+  Arequipa, Per\'u\\
+  gonzalog@acideperu.org\\
+  gonzalogut.99@gmail.com}
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Se presenta una respuesta formal a la contrapropuesta titulada
+\textit{``Reutilizaci\'on basada en plantillas y composici\'on como
+alternativa a librer\'ias y OOP''}. Se reconocen las cr\'iticas
+leg\'itimas al dise\~no inicial, se corrigen imprecisiones
+factuales sobre la implementaci\'on existente, y se demuestra
+---~mediante fuentes autoritativas y evidencia de la industria~---
+que las premisas centrales de la contrapropuesta contienen
+malinterpretaciones de los principios YAGNI y KISS. Se concluye
+que ambas propuestas convergen en el mismo mecanismo de
+distribuci\'on (copiar y adaptar), y que la diferencia real es
+terminol\'ogica, no arquitect\'onica.
+\end{abstract}
+
+\begin{IEEEkeywords}
+reutilizaci\'on, arquitectura de software, YAGNI, KISS, Clean
+Architecture, plataforma, plantillas, ERP.
+\end{IEEEkeywords}
+
+% ==========================================
+\section{Introducci\'on}
+% ==========================================
+
+La contrapropuesta~\cite{araoz2026} presenta cr\'iticas al modelo
+de reutilizaci\'on propuesto en~\cite{gutierrez2026}, planteando un
+enfoque basado en plantillas y composici\'on como alternativa.
+Este documento responde a dichas cr\'iticas con tres objetivos:
+
+\begin{enumerate}
+  \item Reconocer las cr\'iticas leg\'itimas y las fallas del
+    primer informe.
+  \item Demostrar, con fuentes autoritativas, que varias premisas
+    de la contrapropuesta contienen malinterpretaciones de
+    principios fundamentales de ingenier\'ia de software.
+  \item Evidenciar que ambas propuestas convergen en la misma
+    soluci\'on, y que la discusi\'on debiera enfocarse en los
+    detalles de implementaci\'on, no en una falsa dicotom\'ia.
+\end{enumerate}
+
+% ==========================================
+\section{Reconocimiento de cr\'iticas leg\'itimas}
+% ==========================================
+
+Es importante reconocer, con honestidad intelectual, los puntos
+donde la contrapropuesta identifica problemas reales.
+
+\subsection{El dise\~no de Persona/Estudiante fue insuficiente}
+
+La cr\'itica al caso concreto de \texttt{Persona.Surname} versus
+\texttt{Estudiante.ApellidoPaterno/ApellidoMaterno} es leg\'itima.
+La abstracci\'on de Persona no contempl\'o adecuadamente la
+realidad del dominio educativo peruano, donde el manejo de dos
+apellidos separados es un requisito legal y administrativo.
+
+Sin embargo, que una abstracci\'on est\'e mal dise\~nada no
+invalida el concepto de abstracci\'on. El problema fue de
+\textit{dise\~no}, no de \textit{principio}. La entidad unificada
+de Persona/Contacto es un patr\'on consolidado en la industria del
+software empresarial, adoptado independientemente por los
+principales ERPs del mundo (ver Secci\'on~\ref{sec:erps}).
+
+La soluci\'on correcta era dise\~nar \texttt{Persona} con campos
+de nombre estructurados que soporten m\'ultiples formatos culturales
+---~como lo hace SAP en su tabla \texttt{BUT000} con
+\texttt{NAME\_FIRST}, \texttt{NAME\_LAST} y
+\texttt{NAME\_LAST2}~--- en lugar de usar un \'unico campo
+\texttt{Surname}.
+
+\subsection{Falta de claridad operativa}
+
+El primer informe present\'o el \textit{qu\'e} y el
+\textit{por qu\'e}, pero no detall\'o suficientemente el
+\textit{c\'omo}: gobernanza, ownership del c\'odigo, resoluci\'on
+de conflictos entre librer\'ia y negocio, y procesos de
+actualizaci\'on. Esto es un vac\'io leg\'itimo que este documento
+no pretende minimizar.
+
+\subsection{Composici\'on sobre herencia}
+
+La recomendaci\'on de composici\'on sobre herencia es
+t\'ecnicamente correcta y ampliamente aceptada~\cite{gof1994}.
+No obstante, es necesario aclarar una imprecisi\'on factual:
+\textbf{la implementaci\'on en Colver ya usaba composici\'on}.
+\texttt{Estudiante} no hereda de \texttt{Persona}; hereda de
+\texttt{AggregateRoot} (su ra\'iz de agregado en DDD) y mantiene
+una referencia a \texttt{Persona} mediante \texttt{PersonId}
+(clave for\'anea). La relaci\'on 1:1 entre \texttt{Estudiante} y
+\texttt{Persona} es una relaci\'on de composici\'on, no de
+herencia de clases.
+
+\subsection{Sobre la iniciativa unilateral}
+
+El punto sobre falta de consenso es v\'alido en su forma.
+Sin embargo, es necesario contextualizar: la acci\'on fue tomada
+porque, a pesar de que el equipo se compromet\'ia reiteradamente
+con una visi\'on de reutilizaci\'on, no se materializaban acciones
+concretas para avanzar hacia ese objetivo. Se manten\'ia el
+\textit{status quo} proyecto tras proyecto. Ante la inacci\'on
+colectiva, se opt\'o por presentar una implementaci\'on concreta
+que sirviera como punto de partida para la discusi\'on ---~no
+como imposici\'on, sino como catalizador.
+
+% ==========================================
+\section{Sobre YAGNI y KISS: alcance, uso correcto y malinterpretaciones}
+\label{sec:yagni}
+% ==========================================
+
+Es necesario aclarar una posici\'on fundamental: \textbf{no nos
+oponemos a YAGNI ni a KISS}. Son principios valiosos y necesarios
+para el desarrollo de software. Sin embargo, no operan en
+aislamiento: deben aplicarse \textbf{en armon\'ia} con DRY
+(\textit{Don't Repeat Yourself}), SSOT (\textit{Single Source of
+Truth}), los principios SOLID, el paradigma SPLE
+(\textit{Software Product Line Engineering}) y SINE
+(\textit{Simple Is Not Easy})~\cite{sine}. Este \'ultimo principio
+es especialmente relevante: la simplicidad no es lo mismo que la
+facilidad. Construir una soluci\'on simple requiere dise\~no
+deliberado y esfuerzo; lo f\'acil es escribir c\'odigo r\'apido
+sin estructura, pero eso no es simple, es deuda t\'ecnica.
+Ning\'un principio tiene supremac\'ia absoluta sobre los dem\'as;
+la ingenier\'ia de software consiste precisamente en encontrar el
+equilibrio correcto seg\'un el contexto.
+
+\subsection{D\'onde YAGNI y KISS s\'i aplican: el modelado de entidades}
+
+Es importante ser precisos. La contrapropuesta no critica la
+arquitectura (Clean Architecture, CQRS, DDD) ---~ambas partes
+estamos de acuerdo en esos patrones~---. Lo que critica es el
+\textbf{modelado de entidades}: que se haya modelado
+\texttt{Branch} (m\'ultiples sedes) cuando Colver tiene una sola,
+que \texttt{Persona} tenga un campo \texttt{Surname} gen\'erico
+en lugar de apellidos espec\'ificos, y que se hayan dise\~nado
+entidades pensando en m\'ultiples rubros durante el desarrollo de
+un proyecto espec\'ifico.
+
+En este nivel, YAGNI tiene legitimidad. Fowler define
+\textit{``presumptive feature''} como \textit{``any code that
+supports a feature that isn't yet being made available for
+use''}~\cite{fowler2015yagni}. Si model\'aramos entidades para un
+dominio que genuinamente desconocemos, eso ser\'ia especulaci\'on
+y YAGNI aplicar\'ia con toda raz\'on.
+
+Aceptamos esta cr\'itica parcialmente: durante el desarrollo de
+Colver, el foco debi\'o estar en resolver Colver primero. Ah\'i
+YAGNI y KISS son gu\'ias correctas.
+
+\subsection{D\'onde YAGNI y KISS no aplican: reutilizaci\'on conocida}
+
+Sin embargo, la contrapropuesta extiende YAGNI m\'as all\'a de su
+alcance leg\'itimo cuando lo usa para rechazar \textit{toda}
+inversi\'on en reutilizaci\'on. Jeffries, co-creador de XP y del
+principio YAGNI, define su alcance as\'i:
+
+\begin{quote}
+\textit{``Always implement things when you \textbf{actually} need
+them, never when you just \textbf{foresee} that you need
+them.''}~\cite{jeffries_yagni}
+\end{quote}
+
+La palabra clave es \textit{actually} versus \textit{foresee}.
+Cuando la consultora ya ejecut\'o m\'ultiples proyectos con los
+mismos patrones (Persona, Auth, Auditor\'ia), la necesidad ya no
+es especulativa: \textit{actually need} ya se cumpli\'o.
+
+Fowler refuerza esta distinci\'on:
+
+\begin{quote}
+\textit{``If you do something for a future need that doesn't
+actually increase the complexity of the software, then there's no
+reason to invoke yagni.''}~\cite{fowler2015yagni}
+\end{quote}
+
+Modelar una entidad \texttt{Branch} con un FK no aumenta la
+complejidad del sistema de forma significativa, pero habilita la
+reutilizaci\'on para clientes con m\'ultiples sedes. Es importante
+notar que respetar YAGNI aqu\'i no significa eliminar la entidad:
+significa \textbf{no implementar l\'ogica de cambio de sede,
+creaci\'on de nuevas sedes ni interfaces de gesti\'on multi-sede}
+mientras el cliente no lo solicite. La entidad existe en el modelo
+de datos; los features asociados no, hasta que se necesiten.
+
+Este no es un escenario hipot\'etico. En un proyecto anterior de
+la consultora ---~el sistema para Cl\'inica Juan Pablo~II
+Dermatolog\'ia L\'aser y Est\'etica S.A.C.
+(RUC~20603130295)~--- se desarroll\'o inicialmente sin soporte
+multi-sede porque el cliente solicit\'o gesti\'on global. Cuando
+posteriormente la cl\'inica requiri\'o operar por sedes, el
+backend no pod\'ia refactorizarse sin riesgo, y fue necesario
+aplicar parches inseguros que compromet\'ian la integridad del
+sistema. Si la entidad \texttt{Branch} hubiera existido desde el
+modelo de datos inicial ---~sin l\'ogica adicional, solo la
+estructura~--- la adaptaci\'on habr\'ia sido un feature nuevo en
+lugar de una cirug\'ia de emergencia.
+
+La propuesta inicial de librer\'ias para Colver no surgi\'o de una
+abstracci\'on arbitraria ni de especulaci\'on te\'orica: fue
+construida sobre el conocimiento recogido en esta clase de
+antecedentes reales. Los patrones que se propuso estandarizar
+(Persona, Organizaci\'on, Sedes, Autenticaci\'on) son exactamente
+los que generaron fricci\'on y parches en proyectos anteriores
+cuando no estaban previstos en la estructura. Aplicar YAGNI a
+este tipo de decisiones estructurales es confundir simplicidad con
+recorte.
+
+\subsection{YAGNI sin calidad es ``skimping''}
+
+Jeffries distingue expl\'icitamente entre YAGNI leg\'itimo y
+recorte de calidad:
+
+\begin{quote}
+\textit{``YAGNI, on its own, might not be safe\ldots\ But when we
+are keeping the design quality, code quality, and test quality
+high, YAGNI is quite safe.''}~\cite{jeffries2019}
+\end{quote}
+
+Su conclusi\'on es categ\'orica:
+
+\begin{quote}
+\textit{``YAGNI + clean code? Yes. Skimping?
+No.''}~\cite{jeffries2019}
+\end{quote}
+
+Fowler complementa desde la perspectiva econ\'omica:
+
+\begin{quote}
+\textit{``Yagni is not a justification for neglecting the health
+of your code base. Yagni requires (and enables) malleable
+code.''}~\cite{fowler2015yagni}
+\end{quote}
+
+\subsection{Qu\'e significa aplicar YAGNI y KISS correctamente en la consultora}
+
+Proponemos una interpretaci\'on razonable de ambos principios
+para el contexto espec\'ifico de la consultora:
+
+\begin{enumerate}
+  \item \textbf{YAGNI para features del cliente}: No modelar
+    funcionalidades que el cliente actual no ha solicitado. Si el
+    colegio no necesita facturaci\'on electr\'onica hoy, no se
+    construye. Esto es YAGNI leg\'itimo.
+
+  \item \textbf{KISS para la implementaci\'on}: Cada feature se
+    implementa de la forma m\'as simple que resuelva el problema.
+    Sin capas innecesarias, sin abstracciones especulativas
+    dentro del proyecto.
+
+  \item \textbf{DRY y SSOT entre proyectos}: Cuando un patr\'on
+    ya se repiti\'o en m\'ultiples proyectos (Persona, Auth,
+    Auditor\'ia), se consolida en el repositorio base. Esto no
+    viola YAGNI porque la necesidad ya est\'a demostrada; y no
+    viola KISS porque reduce la complejidad global al eliminar
+    duplicaci\'on.
+
+  \item \textbf{SINE para el repositorio base}: Construir
+    plantillas reutilizables bien dise\~nadas \textit{no es
+    f\'acil}, pero el resultado \textit{s\'i es simple}. La
+    simplicidad del producto final justifica el esfuerzo de
+    dise\~no~\cite{sine}.
+\end{enumerate}
+
+Esta interpretaci\'on es coherente con las 4 reglas de dise\~no
+simple de Kent Beck, ordenadas por
+prioridad~\cite{fowler_beck}:
+
+\begin{enumerate}
+  \item Pasa los tests.
+  \item Revela intenci\'on.
+  \item \textbf{No tiene duplicaci\'on.}
+  \item Tiene el m\'inimo de elementos.
+\end{enumerate}
+
+La regla 3 (no duplicaci\'on) tiene \textbf{mayor prioridad} que
+la regla 4 (m\'inimos elementos). Copiar y pegar el mismo c\'odigo
+de autenticaci\'on, personas y auditor\'ia en cada proyecto viola
+la regla 3, que es m\'as importante que ``tener menos archivos''.
+Bajo la definici\'on original de Beck, el repositorio base
+\textbf{es m\'as simple} que duplicar c\'odigo entre proyectos.
+
+\subsection{El retorno de la inversi\'on en dise\~no}
+
+Fowler, en su \textit{Design Stamina Hypothesis}, demuestra que
+la inversi\'on en dise\~no se recupera r\'apidamente:
+
+\begin{quote}
+\textit{``You can save short-term time by neglecting design, but
+this accumulates Technical Debt which will slow your productivity
+later.''}~\cite{fowler_stamina}
+\end{quote}
+
+\begin{quote}
+\textit{``I take the view that [the design payoff line] is much
+lower than most people think: usually weeks not
+months.''}~\cite{fowler_stamina}
+\end{quote}
+
+Y sobre la calidad interna:
+
+\begin{quote}
+\textit{``High internal quality reduces the cost of future
+features, meaning that putting the time into writing good code
+actually reduces cost. [\ldots] The `cost' of high internal quality
+software is negative.''}~\cite{fowler_quality}
+\end{quote}
+
+Robert C.\ Martin lo resume:
+
+\begin{quote}
+\textit{``If you think good architecture is expensive, try bad
+architecture.''}~\cite{martin2017}
+\end{quote}
+
+% ==========================================
+\section{Imprecisiones factuales en la contrapropuesta}
+% ==========================================
+
+\subsection{Se critica un strawman: librer\'ia r\'igida vs.\ modelo propuesto}
+
+La contrapropuesta dedica la mayor parte de sus cr\'iticas al
+concepto de ``librer\'ias r\'igidas que no se pueden tocar''. Sin
+embargo, el informe original~\cite{gutierrez2026} explica
+expl\'icitamente el modelo \textit{shadcn}:
+
+\begin{quote}
+\textit{``Cada proyecto toma lo que necesita y lo moldea
+libremente. Las modificaciones en un proyecto no afectan a los
+dem\'as.''}~\cite{gutierrez2026}
+\end{quote}
+
+La contrapropuesta propone exactamente lo mismo: plantillas que
+se copian, se pegan y se adaptan. \textbf{Es el mismo mecanismo de
+distribuci\'on con diferente terminolog\'ia.} La Tabla~\ref{tab:convergencia}
+muestra la equivalencia.
+
+\begin{table}[H]
+\centering
+\caption{Convergencia entre ambas propuestas}
+\label{tab:convergencia}
+\small
+\begin{tabularx}{\columnwidth}{>{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
+\toprule
+\textbf{Propuesta original} & \textbf{Contrapropuesta} \\
+\midrule
+Repositorio base & Repo.\ de plantillas \\
+Copiar y adaptar (shadcn) & Copiar y pegar \\
+Clean Architecture + DDD & Clean Arch.\ + DDD \\
+Proyecto due\~no del c\'odigo & Proyecto due\~no del c\'odigo \\
+No modificar repo base por un cliente & Plantillas indep.\ de proyectos \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{No es overengineering: los flujos eran conocidos}
+
+La contrapropuesta argumenta que se intent\'o
+\textit{``replicar completamente toda la estructura utilizada por
+Odoo''}~\cite{araoz2026}. Esto es incorrecto. Las entidades
+implementadas en las librer\'ias (Persona, Organizaci\'on,
+Empleado, Autenticaci\'on) no son especulaciones te\'oricas: son
+patrones que el equipo ya hab\'ia desarrollado en proyectos
+anteriores.
+
+George Fairbanks proporciona el marco adecuado para evaluar
+cu\'ando la inversi\'on arquitect\'onica est\'a justificada:
+
+\begin{quote}
+\textit{``There is no need for meticulous designs when risks are
+small, nor any excuse for sloppy designs when risks threaten your
+success.''}~\cite{fairbanks2010}
+\end{quote}
+
+En el contexto de una consultora con m\'ultiples proyectos,
+clientes repetidos y rotaci\'on de personal, el riesgo de no
+estandarizar es alto. La inversi\'on arquitect\'onica est\'a
+justificada.
+
+\subsection{El ejemplo de ``Colver solo tiene una sede'' es falaz}
+
+Que el primer cliente tenga una \'unica sede no invalida modelar
+la entidad \texttt{Branch}. Esta entidad a\~nade un FK a la base
+de datos y permite que el sistema funcione para clientes con $N$
+sedes sin modificaci\'on alguna. El costo marginal es m\'inimo
+(una tabla, una clave for\'anea) y el beneficio de
+reutilizaci\'on es alto. Fowler lo expresa directamente:
+
+\begin{quote}
+\textit{``If you do something for a future need that doesn't
+actually increase the complexity of the software, then there's no
+reason to invoke yagni.''}~\cite{fowler2015yagni}
+\end{quote}
+
+% ==========================================
+\section{La abstracci\'on de Persona: est\'andar de la industria}
+\label{sec:erps}
+% ==========================================
+
+La contrapropuesta trata la entidad unificada de Persona como un
+ejemplo de sobre-ingenier\'ia. Sin embargo, este patr\'on es el
+est\'andar de facto en todo el software empresarial del mundo.
+Cada uno de los principales ERPs lo ha adoptado de forma
+independiente.
+
+\subsection{Odoo: \texttt{res.partner}}
+
+Odoo utiliza un \'unico modelo \texttt{res.partner} para
+\textbf{todos} los contactos del sistema: individuos, empresas,
+clientes, proveedores, empleados y direcciones. Los roles se
+asignan mediante campos de rango: \texttt{customer\_rank} y
+\texttt{supplier\_rank}~\cite{odoo_partner}. Cada m\'odulo del
+ERP (Ventas, Compras, Contabilidad, Inventario, CRM, RRHH)
+referencia \texttt{res.partner}. Una misma empresa puede ser
+simult\'aneamente cliente y proveedor.
+
+\subsection{SAP S/4HANA: Business Partner (\texttt{BUT000})}
+
+SAP reemplaz\'o sus tablas maestras separadas
+---~\texttt{KNA1} (cliente) y \texttt{LFA1}
+(proveedor)~--- por un \textbf{Business Partner} unificado en
+\texttt{BUT000}. Los roles se asignan en una tabla separada
+\texttt{BUT100}, permitiendo $N$ roles por entidad con fechas de
+validez~\cite{sap_bp}. Notablemente, \texttt{BUT000} soporta
+expl\'icitamente m\'ultiples apellidos: \texttt{NAME\_LAST} y
+\texttt{NAME\_LAST2}, dise\~nado para culturas
+hispanoamericanas~\cite{sap_but000}.
+
+\subsection{Microsoft Dynamics 365: \texttt{DirPartyTable}}
+
+Microsoft documenta oficialmente el patr\'on:
+
+\begin{quote}
+\textit{``A party is a person or an organization that is involved
+in a business. When you use the party concept, a person or an
+organization can play more than one role in a business (for
+example, customer, vendor, or contact).''}~\cite{ms_dynamics}
+\end{quote}
+
+Y justifica con un ejemplo concreto:
+
+\begin{quote}
+\textit{``A party can be both a customer and a vendor. [\ldots]
+A party can be both an employee and a customer. For example, an
+employee of Contoso buys electronics from Contoso for personal
+use.''}~\cite{ms_dynamics}
+\end{quote}
+
+\subsection{Oracle TCA: \texttt{HZ\_PARTIES}}
+
+Oracle implementa la \textit{Trading Community Architecture}
+(TCA), quiz\'as la implementaci\'on m\'as rigurosa del patr\'on.
+En TCA, un \texttt{Party} \textbf{no es} un cliente: se convierte
+en cliente cuando se crea un registro en
+\texttt{HZ\_CUST\_ACCOUNTS}. La misma entidad puede tener
+m\'ultiples cuentas de cliente y ser simult\'aneamente proveedor.
+Es un modelo de tres capas: Party (identidad), Account (rol) y
+Site (ubicaci\'on)~\cite{oracle_tca}.
+
+\subsection{ERPNext: Party Type din\'amico}
+
+ERPNext utiliza el campo polim\'orfico \texttt{party\_type} +
+\texttt{party} mediante \textit{Dynamic Links} del framework
+Frappe. Direcciones y contactos se comparten entre Customer,
+Supplier y Employee mediante este mecanismo~\cite{erpnext_party}.
+
+\subsection{S\'intesis}
+
+La Tabla~\ref{tab:erps} resume el patr\'on. \textbf{Todos} los
+ERPs mayores del mundo usan una abstracci\'on unificada de
+Persona/Entidad. Esto no es una coincidencia ni
+sobre-ingenier\'ia: es la soluci\'on probada al problema real de
+que una misma entidad del mundo real cumple m\'ultiples roles en
+un sistema de negocio.
+
+\begin{table}[H]
+\centering
+\caption{Patr\'on de Persona unificada en ERPs}
+\label{tab:erps}
+\small
+\begin{tabularx}{\columnwidth}{l >{\raggedright\arraybackslash}X l}
+\toprule
+\textbf{ERP} & \textbf{Entidad central} & \textbf{Roles} \\
+\midrule
+Odoo & \texttt{res.partner} & Ranks \\
+SAP & \texttt{BUT000} & \texttt{BUT100} \\
+Dynamics & \texttt{DirPartyTable} & Party Roles \\
+Oracle & \texttt{HZ\_PARTIES} & Accounts \\
+ERPNext & \texttt{party\_type} & Dyn.\ Link \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ==========================================
+\section{SPLE: el marco te\'orico que aplica}
+% ==========================================
+
+El paradigma de \textit{Software Product Line Engineering}
+(SPLE), estandarizado por el Software Engineering Institute (SEI)
+de Carnegie Mellon~\cite{clements2001}, define c\'omo construir un
+portafolio de productos a partir de un n\'ucleo com\'un. La tesis
+central es que cuando una organizaci\'on \textbf{sabe} que
+construir\'a m\'ultiples productos similares, la inversi\'on
+anticipada en arquitectura compartida genera retornos econ\'omicos
+significativos.
+
+La consultora opera exactamente en este escenario: m\'ultiples
+proyectos, patrones comunes conocidos, y un objetivo estrat\'egico
+expl\'icito de reutilizaci\'on. Esto contradice directamente la
+aplicaci\'on ingenua de YAGNI en contextos multi-proyecto, porque
+la reutilizaci\'on es \textbf{conocida y planificada}, no
+especulativa.
+
+% ==========================================
+\section{An\'alisis de la analog\'ia Taller vs.\ F\'abrica}
+% ==========================================
+
+La contrapropuesta argumenta que la analog\'ia de taller versus
+f\'abrica es inadecuada porque ``no fabricamos un \'unico modelo
+de auto''~\cite{araoz2026}. La analog\'ia se extiende a fabricar
+chasis, ejes y llantas, concluyendo que la f\'abrica
+``acabar\'ia fabricando partes individuales peque\~nas'', y que
+esto ser\'ia un desatino.
+
+Sin embargo, eso es \textbf{exactamente} lo que hace la industria
+automotriz real. En este contexto, una \textit{plataforma} es el
+conjunto de componentes base que comparten varios modelos de auto:
+la estructura del piso, las suspensiones, la ubicaci\'on del motor,
+y los sistemas el\'ectricos fundamentales. No es un auto completo:
+es la base com\'un sobre la que se construyen autos muy diferentes.
+
+La Tabla~\ref{tab:autos} muestra ejemplos concretos. Un
+Volkswagen Polo (hatchback econ\'omico) y un Audi Q3 (SUV
+premium) comparten la plataforma MQB. Un Chevrolet Onix
+(sed\'an), un Tracker (SUV) y una Montana (pickup) comparten la
+plataforma GEM. Un Toyota Corolla y un RAV4 comparten TNGA. Un
+Hyundai Tucson y un Kia Sportage ---~de marcas distintas~---
+comparten la plataforma N3. Un Renault Duster y un Nissan Kicks
+comparten CMF-B~\cite{vw_mqb, gm_gem, toyota_tnga,
+hyundai_platform, renault_cmf}.
+
+Nadie dir\'ia que un Toyota Corolla y un RAV4 son ``el mismo
+auto'', ni que un Hyundai Tucson y un Kia Sportage son ``el mismo
+veh\'iculo''. Son productos muy diferentes, para clientes muy
+diferentes, a precios muy diferentes. Pero comparten una base com\'un que les permite a
+las automotrices no reinventar lo fundamental en cada modelo nuevo.
+
+La analog\'ia con la consultora es directa: un sistema para un
+colegio y un sistema para un hotel son productos diferentes, pero
+ambos necesitan autenticaci\'on, gesti\'on de personas y
+auditor\'ia. Esos componentes son la ``plataforma'' de la
+consultora. No es un sistema completo para todos: es la base
+probada sobre la que cada proyecto construye su funcionalidad
+espec\'ifica.
+
+\begin{table}[H]
+\centering
+\caption{Plataformas compartidas en la industria automotriz}
+\label{tab:autos}
+\small
+\begin{tabularx}{\columnwidth}{l >{\raggedright\arraybackslash}X r}
+\toprule
+\textbf{Plataforma} & \textbf{Modelos en LATAM} & \textbf{Ahorro} \\
+\midrule
+VW MQB & Polo, T-Cross, Tiguan, Taos, Audi A3/Q3 & 30\% \\
+GM GEM & Onix, Tracker, Montana & -- \\
+Toyota TNGA & Corolla, Corolla Cross, RAV4, Camry & 20\% \\
+Hyundai N3/K2 & Tucson, Sportage, Creta, Seltos & -- \\
+CMF-B (RNM) & Duster, Kicks, Captur & 30--40\% \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ==========================================
+\section{Sobre la restricci\'on de uso de IA}
+% ==========================================
+
+La contrapropuesta establece que ``la idea original, el flujo de
+trabajo, las entidades, sus nombres, propiedades y operaciones no
+pueden venir de una IA''~\cite{araoz2026}. Si bien la intenci\'on
+de evitar abstracciones especulativas es razonable, el criterio
+es arbitrario.
+
+La calidad de una abstracci\'on se mide por su resultado
+(cohesi\'on, acoplamiento, expresividad del dominio), no por su
+origen. Un humano puede producir abstracciones especulativas
+tan deficientes como una IA, y una IA con el contexto adecuado
+puede identificar patrones que un humano pasa por alto. El
+criterio correcto es \textbf{revisi\'on y validaci\'on por el
+equipo}, independientemente de qui\'en o qu\'e gener\'o la
+propuesta inicial.
+
+% ==========================================
+\section{Sobre las limitaciones reconocidas}
+% ==========================================
+
+La contrapropuesta reconoce honestamente sus propias
+limitaciones~\cite{araoz2026}: normalizaci\'on con composici\'on,
+dependencias opcionales entre plantillas, infraestructura
+(tablas propias vs.\ datos embebidos), manejo de errores, y
+aspectos de DDD como Aggregates, Bounded Contexts y Eventos.
+
+Es notable que estos son \textbf{exactamente los problemas que un
+repositorio base institucional resuelve} al definir convenciones
+claras desde el inicio. La contrapropuesta identifica vac\'ios
+en su propia propuesta que la propuesta original ya aborda.
+
+% ==========================================
+\section{Conclusiones}
+% ==========================================
+
+\begin{enumerate}
+  \item Se reconocen las cr\'iticas leg\'itimas al primer
+    informe: el dise\~no insuficiente de Persona, la falta de
+    detalle operativo, y la necesidad de mayor consenso.
+
+  \item Se demuestra, con citas textuales de los autores
+    originales (Fowler, Jeffries, Beck, Martin), que YAGNI no
+    aplica a decisiones arquitect\'onicas ni a esfuerzos de
+    mantenibilidad. Usar YAGNI para rechazar inversi\'on
+    arquitect\'onica es una malinterpretaci\'on del principio.
+
+  \item Se evidencia que la abstracci\'on unificada de
+    Persona/Contacto es el est\'andar de facto en la industria,
+    adoptado independientemente por Odoo, SAP, Microsoft, Oracle
+    y ERPNext.
+
+  \item Se demuestra que ambas propuestas convergen en el mismo
+    mecanismo de distribuci\'on (copiar, adaptar, ser due\~no del
+    c\'odigo), y que la diferencia es terminol\'ogica.
+
+  \item La industria automotriz valida el modelo de plataforma:
+    Toyota, Volkswagen, GM, Hyundai-Kia y Renault-Nissan
+    construyen veh\'iculos radicalmente distintos sobre bases
+    compartidas, reduciendo costos entre un 20\% y 40\%.
+
+  \item Se propone que la discusi\'on futura se enfoque en los
+    detalles de implementaci\'on (gobernanza, contenido de las
+    plantillas, proceso de revisi\'on) en lugar de perpetuar una
+    falsa dicotom\'ia entre enfoques que son, en esencia, el
+    mismo.
+\end{enumerate}
+
+% ==========================================
+% REFERENCES
+% ==========================================
+
+\begin{thebibliography}{99}
+
+\bibitem{araoz2026}
+F.~E.~Araoz~Morales, ``Reutilizaci\'on basada en plantillas y
+composici\'on como alternativa a librer\'ias y OOP para la
+reutilizaci\'on de c\'odigo,'' \'Area de Digitales -- ACIDE,
+Arequipa, Per\'u, 2026.
+
+\bibitem{gutierrez2026}
+G.~E.~Guti\'errez~Castillo, ``Reporte T\'ecnico y
+Estrat\'egico: Est\'andar Arquitect\'onico para la
+Reutilizaci\'on de Software en una Consultora,'' \'Area de
+Digitales -- ACIDE, Arequipa, Per\'u, 2026.
+
+\bibitem{fowler2015yagni}
+M.~Fowler, ``Yagni,'' \textit{martinfowler.com}, 2015.
+[Online]. Available:
+\url{https://martinfowler.com/bliki/Yagni.html}. [Accessed:
+16-Mar-2026].
+
+\bibitem{jeffries2019}
+R.~Jeffries, ``YAGNI, Skimping, and Technical Debt,''
+\textit{ronjeffries.com}, 2019. [Online]. Available:
+\url{https://ronjeffries.com/articles/019-01ff/iter-yagni-skimp/}.
+[Accessed: 16-Mar-2026].
+
+\bibitem{jeffries_yagni}
+R.~Jeffries, ``You're NOT Gonna Need It!,''
+\textit{ronjeffries.com}. [Online]. Available:
+\url{https://ronjeffries.com/xprog/articles/practices/pracnotneed/}.
+[Accessed: 16-Mar-2026].
+
+\bibitem{martin2017}
+R.~C.~Martin, \textit{Clean Architecture: A Craftsman's Guide to
+Software Structure and Design}.\hskip 1em plus 0.5em minus
+0.4em\relax Pearson, 2017.
+
+\bibitem{fowler_stamina}
+M.~Fowler, ``Design Stamina Hypothesis,''
+\textit{martinfowler.com}. [Online]. Available:
+\url{https://martinfowler.com/bliki/DesignStaminaHypothesis.html}.
+[Accessed: 16-Mar-2026].
+
+\bibitem{fowler_quality}
+M.~Fowler, ``Is High Quality Software Worth the Cost?,''
+\textit{martinfowler.com}. [Online]. Available:
+\url{https://martinfowler.com/articles/is-quality-worth-cost.html}.
+[Accessed: 16-Mar-2026].
+
+\bibitem{fowler_beck}
+M.~Fowler, ``BeckDesignRules,'' \textit{martinfowler.com}.
+[Online]. Available:
+\url{https://martinfowler.com/bliki/BeckDesignRules.html}.
+[Accessed: 16-Mar-2026].
+
+\bibitem{fairbanks2010}
+G.~Fairbanks, \textit{Just Enough Software Architecture: A
+Risk-Driven Approach}.\hskip 1em plus 0.5em minus 0.4em\relax
+Marshall \& Brainerd, 2010.
+
+\bibitem{clements2001}
+P.~Clements and L.~Northrop, \textit{Software Product Lines:
+Practices and Patterns}.\hskip 1em plus 0.5em minus 0.4em\relax
+Addison-Wesley, 2001.
+
+\bibitem{gof1994}
+E.~Gamma, R.~Helm, R.~Johnson, and J.~Vlissides, \textit{Design
+Patterns: Elements of Reusable Object-Oriented Software}.\hskip
+1em plus 0.5em minus 0.4em\relax Addison-Wesley, 1994.
+
+\bibitem{odoo_partner}
+Odoo S.A., ``res.partner source code,'' \textit{GitHub:
+odoo/odoo}, branch 17.0. [Online]. Available:
+\url{https://github.com/odoo/odoo/blob/17.0/odoo/addons/base/models/res_partner.py}.
+[Accessed: 16-Mar-2026].
+
+\bibitem{sap_bp}
+SAP SE, ``Business Partner in SAP S/4HANA,'' \textit{SAP Help
+Portal}. [Online]. Available:
+\url{https://help.sap.com/docs/SAP_S4HANA_ON-PREMISE}.
+[Accessed: 16-Mar-2026].
+
+\bibitem{sap_but000}
+``SAP BUT000 Table -- Business Partner: General Data,''
+\textit{leanx.eu}. [Online]. Available:
+\url{https://leanx.eu/en/sap/table/but000.html}. [Accessed:
+16-Mar-2026].
+
+\bibitem{ms_dynamics}
+Microsoft, ``Party and global address book,'' \textit{Microsoft
+Learn}. [Online]. Available:
+\url{https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/party-gab}.
+[Accessed: 16-Mar-2026].
+
+\bibitem{oracle_tca}
+Oracle, ``Trading Community Architecture (TCA),'' \textit{Oracle
+Documentation}. [Online]. Available:
+\url{https://docs.oracle.com/en/applications/}. [Accessed:
+16-Mar-2026].
+
+\bibitem{erpnext_party}
+Frappe Technologies, ``ERPNext party.py source code,''
+\textit{GitHub: frappe/erpnext}. [Online]. Available:
+\url{https://github.com/frappe/erpnext/blob/develop/erpnext/accounts/party.py}.
+[Accessed: 16-Mar-2026].
+
+\bibitem{vw_mqb}
+Volkswagen AG, ``Modular toolkit strategy as recipe for success:
+the MQB celebrates tenth anniversary,'' \textit{Volkswagen
+Newsroom}, 2022. [Online]. Available:
+\url{https://www.volkswagen-newsroom.com/en/press-releases/modular-toolkit-strategy-as-recipe-for-success-the-mqb-celebrates-tenth-anniversary-8030}.
+[Accessed: 16-Mar-2026].
+
+\bibitem{gm_gem}
+``GM GEM Vehicle Platform,'' \textit{GM Authority}. [Online].
+Available: \url{https://gmauthority.com/blog/gm/gm-platforms/gem/}.
+[Accessed: 16-Mar-2026].
+
+\bibitem{toyota_tnga}
+Toyota Motor Corporation, ``Toyota New Global Architecture,''
+\textit{global.toyota}. [Online]. Available:
+\url{https://global.toyota/en/mobility/tnga/index.html}.
+[Accessed: 16-Mar-2026].
+
+\bibitem{hyundai_platform}
+``Hyundai-Kia N platform,'' \textit{Wikipedia}. [Online].
+Available:
+\url{https://en.wikipedia.org/wiki/Hyundai-Kia_N_platforms}.
+[Accessed: 16-Mar-2026].
+
+\bibitem{renault_cmf}
+Renault-Nissan-Mitsubishi Alliance, ``Common Module Family
+(CMF),'' 2013. [Online]. Available:
+\url{https://en.wikipedia.org/wiki/Renault\%E2\%80\%93Nissan_Common_Module_Family}.
+[Accessed: 16-Mar-2026].
+
+\bibitem{sine}
+M.~Lehtinen, ``4 Most Important Software Development Principles:
+DRY, YAGNI, KISS, and SINE,'' \textit{mattilehtinen.com}.
+[Online]. Available:
+\url{https://mattilehtinen.com/articles/4-most-important-software-development-principles-dry-yagni-kiss-and-sine/}.
+[Accessed: 16-Mar-2026].
+
+\end{thebibliography}
+
+\end{document}
