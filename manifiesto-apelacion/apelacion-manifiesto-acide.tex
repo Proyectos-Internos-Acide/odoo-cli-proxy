@@ -1,0 +1,355 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+% lmodern not available in this environment
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{tcolorbox}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{booktabs}
+
+\geometry{margin=2.5cm}
+
+\definecolor{codegreen}{rgb}{0,0.5,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.95}
+\definecolor{accentblue}{rgb}{0.15,0.3,0.55}
+\definecolor{warnred}{rgb}{0.7,0.1,0.1}
+
+\lstdefinestyle{csharp}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{codepurple}\bfseries,
+    stringstyle=\color{codegreen},
+    basicstyle=\ttfamily\scriptsize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2,
+    frame=single,
+    rulecolor=\color{codegray},
+    morekeywords={var,async,await,Task,Guid,CancellationToken,record,namespace,using,public,private,static,class,interface,where,new,return,if,throw,foreach,in,null,is,not,bool,decimal,string,List,IQueryable},
+}
+
+\lstset{style=csharp}
+
+\tcbuselibrary{skins,breakable}
+\newtcolorbox{problembox}[1][]{
+    colback=warnred!5,
+    colframe=warnred!70,
+    fonttitle=\bfseries,
+    title=#1,
+    breakable
+}
+\newtcolorbox{proposalbox}[1][]{
+    colback=accentblue!5,
+    colframe=accentblue!70,
+    fonttitle=\bfseries,
+    title=#1,
+    breakable
+}
+
+\titleformat{\section}{\Large\bfseries\color{accentblue}}{}{0em}{}
+\titleformat{\subsection}{\large\bfseries\color{accentblue!80}}{}{0em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries\color{accentblue!60}}{}{0em}{}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textcolor{codegray}{Apelaci\'on al Manifiesto ACIDE}}
+\fancyhead[R]{\small\textcolor{codegray}{\today}}
+\fancyfoot[C]{\small\textcolor{codegray}{\thepage}}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\begin{document}
+
+\begin{titlepage}
+\centering
+\vspace*{3cm}
+{\Huge\bfseries\color{accentblue} Apelaci\'on Formal al\\Manifiesto ACIDE\par}
+\vspace{1cm}
+{\Large Observaciones T\'ecnicas y Propuestas de Enmienda\par}
+\vspace{2cm}
+{\large\textbf{Autor:} Gonzalo Guti\'errez Castillo\par}
+\vspace{0.5cm}
+{\large\textbf{Fecha:} \today\par}
+\vspace{0.5cm}
+{\large\textbf{Versi\'on del Manifiesto:} 19/03/2026\par}
+\vspace{2cm}
+{\normalsize Este documento presenta observaciones t\'ecnicas fundamentadas en est\'andares de la industria, documentaci\'on oficial de Microsoft, y referencias de arquitectos reconocidos en el ecosistema .NET. El objetivo es fortalecer el Manifiesto, no debilitarlo.\par}
+\vspace{2cm}
+{\small\textcolor{codegray}{Documento sometido bajo el derecho de Registro de Disidencia Fundamentada (Punto 3.3.D del Manifiesto)}\par}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+%% ============================================================
+\section{Resumen Ejecutivo}
+%% ============================================================
+
+El Manifiesto ACIDE establece principios valiosos de organizaci\'on, reutilizaci\'on y calidad. Sin embargo, presenta un desajuste fundamental: \textbf{importa reglas del ecosistema de microservicios y las aplica a un monolito modular} que comparte proceso, base de datos, DbContext y transacci\'on.
+
+Las reglas de aislamiento total, comunicaci\'on exclusiva por eventos, y prohibici\'on absoluta de cross-import resuelven problemas de sistemas distribuidos que ACIDE no tiene. Al mismo tiempo, generan problemas nuevos: p\'erdida de integridad referencial, imposibilidad de transacciones at\'omicas cross-module, y composici\'on que no compila.
+
+Este documento identifica \textbf{8 antipatrones} que el Manifiesto introduce, y propone \textbf{3 enmiendas concretas} que preservan los objetivos de reutilizaci\'on del Garaje sin sacrificar la integridad t\'ecnica.
+
+
+%% ============================================================
+\section{Contexto Arquitect\'onico de ACIDE}
+%% ============================================================
+
+Antes de analizar los puntos espec\'ificos, es fundamental establecer qu\'e es y qu\'e no es la arquitectura de ACIDE:
+
+\begin{itemize}[leftmargin=2em]
+    \item \textbf{Monolito modular} --- no microservicios.
+    \item \textbf{Una sola base de datos relacional} --- PostgreSQL/SQL Server.
+    \item \textbf{EF Core} como ORM --- con change tracking y transacciones ACID.
+    \item \textbf{CQRS stateful sin Event Sourcing} --- commands y queries separados, sin event store.
+    \item \textbf{Modelo Snapshot \& Fork} --- los m\'odulos se copian del Garaje al proyecto. No son dependencias vivas ni independientemente desplegables.
+\end{itemize}
+
+El objetivo del Garaje es que los m\'odulos sean \textbf{reutilizables y adaptables}, no \textbf{independientemente desplegables}. Esta distinci\'on es cr\'itica para evaluar qu\'e reglas de aislamiento aportan valor real.
+
+
+%% ============================================================
+\section{Antipatrones Identificados}
+%% ============================================================
+
+\subsection{AP-1: Distributed Monolith}
+Aplicar reglas de aislamiento de microservicios (comunicaci\'on solo por eventos, cero cross-import, propiedad de datos aislada) dentro de un monolito que comparte proceso, base de datos y transacci\'on. Se paga el costo de la distribuci\'on sin obtener ninguno de sus beneficios.
+
+\subsection{AP-2: Middle Man / Pass-through Layer}
+Forzar que las lecturas pasen por interfaces de repositorio en Domain que solo reenv\'ian la llamada a Infrastructure sin agregar l\'ogica de negocio. El query handler llama a la interfaz, la interfaz llama al repo, el repo llama a EF Core --- tres capas para un \texttt{SELECT}.
+
+\subsection{AP-3: Repository Interface Bloat (Header Interface)}
+Al obligar que todas las queries pasen por interfaces en Domain, se generan interfaces con decenas de m\'etodos de consulta espec\'ificos que se usan una sola vez. M\'ultiples desarrolladores en paralelo agregan m\'etodos sin reciclar los existentes.
+
+\subsection{AP-4: Leaky Abstraction Inversa}
+El Manifiesto proh\'ibe que Domain conozca infraestructura, pero fuerza a definir interfaces de consulta en Domain que impl\'icitamente modelan capacidades del ORM (paginaci\'on, includes, sorting). La abstracci\'on ``pura'' termina moldeada por la tecnolog\'ia que dice no conocer.
+
+\subsection{AP-5: Theatrical Decoupling}
+Prohibir cross-import de entidades entre m\'odulos que siempre se copian juntos del Garaje, comparten la misma base de datos y se despliegan en el mismo proceso. La separaci\'on existe en el c\'odigo pero no en la realidad operativa.
+
+\subsection{AP-6: Event-Driven sin Infraestructura de Eventos}
+Proponer comunicaci\'on por eventos de dominio como mecanismo inter-modular sin definir c\'omo se garantiza atomicidad en un sistema stateful sin Event Sourcing. Los domain events v\'ia MediatR se procesan en la misma transacci\'on, lo cual acopla los m\'odulos transaccionalmente, contradiciendo la premisa de independencia.
+
+\subsection{AP-7: Composici\'on Imposible}
+Ofrecer composici\'on por interfaces como soluci\'on al acoplamiento inter-modular (Punto 5.7.B), pero prohibir los cross-imports necesarios para que un m\'odulo implemente la interfaz que otro define. No existe c\'odigo compilable que satisfaga ambas reglas simult\'aneamente.
+
+\subsection{AP-8: DTOs Internos sin Consumidor}
+Declarar que Application contiene ``DTOs internos'' (Punto 4.2.B) pero prohibir la comunicaci\'on inter-modular que les dar\'ia prop\'osito. Si nadie fuera del m\'odulo consume esos DTOs, son request/response models de los handlers, no DTOs de comunicaci\'on.
+
+
+%% ============================================================
+\section{Observaci\'on 1: Separaci\'on Lecturas vs. Escrituras}
+%% ============================================================
+
+\subsection{Lo que dice el Manifiesto}
+La separaci\'on de capas Domain$\to$Interface$\to$Infrastructure es uniforme e innegociable para todas las operaciones, sean lecturas o escrituras.
+
+\subsection{El Problema}
+En CQRS, las escrituras protegen invariantes de negocio y requieren el Domain Model completo. Las lecturas devuelven datos planos a la UI, no mutan estado y no tienen invariantes que proteger. Forzar las lecturas a pasar por interfaces de repositorio en Domain genera:
+\begin{itemize}[leftmargin=2em]
+    \item Interfaces infladas con m\'etodos de un solo uso (AP-3).
+    \item Capas intermedias que no agregan valor (AP-2).
+    \item Abstracciones que modelan capacidades del ORM (AP-4).
+\end{itemize}
+
+\subsection{Respaldo de la Industria}
+
+\subsubsection{Microsoft --- Gu\'ia Oficial de .NET}
+La documentaci\'on oficial de Microsoft para eShopOnContainers establece expl\'icitamente:
+
+\begin{quote}
+\textit{``If you're using the CQS/CQRS architectural pattern, the initial queries are performed by side queries out of the domain model, performed by simple SQL statements using Dapper. This approach is much more flexible than repositories.''}
+\end{quote}
+\small{Fuente: \texttt{learn.microsoft.com/en-us/dotnet/architecture/microservices/\\microservice-ddd-cqrs-patterns/infrastructure-persistence-layer-design}}
+
+\normalsize
+
+Adem\'as, la misma gu\'ia sugiere:
+\begin{quote}
+\textit{``This guide suggests using DDD patterns only in the transactional/updates area of your microservice (that is, as triggered by commands). Queries can follow a simpler approach.''}
+\end{quote}
+\small{Fuente: \texttt{learn.microsoft.com/en-us/dotnet/architecture/microservices/\\microservice-ddd-cqrs-patterns/eshoponcontainers-cqrs-ddd-microservice}}
+
+\normalsize
+
+\subsubsection{Jimmy Bogard --- Creador de MediatR y AutoMapper}
+En feedback directo a la gu\'ia de Microsoft:
+\begin{quote}
+\textit{``I'm really not a fan of repositories, mainly because they hide the important details of the underlying persistence mechanism. Going CQRS meant that we didn't really have a need for repositories any more.''}
+\end{quote}
+
+\subsubsection{Derek Comartin --- CodeOpinion}
+Sobre CQRS y repositorios:
+\begin{quote}
+\textit{``On the Query side, since I'm not making any state changes, I do not need an Aggregate. Queries are specific use cases in ways to return data.''}
+\end{quote}
+
+\subsection{Respuesta al Argumento ``\textquestiondown Y si Cambiamos de ORM?''}
+
+Este argumento suena razonable pero no resiste an\'alisis:
+
+\begin{enumerate}[leftmargin=2em]
+    \item \textbf{Probabilidad:} EF Core es el ORM oficial de Microsoft con soporte de largo plazo. En el contexto de ACIDE (consultora, proyectos por cliente), la probabilidad de migrar de ORM es pr\'acticamente nula.
+    \item \textbf{La abstracci\'on no protege:} Si cambias de ORM, reescribes toda la capa de Infrastructure de todos modos. La interfaz en Domain no ahorra ese trabajo --- solo te obliga a mantener firmas sincronizadas.
+    \item \textbf{Sin abstracci\'on, la migraci\'on es m\'as granular:} Puedes migrar query por query en vez de interfaz completa por interfaz completa. eShopOnContainers usa EF Core para commands y Dapper para queries conviviendo en el mismo proyecto.
+    \item \textbf{El lado de escritura s\'i justifica la abstracci\'on} porque protege invariantes de negocio. El lado de lectura no tiene invariantes que proteger.
+\end{enumerate}
+
+\begin{proposalbox}[Enmienda Propuesta 1: Separaci\'on Asim\'etrica CQRS]
+La separaci\'on estricta Domain$\to$Interface$\to$Infrastructure aplica obligatoriamente para \textbf{operaciones de escritura} (Commands). Para \textbf{operaciones de lectura} (Queries), los query handlers pueden acceder a infraestructura directamente (v\'ia \texttt{IQueryable<T>} expuesto en \texttt{IRepository<T>.Query()} o v\'ia un query context) para componer consultas espec\'ificas sin crear m\'etodos en interfaces de repositorio.
+
+\medskip
+\textbf{Dentro de un Command}, se permiten dos tipos de lectura:
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Carga de aggregate v\'ia repositorio} --- cuando se va a mutar la entidad o ejecutar l\'ogica de dominio. Usa \texttt{FindByIdAsync} o el repositorio.
+    \item \textbf{Query de soporte v\'ia \texttt{IQueryable}} --- verificaciones de existencia, validaciones simples, lectura de datos de otros m\'odulos sin cargar aggregates completos.
+\end{itemize}
+\end{proposalbox}
+
+
+%% ============================================================
+\section{Observaci\'on 2: Aislamiento Total entre M\'odulos}
+%% ============================================================
+
+\subsection{Lo que dice el Manifiesto}
+Punto 4.3 y 5.2: ``Prohibido el Cross-Import. Un m\'odulo no puede importar archivos internos de otro.'' Los m\'odulos deben ser compartimentos estancos comunicados solo por eventos o interfaces compartidas.
+
+\subsection{El Problema}
+
+\subsubsection{Integridad Referencial}
+En un monolito con una sola base de datos, si \texttt{Matricula} tiene un FK a \texttt{Alumno}, EF Core necesita conocer el tipo \texttt{Alumno} para configurar la relaci\'on. Sin cross-import:
+\begin{itemize}[leftmargin=2em]
+    \item No puedes tener navigation properties entre m\'odulos.
+    \item No puedes tener FKs reales a nivel de base de datos (o los configuras con \texttt{Guid} sin constraint).
+    \item Pierdes \texttt{.Include()}, JOINs naturales, y la protecci\'on de integridad referencial del motor de base de datos.
+\end{itemize}
+
+\subsubsection{La Composici\'on del Punto 5.7.B no Compila}
+El Manifiesto propone que ``M\'odulo B define una interfaz de lo que necesita (ej. \texttt{ICalculadorDeImpuestos})''. Pero:
+\begin{itemize}[leftmargin=2em]
+    \item Si la interfaz usa tipos primitivos (\texttt{decimal}, \texttt{string}), se pierde todo el valor de DDD (Value Objects, type-safety, lenguaje ubicuo).
+    \item Si la interfaz usa tipos del Domain del otro m\'odulo, se viola la prohibici\'on de cross-import.
+    \item Si se duplican los tipos en ambos m\'odulos, se arriesga la ``Divergencia Salvaje'' que el propio Manifiesto teme (Punto 3.5).
+    \item Para que el otro m\'odulo implemente la interfaz, necesita referenciar el assembly donde est\'a definida, creando una dependencia que el Manifiesto proh\'ibe.
+\end{itemize}
+
+\subsubsection{Atomicidad Transaccional}
+Cuando una operaci\'on de negocio requiere crear entidades en m\'ultiples m\'odulos (ej: crear un A\~no Acad\'emico con sus Grados y Secciones), se necesita una sola transacci\'on. El Manifiesto propone eventos, pero:
+\begin{itemize}[leftmargin=2em]
+    \item En CQRS stateful sin Event Sourcing, no hay mecanismo de compensaci\'on (sagas).
+    \item Los domain events v\'ia MediatR se procesan en la misma transacci\'on, lo que acopla los m\'odulos transaccionalmente.
+    \item Si un evento falla, \textquestiondown se hace rollback de todo? Entonces no son realmente ``independientes''.
+\end{itemize}
+
+\subsection{Respaldo de la Industria}
+Oskar Dudycz (Architecture Weekly) advierte contra el dogmatismo:
+\begin{quote}
+\textit{``When someone tells you that CQRS requires event sourcing, or that VSA forbids shared code, ask where they read that. Most of the time, they didn't read it anywhere.''}
+\end{quote}
+
+En cuanto a la comunicaci\'on inter-modular en monolitos, la industria reconoce un espectro de opciones. Un art\'iculo reciente sobre moduliths production-ready establece:
+\begin{quote}
+\textit{``In a modulith, calling across modules is allowed but should be done carefully. If you still need synchronous calls, restrict them to queries only and always go through explicit contracts at the module boundary.''}
+\end{quote}
+
+\begin{proposalbox}[Enmienda Propuesta 2: Dependencias Expl\'icitas y Direccionales]
+Reemplazar la regla de ``aislamiento total entre m\'odulos'' por tres reglas pragm\'aticas y verificables:
+
+\medskip
+\textbf{Regla 1 --- Propiedad exclusiva de escritura.} Solo el m\'odulo due\~no de una entidad puede crearla, modificarla o eliminarla.
+
+\medskip
+\textbf{Regla 2 --- Referencias de dominio expl\'icitas y direccionales.} Un m\'odulo puede referenciar las entidades y value objects del dominio de otro m\'odulo para modelar relaciones reales (FKs, navigation properties, queries). La dependencia debe ser unidireccional y declarada. Las referencias circulares est\'an prohibidas.
+
+\medskip
+\textbf{Regla 3 --- Internos encapsulados.} Los handlers, servicios de aplicaci\'on, repositorios e infraestructura de un m\'odulo son \texttt{internal}. Ning\'un otro m\'odulo puede acceder a ellos. La superficie p\'ublica es: Domain (entidades y contratos) y opcionalmente Command DTOs con sus Validators para operaciones cross-module.
+
+\medskip
+\textbf{Tabla de permisos:}
+
+\medskip
+\begin{tabular}{llc}
+\toprule
+\textbf{Origen} & \textbf{Destino} & \textbf{\textquestiondown Permitido?} \\
+\midrule
+Matricula.Domain & Alumnos.Domain (entidades, VOs) & \textcolor{codegreen}{S\'i} \\
+Matricula.Application & Alumnos.Domain & \textcolor{codegreen}{S\'i} \\
+Matricula.Application & Alumnos.Application (handlers) & \textcolor{warnred}{No} \\
+Matricula.Infrastructure & Alumnos.Infrastructure & \textcolor{warnred}{No} \\
+Cualquier m\'odulo & Otro m\'odulo (Command DTOs) & \textcolor{codegreen}{S\'i} \\
+\bottomrule
+\end{tabular}
+\end{proposalbox}
+
+
+%% ============================================================
+\section{Observaci\'on 3: Comunicaci\'on Inter-Modular}
+%% ============================================================
+
+\subsection{Lo que dice el Manifiesto}
+Punto 5.6: Comunicaci\'on solo por eventos de dominio, interfaces compartidas en \texttt{shared}, u orquestaci\'on en Application (sin permitir que un m\'odulo conozca a otro).
+
+\subsection{El Problema}
+El Manifiesto no define c\'omo se garantiza atomicidad con ninguna de estas opciones sin romper sus propias reglas. Adem\'as, en un sistema CQRS stateful, las operaciones cross-module at\'omicas son un caso de uso real y frecuente.
+
+Ejemplo concreto: Crear un A\~no Acad\'emico requiere crear Grados y Secciones en la misma transacci\'on. Esto exige que un handler orquestador coordine operaciones de m\'ultiples m\'odulos y llame a un solo \texttt{SaveChangesAsync}.
+
+\subsection{Soluci\'on Existente en la Arquitectura Actual}
+La arquitectura actual de ACIDE ya resuelve este problema con un patr\'on de Command DTO + FluentValidation + Execute:
+
+\begin{itemize}[leftmargin=2em]
+    \item Cada Command tiene un \textbf{DTO} (record) que act\'ua como contrato tipado.
+    \item Cada Command tiene un \textbf{Validator} (FluentValidation) que protege la frontera del m\'odulo --- sea que el comando venga de la API o de otro handler.
+    \item El m\'etodo \textbf{Execute} contiene toda la l\'ogica de negocio (lecturas de validaci\'on + escrituras) sin hacer \texttt{SaveChangesAsync}.
+    \item El m\'etodo \textbf{Handle} es el entry point de MediatR que llama a Execute y controla la transacci\'on.
+    \item Cuando un handler orquesta m\'ultiples m\'odulos, llama a \texttt{Execute} de los otros handlers directamente. Solo el orquestador hace \texttt{SaveChangesAsync}. Resultado: \textbf{atomicidad real}.
+\end{itemize}
+
+\begin{proposalbox}[Enmienda Propuesta 3: Comunicaci\'on Inter-Modular Tipada y At\'omica]
+Permitir que un handler orqueste operaciones de m\'ultiples m\'odulos dentro de la misma transacci\'on, bajo estas condiciones:
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item La comunicaci\'on se hace a trav\'es de \textbf{Command DTOs validados} (con FluentValidation) que act\'uan como contrato p\'ublico del m\'odulo.
+    \item Solo el handler orquestador controla la transacci\'on (\texttt{SaveChangesAsync}).
+    \item Los m\'odulos invocados ejecutan l\'ogica de negocio y trackean cambios, pero \textbf{nunca comitean}.
+    \item Las dependencias entre m\'odulos deben ser \textbf{unidireccionales} y \textbf{documentadas} en el README del m\'odulo.
+\end{enumerate}
+\end{proposalbox}
+
+
+%% ============================================================
+\section{Resumen de Enmiendas}
+%% ============================================================
+
+\begin{center}
+\begin{tabular}{cp{5.5cm}p{5.5cm}}
+\toprule
+\textbf{\#} & \textbf{Regla Actual} & \textbf{Enmienda Propuesta} \\
+\midrule
+1 & Separaci\'on estricta uniforme para lecturas y escrituras & Separaci\'on estricta para escrituras; lecturas pueden usar \texttt{IQueryable} directamente \\
+\midrule
+2 & Aislamiento total entre m\'odulos, cero cross-import & Dependencias expl\'icitas, direccionales y no circulares; internos encapsulados \\
+\midrule
+3 & Comunicaci\'on solo por eventos o interfaces en shared & Comunicaci\'on inter-modular v\'ia Command DTOs validados; atomicidad por transacci\'on \'unica \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{1cm}
+
+\noindent\textbf{Nota Final:} Estas enmiendas no debilitan el Manifiesto. Lo alinean con el est\'andar de la industria para monolitos modulares y con la documentaci\'on oficial de Microsoft para CQRS con DDD en .NET. Los principios fundamentales del Manifiesto --- Clean Architecture, reutilizaci\'on v\'ia Garaje, calidad de c\'odigo, gobernanza --- se mantienen intactos.
+
+\end{document}

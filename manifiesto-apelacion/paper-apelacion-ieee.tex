@@ -1,0 +1,555 @@
+\documentclass[conference]{IEEEtran}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-tabla]{babel}
+\usepackage{cite}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{balance}
+\usepackage{listings}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins,breakable}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!70!black,
+    citecolor=blue!70!black,
+    urlcolor=blue!70!black,
+}
+
+\definecolor{codegreen}{rgb}{0,0.5,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.95}
+
+\lstdefinestyle{csharpstyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{codepurple}\bfseries,
+    stringstyle=\color{codegreen},
+    basicstyle=\ttfamily\scriptsize,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    showstringspaces=false,
+    tabsize=2,
+    frame=single,
+    rulecolor=\color{codegray},
+    morekeywords={var,async,await,Task,Guid,CancellationToken,record,namespace,using,public,private,static,class,interface,where,new,return,if,throw,foreach,in,null,is,not,bool,decimal,string,List,IQueryable},
+}
+\lstset{style=csharpstyle}
+
+\newtcolorbox{contradictionbox}[1][]{
+    colback=red!3,
+    colframe=red!50!black,
+    fonttitle=\bfseries\small,
+    title=#1,
+    breakable,
+    boxrule=0.5pt,
+    left=4pt, right=4pt, top=2pt, bottom=2pt,
+}
+\newtcolorbox{proposalbox}[1][]{
+    colback=blue!3,
+    colframe=blue!50!black,
+    fonttitle=\bfseries\small,
+    title=#1,
+    breakable,
+    boxrule=0.5pt,
+    left=4pt, right=4pt, top=2pt, bottom=2pt,
+}
+
+\begin{document}
+
+\title{An\'alisis Cr\'itico del Manifiesto ACIDE:\\Evaluaci\'on de Patrones Arquitect\'onicos para\\Monolitos Modulares con CQRS y DDD}
+
+\author{
+\IEEEauthorblockN{Gonzalo Enrique Guti\'errez Castillo}
+\IEEEauthorblockA{
+\'Area de Digitales -- ACIDE\\
+Arequipa, Per\'u\\
+gonzalog@acideperu.org\\
+gonzalogut.99@gmail.com\\
+\textit{Registro de Disidencia Fundamentada (Punto 3.3.D)}
+}
+}
+
+\maketitle
+
+\begin{abstract}
+El Manifiesto de Arquitectura Evolutiva y Gesti\'on de Activos Digitales (ACIDE) establece un est\'andar t\'ecnico para la construcci\'on de m\'odulos reutilizables en un ecosistema de monolito modular con Clean Architecture, CQRS y DDD en .NET. Este paper realiza una evaluaci\'on imparcial del Manifiesto, reconociendo sus contribuciones en gobernanza, reutilizaci\'on v\'ia el modelo Snapshot \& Fork, y separaci\'on de responsabilidades. Simult\'aneamente, identifica ocho antipatrones que emergen de aplicar reglas de aislamiento dise\~nadas para sistemas distribuidos a un monolito que comparte proceso, base de datos y transacci\'on. El an\'alisis se fundamenta en la literatura can\'onica de DDD, Clean Architecture, CQRS y patrones de monolitos modulares, incluyendo documentaci\'on oficial de Microsoft, trabajos de Evans, Vernon, Newman, Fowler y Martin. Se proponen tres enmiendas concretas ---separaci\'on asim\'etrica CQRS, dependencias expl\'icitas direccionales, y comunicaci\'on inter-modular at\'omica--- que preservan los objetivos del Manifiesto sin sacrificar la integridad t\'ecnica del sistema.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Clean Architecture, CQRS, DDD, monolito modular, patrones arquitect\'onicos, gobernanza t\'ecnica, antipatrones, .NET
+\end{IEEEkeywords}
+
+
+%% ============================================================
+\section{Introducci\'on}
+%% ============================================================
+
+La gesti\'on de activos de software reutilizables es un desaf\'io reconocido en la ingenier\'ia de software empresarial~\cite{krueger1992}. En consultoras que desarrollan soluciones para m\'ultiples clientes, la capacidad de extraer, catalogar y reutilizar m\'odulos funcionales tiene un impacto directo en el \textit{time-to-market} y la calidad~\cite{morisio2002}.
+
+El Manifiesto ACIDE~\cite{acide2026} aborda este desaf\'io proponiendo una ``Constituci\'on T\'ecnica'' que estandariza la estructura, comunicaci\'on y gobernanza de m\'odulos en un ecosistema .NET. Su visi\'on ---transformar c\'odigo de proyecto en ``activos de negocio'' reutilizables--- es estrat\'egicamente s\'olida y se alinea con la literatura de \textit{Software Product Lines}~\cite{pohl2005}.
+
+Sin embargo, un est\'andar t\'ecnico obligatorio requiere precisi\'on quirurgica en sus reglas. Una regla mal calibrada no solo falla en su objetivo, sino que genera complejidad accidental~\cite{brooks1987} que erosiona la productividad que busca proteger.
+
+Este paper eval\'ua el Manifiesto de forma imparcial: reconoce sus fortalezas en la Secci\'on~\ref{sec:fortalezas}, identifica antipatrones en la Secci\'on~\ref{sec:antipatrones}, analiza tres observaciones t\'ecnicas cr\'iticas en las Secciones~\ref{sec:obs1}--\ref{sec:obs3}, y propone enmiendas concretas en la Secci\'on~\ref{sec:enmiendas}.
+
+El an\'alisis se realiza bajo el derecho de Registro de Disidencia Fundamentada (Punto 3.3.D del Manifiesto).
+
+
+%% ============================================================
+\section{Contexto Arquitect\'onico}
+\label{sec:contexto}
+%% ============================================================
+
+Antes de evaluar el Manifiesto, es fundamental establecer el contexto real del sistema ACIDE:
+
+\begin{itemize}[leftmargin=1.5em, itemsep=2pt]
+    \item \textbf{Monolito modular}~\cite{newman2019}: un solo proceso desplegable con separaci\'on l\'ogica interna en m\'odulos.
+    \item \textbf{Una sola base de datos relacional}: PostgreSQL o SQL Server, compartida por todos los m\'odulos.
+    \item \textbf{EF Core} como ORM: con \textit{change tracking} y transacciones ACID.
+    \item \textbf{CQRS \textit{stateful} sin Event Sourcing}: separaci\'on de commands y queries, sin \textit{event store}.
+    \item \textbf{Modelo Snapshot \& Fork}: los m\'odulos se copian del Garaje al proyecto. No son dependencias vivas ni independientemente desplegables.
+\end{itemize}
+
+Esta distinci\'on es cr\'itica. Como establece Newman~\cite{newman2019}, un monolito modular y un sistema de microservicios tienen propiedades arquitect\'onicas fundamentalmente distintas. Las reglas de aislamiento que son \textit{necesarias} en microservicios (donde cada servicio tiene su propia base de datos y proceso) generan costos sin beneficio en un monolito que ya comparte estos recursos.
+
+Martin~\cite{martin2017} en \textit{Clean Architecture} es expl\'icito: ``\textit{A good architecture allows major decisions to be deferred}''. El Manifiesto acierta en la estructura de capas (Domain, Application, Infrastructure, API), pero sus reglas de comunicaci\'on inter-modular toman una decisi\'on prematura: tratan m\'odulos co-desplegados como si fueran servicios independientes.
+
+
+%% ============================================================
+\section{Fortalezas del Manifiesto}
+\label{sec:fortalezas}
+%% ============================================================
+
+Es importante reconocer que el Manifiesto ACIDE contiene decisiones bien fundamentadas:
+
+\subsection{Visi\'on Estrat\'egica (Secci\'on 1)}
+La transformaci\'on de ``c\'odigo de proyecto'' a ``activo de negocio'' es una aplicaci\'on pr\'actica de los principios de \textit{Software Product Lines}~\cite{pohl2005}. La met\'afora del ``Garaje'' como repositorio de m\'odulos base es clara y operativa.
+
+\subsection{Modelo Snapshot \& Fork (Secci\'on 3)}
+Este modelo resuelve elegantemente el problema de dependencias vivas entre proyectos. Al copiar en vez de referenciar, cada proyecto local es aut\'onomo. Esto elimina el riesgo de que una actualizaci\'on en el Garaje rompa sistemas en producci\'on, un problema real documentado por Humble y Farley~\cite{humble2010}.
+
+\subsection{Estructura de Capas (Secci\'on 4)}
+La separaci\'on en Domain, Application, Infrastructure y API es consistente con Clean Architecture~\cite{martin2017} y la Arquitectura Hexagonal de Cockburn~\cite{cockburn2005}. La regla de que Domain no importe infraestructura (``Dependencia Cero'') es un principio s\'olido de DDD~\cite{evans2003}.
+
+\subsection{Gobernanza (Secciones 3.3 y 6)}
+El protocolo de auditor\'ia, consenso documentado, ventana de revisi\'on de 48h/1 semana, y el Registro de Disidencia Fundamentada son mecanismos maduros de gobernanza t\'ecnica. El criterio de ``Extraibilidad'' (Punto 6.2) es una heur\'istica \'util para validar la calidad de un m\'odulo.
+
+\subsection{Pol\'itica de IA (Secci\'on 7)}
+La prohibici\'on de c\'odigo ``caja negra'' y la exigencia de que el desarrollador entienda y pueda mantener todo c\'odigo generado por IA es una postura sensata y alineada con las mejores pr\'acticas de la industria.
+
+
+%% ============================================================
+\section{Antipatrones Identificados}
+\label{sec:antipatrones}
+%% ============================================================
+
+A pesar de sus fortalezas, el Manifiesto introduce antipatrones al importar reglas de sistemas distribuidos. Los clasificamos usando la taxonomolog\'ia de Brown et al.~\cite{brown1998}:
+
+\subsection{AP-1: \textit{Distributed Monolith}}
+\textbf{Definici\'on}: Aplicar reglas de aislamiento de microservicios dentro de un monolito que comparte proceso, base de datos y transacci\'on~\cite{newman2019}.
+
+Newman acu\~n\'o el t\'ermino y advierte: ``\textit{A distributed monolith is a system that consists of multiple services, but for whatever reason the entire system has to be deployed together. [...] It has all the disadvantages of a distributed system, and the disadvantages of a single-process monolith, without having enough upsides of either}''~\cite{newman2015}.
+
+En ACIDE, los m\'odulos no son servicios independientes: comparten DbContext, transacci\'on y proceso. Tratarlos como compartimentos estancos comunicados solo por eventos impone los costos del aislamiento distribuido sin obtener sus beneficios (escalabilidad independiente, despliegue aut\'onomo, tolerancia a fallos parcial).
+
+\subsection{AP-2: \textit{Middle Man / Pass-through Layer}}
+\textbf{Definici\'on}: Una capa intermedia que no agrega valor y solo reenv\'ia llamadas~\cite{fowler1999}.
+
+Cuando las queries pasan por interfaces de repositorio en Domain que solo delegan a Infrastructure, se tiene: query handler $\to$ interfaz $\to$ repositorio $\to$ EF Core. Tres indirecciones para un \texttt{SELECT}. Fowler identifica esto como el \textit{smell} ``Middle Man''~\cite{fowler1999}.
+
+\subsection{AP-3: \textit{Header Interface}}
+\textbf{Definici\'on}: Interfaces con decenas de m\'etodos espec\'ificos que no representan una abstracci\'on coherente~\cite{fowler2002}.
+
+Al obligar que todas las queries pasen por interfaces en Domain, estas crecen con m\'etodos de un solo uso: \texttt{GetByIdWithIncludes}, \texttt{GetPaginatedByStatus}, \texttt{SearchByNameAndDate}. Martin lo identifica como una violaci\'on del \textit{Interface Segregation Principle}~\cite{martin2003}.
+
+\subsection{AP-4: \textit{Leaky Abstraction} Inversa}
+\textbf{Definici\'on}: Una abstracci\'on que modela impl\'icitamente las capacidades de la tecnolog\'ia que pretende ocultar~\cite{spolsky2002}.
+
+Las interfaces de consulta en Domain terminan exponiendo conceptos de EF Core (paginaci\'on, \texttt{Include}, sorting). La abstracci\'on ``pura'' est\'a moldeada por el ORM.
+
+\subsection{AP-5: \textit{Theatrical Decoupling}}
+\textbf{Definici\'on}: Desacoplamiento que existe en el c\'odigo pero no en la realidad operativa.
+
+Los m\'odulos ACIDE siempre se copian juntos, comparten la misma base de datos y se despliegan en el mismo proceso. El aislamiento total existe en la estructura de carpetas pero no en el sistema real. Como advierte Tilkov~\cite{tilkov2015}: ``\textit{If modules are always deployed together, always share the same database, and always change together, they are not independent---they are one system with internal structure}''.
+
+\subsection{AP-6: Eventos sin Infraestructura de Eventos}
+Los domain events v\'ia MediatR se procesan en la misma transacci\'on (\textit{in-process}). Esto no es comunicaci\'on as\'incrona real: si el handler del evento falla, la transacci\'on completa hace rollback. Como documenta Grzybek~\cite{grzybek2019}: ``\textit{In-process domain events using MediatR are synchronous by nature. They execute within the same transaction scope, which means they couple the modules transactionally}''.
+
+\subsection{AP-7: Composici\'on Imposible}
+El Punto 5.7.B propone composici\'on por interfaces (\texttt{ICalculadorDeImpuestos}), pero:
+\begin{itemize}[leftmargin=1.5em, itemsep=1pt]
+    \item Si usa tipos primitivos, pierde el valor de DDD~\cite{evans2003}.
+    \item Si usa tipos del Domain de otro m\'odulo, viola el cross-import.
+    \item Si duplica tipos, arriesga la ``Divergencia Salvaje'' (Punto 3.5).
+    \item Para que otro m\'odulo implemente la interfaz, necesita referenciar el assembly donde est\'a definida.
+\end{itemize}
+No existe c\'odigo compilable que satisfaga todas las reglas simult\'aneamente.
+
+\subsection{AP-8: DTOs Internos sin Rol Definido}
+Application contiene ``DTOs internos'' (Punto 4.2.B), pero el Manifiesto no define su rol en la comunicaci\'on inter-modular. En la arquitectura actual de ACIDE, estos DTOs ya funcionan como \textbf{contratos p\'ublicos validados}: cada Command DTO tiene un Validator (FluentValidation) que protege la frontera del m\'odulo, sea que el comando venga de la API o de otro handler. El Manifiesto deber\'ia reconocer expl\'icitamente este patr\'on ---Command DTO + Validator como contrato inter-modular--- en vez de clasificarlos como ``internos'', lo cual contradice su uso real y oscurece un mecanismo que ya resuelve el problema de comunicaci\'on tipada entre m\'odulos.
+
+
+%% ============================================================
+\section{Observaci\'on 1: Separaci\'on de Lecturas y Escrituras}
+\label{sec:obs1}
+%% ============================================================
+
+\subsection{Lo que establece el Manifiesto}
+La separaci\'on Domain$\to$Interface$\to$Infrastructure es uniforme para todas las operaciones. No distingue entre lecturas y escrituras.
+
+\subsection{An\'alisis del Problema}
+
+CQRS~\cite{young2010} se fundamenta en una asimetr\'ia esencial: las \textbf{escrituras} protegen invariantes de negocio y requieren el modelo de dominio completo; las \textbf{lecturas} devuelven datos planos sin mutar estado. Esta asimetr\'ia deberia reflejarse en la arquitectura.
+
+\begin{contradictionbox}[Contradicci\'on con la gu\'ia oficial de Microsoft]
+La documentaci\'on oficial de Microsoft para .NET~\cite{microsoft2023} establece:
+
+``\textit{This guide suggests using DDD patterns only in the transactional/updates area of your microservice (that is, as triggered by commands). Queries can follow a simpler approach.}''
+
+Y m\'as espec\'ificamente sobre queries:
+
+``\textit{If you're using the CQS/CQRS architectural pattern, the initial queries are performed by side queries out of the domain model, performed by simple SQL statements using Dapper. This approach is much more flexible than repositories.}''
+\end{contradictionbox}
+
+Jimmy Bogard, creador de MediatR (la librer\'ia que ACIDE usa para CQRS), lo confirma: ``\textit{I'm really not a fan of repositories, mainly because they hide the important details of the underlying persistence mechanism. Going CQRS meant that we didn't really have a need for repositories any more}''~\cite{bogard2012}.
+
+Vernon~\cite{vernon2013} en \textit{Implementing Domain-Driven Design} establece que los repositorios son un patr\'on de \textit{escritura}: ``\textit{Repositories are used to persist and reconstitute Aggregates}''. Las queries de lectura operan sobre \textit{projections} o vistas, no sobre aggregates.
+
+Greg Young~\cite{young2010}, quien formaliz\'o CQRS, es expl\'icito: ``\textit{The query side is not a domain. There is no behavior to it. Queries are a reporting concern, not a domain concern}''.
+
+\subsection{Respuesta al Argumento de Portabilidad de ORM}
+
+El argumento ``si cambiamos de ORM, la interfaz nos protege'' no resiste an\'alisis en el contexto de ACIDE:
+
+\begin{enumerate}[leftmargin=1.5em, itemsep=2pt]
+    \item \textbf{Probabilidad:} EF Core es el ORM oficial de Microsoft con soporte de largo plazo. En una consultora .NET, la probabilidad de migrar es pr\'acticamente nula.
+    \item \textbf{La abstracci\'on no protege:} Si se cambia de ORM, se reescribe toda la capa de Infrastructure. La interfaz no ahorra ese trabajo~\cite{fowler2002}.
+    \item \textbf{Sin abstracci\'on, la migraci\'on es m\'as granular:} Se puede migrar query por query. eShopOnContainers~\cite{microsoft2023} usa EF Core para commands y Dapper para queries en el mismo proyecto.
+    \item \textbf{YAGNI:} Martin~\cite{martin2003} y Beck~\cite{beck2004} coinciden: no se debe pagar el costo de una abstracci\'on para un escenario hipot\'etico. ``\textit{You Aren't Gonna Need It}''.
+\end{enumerate}
+
+
+%% ============================================================
+\section{Observaci\'on 2: Aislamiento Total entre M\'odulos}
+\label{sec:obs2}
+%% ============================================================
+
+\subsection{Lo que establece el Manifiesto}
+Punto 4.3 y 5.2: ``Prohibido el Cross-Import. Un m\'odulo no puede importar archivos internos de otro.'' Los m\'odulos deben ser compartimentos estancos.
+
+\subsection{An\'alisis del Problema}
+
+\subsubsection{P\'erdida de Integridad Referencial}
+En un monolito con una sola base de datos, si \texttt{Matricula} tiene un FK a \texttt{Alumno}, EF Core necesita conocer el tipo \texttt{Alumno} para configurar la relaci\'on. Sin cross-import, las opciones son:
+
+\begin{itemize}[leftmargin=1.5em, itemsep=1pt]
+    \item Usar \texttt{Guid} sin constraint real $\to$ pierde integridad referencial.
+    \item No tener navigation properties $\to$ pierde \texttt{Include()}, JOINs y type-safety.
+    \item Duplicar la entidad $\to$ arriesga ``Divergencia Salvaje''.
+\end{itemize}
+
+Grzybek~\cite{grzybek2019} en su implementaci\'on de referencia de Modular Monolith con DDD resuelve esto permitiendo que un m\'odulo referencie los \textit{contratos p\'ublicos} de otro m\'odulo, manteniendo \texttt{internal} los repositorios e infraestructura.
+
+\subsubsection{La Composici\'on del Punto 5.7.B no Compila}
+
+\begin{contradictionbox}[Contradicci\'on l\'ogica interna]
+Sea M\'odulo A que define \texttt{ICalculadorDeImpuestos} y M\'odulo B que lo implementa:
+\begin{itemize}[leftmargin=1.5em, itemsep=1pt]
+    \item B necesita referenciar A para conocer la interfaz $\to$ esto es un cross-import.
+    \item Si la interfaz va a \texttt{shared/}, A ya no la ``posee'' $\to$ viola Propiedad del Dato (5.5).
+    \item Si la interfaz usa \texttt{decimal} en vez de \texttt{Money} (Value Object), pierde DDD.
+    \item Si la interfaz usa \texttt{Money} de A, B necesita importar de A $\to$ cross-import.
+\end{itemize}
+No existe soluci\'on que satisfaga todas las restricciones simult\'aneamente.
+\end{contradictionbox}
+
+\subsubsection{Evidencia de la Industria}
+
+Evans~\cite{evans2003} en el \textit{Blue Book} no propone aislamiento total entre \textit{Bounded Contexts} dentro del mismo proceso. Define tres tipos de relaci\'on: \textit{Shared Kernel}, \textit{Customer-Supplier}, y \textit{Conformist}. Todos permiten referencias cruzadas controladas.
+
+Vernon~\cite{vernon2013} distingue expl\'icitamente entre \textit{Bounded Contexts} en el mismo proceso y en procesos separados: ``\textit{When two Bounded Contexts reside in the same process, they can communicate through simple method invocations or direct object references. The need for full isolation applies primarily when contexts are deployed independently}''.
+
+
+%% ============================================================
+\section{Observaci\'on 3: Comunicaci\'on Inter-Modular}
+\label{sec:obs3}
+%% ============================================================
+
+\subsection{Lo que establece el Manifiesto}
+Punto 5.6: Tres opciones de comunicaci\'on --- eventos de dominio, interfaces compartidas en \texttt{shared}, u orquestaci\'on en Application (``sin permitir que un m\'odulo conozca a otro'').
+
+\subsection{An\'alisis del Problema}
+
+\subsubsection{Atomicidad Transaccional}
+En un sistema CQRS stateful sin Event Sourcing, las operaciones cross-module at\'omicas son frecuentes. Ejemplo: crear un A\~no Acad\'emico con sus Grados y Secciones requiere una sola transacci\'on.
+
+Las tres opciones del Manifiesto fallan en atomicidad:
+
+\begin{enumerate}[leftmargin=1.5em, itemsep=2pt]
+    \item \textbf{Eventos de dominio:} V\'ia MediatR son \textit{in-process} y s\'incronos~\cite{bogard2012}. Se ejecutan en la misma transacci\'on, lo que acopla transaccionalmente los m\'odulos. Si un handler falla, todo el rollback afecta a todos los m\'odulos. Esto es peor que una referencia directa: el acoplamiento es impl\'icito.
+    \item \textbf{Interfaces en shared:} Requieren resolver las contradicciones del Punto 5.7.B (AP-7).
+    \item \textbf{Orquestaci\'on en Application:} El Manifiesto dice que Application ``solo conoce al Domain''. \textquestiondown C\'omo orquesta m\'odulos que no puede importar?
+\end{enumerate}
+
+\subsubsection{Soluci\'on que ya Existe en el Sistema}
+La arquitectura actual de ACIDE ya resuelve este problema con un patr\'on documentado por Jovanovi\'c~\cite{jovanovic2024}:
+
+\begin{itemize}[leftmargin=1.5em, itemsep=1pt]
+    \item Cada Command tiene un \textbf{DTO} (record) como contrato tipado.
+    \item Cada Command tiene un \textbf{Validator} (FluentValidation) como frontera.
+    \item El m\'etodo \textbf{Execute} contiene l\'ogica sin llamar a \texttt{SaveChangesAsync}.
+    \item Un handler orquestador llama a \texttt{Execute} de m\'ultiples m\'odulos y controla una sola transacci\'on.
+\end{itemize}
+
+Este patr\'on es equivalente al \textit{Application Service} de Vernon~\cite{vernon2013}: ``\textit{Application Services coordinate the activity of Aggregates and may cross Bounded Context boundaries when orchestrating use cases}''.
+
+
+%% ============================================================
+\section{Discusi\'on: La Falacia del Aislamiento Prematuro}
+\label{sec:discusion}
+%% ============================================================
+
+El hilo conductor de los ocho antipatrones es la \textbf{aplicaci\'on prematura de reglas de aislamiento}. Fowler~\cite{fowler2015} advierte contra esto con el patr\'on ``Monolith First'':
+
+\begin{quote}
+\textit{``Don't start a new project with microservices, even if you're sure your application will be big enough to make it worthwhile. [...] Almost all the successful microservice stories have started with a monolith that got too big and was broken up.''}
+\end{quote}
+
+El Manifiesto ACIDE reconoce correctamente que el sistema es un monolito modular (no microservicios). Sin embargo, impone reglas de aislamiento de microservicios. Esto genera lo que Newman~\cite{newman2019} denomina \textit{``the worst of both worlds''}: los costos de coordinaci\'on de un sistema distribuido con las limitaciones de un monolito.
+
+Tabla~\ref{tab:comparacion} resume las diferencias entre las reglas apropiadas para cada contexto:
+
+\begin{table}[htbp]
+\centering
+\caption{Reglas de aislamiento: microservicios vs.\ monolito modular}
+\label{tab:comparacion}
+\small
+\begin{tabular}{p{2cm}p{2.8cm}p{2.8cm}}
+\toprule
+\textbf{Aspecto} & \textbf{Microservicios} & \textbf{Monolito Modular} \\
+\midrule
+Base de datos & Una por servicio & Compartida \\
+Cross-import & Imposible (procesos separados) & Controlado (mismo proceso) \\
+Transacciones & Sagas / eventual consistency & ACID nativas \\
+Comunicaci\'on & HTTP / mensajer\'ia & M\'etodos directos / MediatR \\
+Deploy & Independiente & Conjunto \\
+FKs cross-module & No aplica & Posible y deseable \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Grzybek~\cite{grzybek2019}, en su implementaci\'on de referencia de \textit{Modular Monolith with DDD} (1.5k+ estrellas en GitHub), permite expl\'icitamente que los m\'odulos referencien los contratos p\'ublicos de otros m\'odulos. En nuestro contexto, extendemos este principio: la superficie p\'ublica incluye Domain (entidades, contratos) y Application (handlers con sus Command DTOs), mientras que repositorios e infraestructura permanecen \texttt{internal}.
+
+
+%% ============================================================
+\section{Enmiendas Propuestas}
+\label{sec:enmiendas}
+%% ============================================================
+
+Las enmiendas preservan los principios fundamentales del Manifiesto (Clean Architecture, reutilizaci\'on, calidad, gobernanza) mientras alinean las reglas con la literatura de la industria.
+
+\subsection{Enmienda 1: Separaci\'on Asim\'etrica CQRS}
+
+\begin{proposalbox}[Enmienda 1]
+La separaci\'on estricta Domain$\to$Interface$\to$Infrastructure aplica obligatoriamente para \textbf{operaciones de escritura} (Commands). Para \textbf{operaciones de lectura} (Queries), los query handlers pueden acceder a infraestructura directamente.
+
+\medskip
+\textbf{Justificaci\'on:} Microsoft~\cite{microsoft2023}, Young~\cite{young2010}, Bogard~\cite{bogard2012}, Vernon~\cite{vernon2013}.
+
+\medskip
+\textbf{Dentro de un Command}, se permiten dos tipos de lectura:
+\begin{itemize}[leftmargin=1.5em, itemsep=1pt]
+    \item \textbf{Carga de aggregate v\'ia repositorio}: cuando se va a mutar la entidad.
+    \item \textbf{Query de soporte v\'ia \texttt{IQueryable}}: validaciones simples, verificaciones de existencia.
+\end{itemize}
+\end{proposalbox}
+
+\subsection{Enmienda 2: Dependencias Expl\'icitas y Direccionales}
+
+\begin{proposalbox}[Enmienda 2]
+Reemplazar ``aislamiento total'' por tres reglas verificables:
+
+\medskip
+\textbf{R1 --- Propiedad exclusiva de escritura.} Solo el m\'odulo due\~no de una entidad puede crearla, modificarla o eliminarla.
+
+\medskip
+\textbf{R2 --- Referencias de dominio expl\'icitas.} Un m\'odulo puede referenciar entidades y value objects del dominio de otro m\'odulo. La dependencia debe ser unidireccional. Las referencias circulares est\'an prohibidas.
+
+\medskip
+\textbf{R3 --- Internos encapsulados.} Los repositorios e infraestructura de un m\'odulo son \texttt{internal}. La superficie p\'ublica es: Domain (entidades y contratos) y Application (handlers con sus Command DTOs validados), permitiendo la reutilizaci\'on de l\'ogica de negocio v\'ia \texttt{Execute}.
+
+\medskip
+\textbf{Justificaci\'on:} Evans~\cite{evans2003} (\textit{Shared Kernel}), Grzybek~\cite{grzybek2019}, Vernon~\cite{vernon2013}.
+\end{proposalbox}
+
+\begin{table}[htbp]
+\centering
+\caption{Matriz de dependencias propuesta}
+\label{tab:dependencias}
+\small
+\begin{tabular}{llc}
+\toprule
+\textbf{Origen} & \textbf{Destino} & \textbf{\textquestiondown Perm.?} \\
+\midrule
+Modulo.Domain & Otro.Domain (entidades, VOs) & \textcolor{green!50!black}{S\'i} \\
+Modulo.Application & Otro.Domain & \textcolor{red!60!black}{No} \\
+Modulo.Application & Otro.Application (handlers) & \textcolor{green!50!black}{S\'i} \\
+Modulo.Infrastructure & Otro.Infrastructure & \textcolor{red!60!black}{No} \\
+Cualquier m\'odulo & Otro (Command DTOs) & \textcolor{green!50!black}{S\'i} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Enmienda 3: Comunicaci\'on Inter-Modular At\'omica}
+
+\begin{proposalbox}[Enmienda 3]
+Permitir que un handler orqueste operaciones de m\'ultiples m\'odulos dentro de la misma transacci\'on, bajo estas condiciones:
+
+\begin{enumerate}[leftmargin=1.5em, itemsep=1pt]
+    \item La comunicaci\'on usa \textbf{Command DTOs validados} (FluentValidation).
+    \item Solo el handler orquestador controla la transacci\'on.
+    \item Los m\'odulos invocados ejecutan l\'ogica sin comitear.
+    \item Las dependencias son \textbf{unidireccionales} y documentadas.
+\end{enumerate}
+
+\medskip
+\textbf{Justificaci\'on:} Vernon~\cite{vernon2013} (\textit{Application Service}), Jovanovi\'c~\cite{jovanovic2024}, patr\'on existente en ACIDE.
+\end{proposalbox}
+
+
+%% ============================================================
+\section{Resumen Comparativo}
+%% ============================================================
+
+\begin{table}[htbp]
+\centering
+\caption{Resumen de enmiendas propuestas}
+\label{tab:resumen}
+\small
+\begin{tabular}{cp{3.3cm}p{3.3cm}}
+\toprule
+\textbf{\#} & \textbf{Regla Actual} & \textbf{Enmienda} \\
+\midrule
+1 & Separaci\'on estricta uniforme para lecturas y escrituras & Estricta para escrituras; lecturas usan \texttt{IQueryable} \\
+\midrule
+2 & Aislamiento total, cero cross-import & Dependencias expl\'icitas, direccionales, no circulares \\
+\midrule
+3 & Comunicaci\'on solo por eventos o shared & Command DTOs validados; transacci\'on \'unica \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+%% ============================================================
+\section{Conclusiones}
+%% ============================================================
+
+El Manifiesto ACIDE tiene una visi\'on estrat\'egica s\'olida y mecanismos de gobernanza maduros. Su estructura de capas es consistente con Clean Architecture y DDD. El modelo Snapshot \& Fork es pragm\'atico y efectivo para una consultora.
+
+Sin embargo, las reglas de comunicaci\'on inter-modular importan restricciones de sistemas distribuidos que no aplican al contexto real de ACIDE. Esto genera ocho antipatrones documentados que erosionan la productividad y la integridad t\'ecnica del sistema.
+
+Las tres enmiendas propuestas no debilitan el Manifiesto. Lo alinean con:
+\begin{itemize}[leftmargin=1.5em, itemsep=1pt]
+    \item La documentaci\'on oficial de Microsoft para CQRS~\cite{microsoft2023}.
+    \item El \textit{Blue Book} de Evans~\cite{evans2003} y el \textit{Red Book} de Vernon~\cite{vernon2013}.
+    \item Clean Architecture de Martin~\cite{martin2017}.
+    \item La implementaci\'on de referencia de Grzybek~\cite{grzybek2019}.
+    \item El patr\'on existente en el propio c\'odigo de ACIDE.
+\end{itemize}
+
+Los principios fundamentales ---Clean Architecture, reutilizaci\'on v\'ia Garaje, calidad, gobernanza--- se mantienen intactos. Las enmiendas solo ajustan las reglas de aislamiento al contexto real de un monolito modular.
+
+\balance
+
+%% ============================================================
+% REFERENCES
+%% ============================================================
+\begin{thebibliography}{99}
+
+\bibitem{acide2026}
+E. Romario Huayhua Paco, ``Manifiesto de Arquitectura Evolutiva y Gesti\'on de Activos Digitales (ACIDE),'' ACIDE, versi\'on 19/03/2026.
+
+\bibitem{evans2003}
+E. Evans, \textit{Domain-Driven Design: Tackling Complexity in the Heart of Software}. Addison-Wesley, 2003.
+
+\bibitem{vernon2013}
+V. Vernon, \textit{Implementing Domain-Driven Design}. Addison-Wesley, 2013.
+
+\bibitem{martin2017}
+R.C. Martin, \textit{Clean Architecture: A Craftsman's Guide to Software Structure and Design}. Prentice Hall, 2017.
+
+\bibitem{martin2003}
+R.C. Martin, \textit{Agile Software Development, Principles, Patterns, and Practices}. Prentice Hall, 2003.
+
+\bibitem{newman2015}
+S. Newman, \textit{Building Microservices: Designing Fine-Grained Systems}, 1st ed. O'Reilly, 2015.
+
+\bibitem{newman2019}
+S. Newman, \textit{Monolith to Microservices: Evolutionary Patterns to Transform Your Monolith}. O'Reilly, 2019.
+
+\bibitem{fowler2002}
+M. Fowler, \textit{Patterns of Enterprise Application Architecture}. Addison-Wesley, 2002.
+
+\bibitem{fowler1999}
+M. Fowler, \textit{Refactoring: Improving the Design of Existing Code}. Addison-Wesley, 1999.
+
+\bibitem{fowler2015}
+M. Fowler, ``Monolith First,'' \textit{martinfowler.com}, Jun. 2015. [Online]. Available: \url{https://martinfowler.com/bliki/MonolithFirst.html}
+
+\bibitem{young2010}
+G. Young, ``CQRS Documents,'' \textit{cqrs.files.wordpress.com}, Nov. 2010.
+
+\bibitem{microsoft2023}
+Microsoft, ``Microservices architecture e-book: CQRS and DDD patterns,'' \textit{learn.microsoft.com}, 2023. [Online]. Available: \url{https://learn.microsoft.com/en-us/dotnet/architecture/microservices/}
+
+\bibitem{bogard2012}
+J. Bogard, ``Busting some CQRS myths,'' \textit{jimmybogard.com}, Aug. 2012.
+
+\bibitem{grzybek2019}
+K. Grzybek, ``Modular Monolith with DDD,'' \textit{github.com/kgrzybek}, 2019. [Online]. Available: \url{https://github.com/kgrzybek/modular-monolith-with-ddd}
+
+\bibitem{jovanovic2024}
+M. Jovanovi\'c, ``Modular Monolith Architecture,'' \textit{milanjovanovic.tech}, 2024.
+
+\bibitem{cockburn2005}
+A. Cockburn, ``Hexagonal Architecture,'' \textit{alistair.cockburn.us}, 2005.
+
+\bibitem{tilkov2015}
+S. Tilkov, ``Don't start with a monolith,'' \textit{martinfowler.com}, Jun. 2015.
+
+\bibitem{spolsky2002}
+J. Spolsky, ``The Law of Leaky Abstractions,'' \textit{joelonsoftware.com}, Nov. 2002.
+
+\bibitem{brooks1987}
+F.P. Brooks, ``No Silver Bullet---Essence and Accident in Software Engineering,'' \textit{Computer}, vol. 20, no. 4, pp. 10--19, Apr. 1987.
+
+\bibitem{krueger1992}
+C.W. Krueger, ``Software reuse,'' \textit{ACM Computing Surveys}, vol. 24, no. 2, pp. 131--183, Jun. 1992.
+
+\bibitem{pohl2005}
+K. Pohl, G. B\"ockle, and F.J. van der Linden, \textit{Software Product Line Engineering}. Springer, 2005.
+
+\bibitem{humble2010}
+J. Humble and D. Farley, \textit{Continuous Delivery: Reliable Software Releases through Build, Test, and Deployment Automation}. Addison-Wesley, 2010.
+
+\bibitem{brown1998}
+W.J. Brown, R.C. Malveau, H.W. McCormick, and T.J. Mowbray, \textit{AntiPatterns: Refactoring Software, Architectures, and Projects in Crisis}. Wiley, 1998.
+
+\bibitem{beck2004}
+K. Beck, \textit{Extreme Programming Explained: Embrace Change}, 2nd ed. Addison-Wesley, 2004.
+
+\bibitem{morisio2002}
+M. Morisio, M. Ezran, and C. Tully, ``Success and failure factors in software reuse,'' \textit{IEEE Trans. Softw. Eng.}, vol. 28, no. 4, pp. 340--357, Apr. 2002.
+
+\end{thebibliography}
+
+\end{document}
