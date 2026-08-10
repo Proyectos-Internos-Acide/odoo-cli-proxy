@@ -75,12 +75,12 @@ class OdooClient:
 
     def create(self, model: str, vals: Dict[str, Any]) -> int:
         """Helper to create a record."""
-        return int(self.execute(model, 'create', [vals]))
+        return int(self.execute(model, 'create', vals))
 
     def write(self, model: str, ids: List[int], vals: Dict[str, Any]) -> bool:
         """Helper to update records."""
-        return bool(self.execute(model, 'write', [ids, vals]))
+        return bool(self.execute(model, 'write', ids, vals))
 
     def unlink(self, model: str, ids: List[int]) -> bool:
         """Helper to delete records."""
-        return bool(self.execute(model, 'unlink', [ids]))
+        return bool(self.execute(model, 'unlink', ids))

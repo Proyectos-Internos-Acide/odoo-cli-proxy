@@ -64,30 +64,54 @@ La empresa no tiene campo `tz` directo, pero su calendario de recursos si.
 
 ### 5. Calendarios de recursos
 
+> **Cambio en saas~19.2**: `resource.calendar` **ya no tiene campo `tz`**.
+> Consultarlo lanza `ValueError: Invalid field 'tz' on 'resource.calendar'`.
+> La zona horaria vive ahora en el recurso (`resource.resource.tz`, seccion 6)
+> y en el usuario. El "fix masivo" que habia aqui ya no aplica.
+
 **Modelo**: `resource.calendar`
-**Campo**: `tz`
+**Campos utiles**: `name`, `hours_per_day`, `attendance_ids`
 **Donde**: Ajustes > Tecnico > Recursos > Horarios laborales
 
 ```python
-calendars = client.search_read('resource.calendar', domain=[], fields=['name', 'tz'])
-for cal in calendars:
-    print(f'{cal["name"]}: tz={cal.get("tz")}')
-
-# Fix masivo
-cals_to_fix = client.search_read('resource.calendar',
-    domain=[['tz', '=', 'UTC']], fields=['id'])
-if cals_to_fix:
-    ids = [c['id'] for c in cals_to_fix]
-    client.execute('resource.calendar', 'write', ids, {'tz': 'America/Lima'})
+f = set(client.execute('resource.calendar', 'fields_get', [], ['string']))
+use = [x for x in ['name', 'hours_per_day'] if x in f]
+for cal in client.search_read('resource.calendar', domain=[], fields=use):
+    att = client.search_read('resource.calendar.attendance',
+                             [['calendar_id', '=', cal['id']]], fields=['dayofweek'])
+    dias = sorted(set(a['dayofweek'] for a in att))
+    n = len(client.search_read('resource.resource',
+                               [['calendar_id', '=', cal['id']]], fields=['id']))
+    print(f'{cal["name"]}: {cal.get("hours_per_day")} h/dia, dias={dias}, {n} recursos')
 ```
 
 Calendarios tipicos en un hotel:
 
-| Calendario | Proposito | tz recomendado |
+| Calendario | Proposito | Cobertura |
 |---|---|---|
-| Standard 40 hours/week | Empleados | America/Lima |
-| Rental 24/7 | Habitaciones (recursos materiales) | America/Lima |
-| Opening time | Restaurante/servicios | America/Lima |
+| Standard 40 hours/week | Empleados | 8 h/dia, lunes a viernes |
+| Rental 24/7 | Habitaciones (recursos materiales) | 24 h/dia, los 7 dias |
+| Opening time | Restaurante/servicios | 4 h/dia, lunes a viernes |
+
+**Las habitaciones tienen que estar en `Rental 24/7`.** Con el calendario de
+empleados pasan dos cosas:
+
+- `allocated_hours` de los turnos sale mal. Una estancia de una noche en fin de
+  semana da **0 horas**, porque no hay horas laborables que contar.
+- El gantt de Planning lleva `display_unavailability="1"`, asi que pinta noches
+  y fines de semana como no disponibles en un hotel que abre siempre.
+
+Lo que **no** depende del calendario, comprobado sobre 30 turnos reales:
+
+```
+x_nights   = ceil((end_datetime - start_datetime) / 86400)   -> no cambia
+x_city_tax = x_nights * x_guests                             -> no cambia
+```
+
+Es decir, mover las habitaciones de calendario **no altera las noches
+facturadas ni el impuesto municipal**. Solo recalcula `allocated_hours` y
+arregla la indisponibilidad del gantt. Es reversible: basta con devolver
+`calendar_id` a su valor anterior.
 
 ### 6. Recursos (habitaciones, mesas, equipos)
 
